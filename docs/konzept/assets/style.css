@@ -1,0 +1,217 @@
+:root {
+  --bg: #0f1419;
+  --sidebar-bg: #161c24;
+  --content-bg: #1a2129;
+  --text: #d6dde6;
+  --text-dim: #8b98a8;
+  --accent: #e8a33d;
+  --accent-soft: rgba(232, 163, 61, 0.12);
+  --border: #2a3441;
+  --open: #e05d5d;
+  --done: #4caf7d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---------- Sidebar ---------- */
+#sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+#sidebar h1 {
+  font-size: 1.15rem;
+  margin: 0 0 4px;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  margin: 0 0 24px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+#nav { display: flex; flex-direction: column; gap: 4px; }
+
+#nav a {
+  display: block;
+  padding: 9px 12px;
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.92rem;
+  border-left: 3px solid transparent;
+  transition: background 0.15s;
+}
+
+#nav a:hover { background: rgba(255, 255, 255, 0.05); }
+
+#nav a.active {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+  color: var(--accent);
+}
+
+#nav a .nav-num {
+  color: var(--text-dim);
+  margin-right: 8px;
+  font-size: 0.8rem;
+}
+
+/* ---------- Fortschritt ---------- */
+#progress-box {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+
+#progress-count { color: var(--text-dim); }
+
+.progress-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--done);
+  transition: width 0.4s ease;
+}
+
+.progress-hint {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin: 6px 0 0;
+}
+
+/* ---------- Content ---------- */
+#content {
+  flex: 1;
+  padding: 40px 56px;
+  background: var(--content-bg);
+  min-width: 0;
+}
+
+#doc { max-width: 860px; }
+
+#doc h1 {
+  font-size: 1.7rem;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+#doc h2 {
+  margin-top: 36px;
+  font-size: 1.25rem;
+  color: var(--accent);
+}
+
+#doc h3 { margin-top: 26px; font-size: 1.05rem; }
+
+#doc p, #doc li { line-height: 1.65; }
+
+#doc blockquote {
+  margin: 16px 0;
+  padding: 10px 18px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--text-dim);
+  border-radius: 0 6px 6px 0;
+}
+
+#doc table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 0.9rem;
+}
+
+#doc th, #doc td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+#doc th { background: var(--sidebar-bg); color: var(--accent); }
+
+#doc tr:nth-child(even) td { background: rgba(255, 255, 255, 0.02); }
+
+#doc code {
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.85em;
+}
+
+#doc pre {
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+#doc pre code { background: none; border: none; padding: 0; }
+
+/* ---------- Checklisten ---------- */
+#doc li.task-list-item { list-style: none; margin-left: -1.4em; }
+
+#doc li.task-list-item input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: var(--done);
+  transform: scale(1.2);
+  cursor: default;
+}
+
+#doc li.task-list-item { padding: 4px 0; }
+
+#doc li.task-list-item:not(:has(input:checked)) > strong { color: var(--open); }
+#doc li.task-list-item:has(input:checked) { opacity: 0.6; }
+#doc li.task-list-item:has(input:checked) > strong { color: var(--done); }
+
+.loading, .error {
+  color: var(--text-dim);
+  padding: 40px 0;
+  font-style: italic;
+}
+
+.error { color: var(--open); font-style: normal; }
+
+@media (max-width: 800px) {
+  body { flex-direction: column; }
+  #sidebar { width: 100%; height: auto; position: static; }
+  #content { padding: 24px; }
+}

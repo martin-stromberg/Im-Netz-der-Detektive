@@ -1,0 +1,11 @@
+{
+  "project": "Im Netz der Detektive",
+  "docs": [
+    { "file": "00-uebersicht.md", "title": "Übersicht" },
+    { "file": "01-spielkonzept.md", "title": "Spielkonzept" },
+    { "file": "02-technisches-konzept.md", "title": "Technisches Konzept" },
+    { "file": "04-balancing.md", "title": "Balancing" },
+    { "file": "03-offene-themen.md", "title": "Offene Themen (Archiv)" },
+    { "file": "05-website.md", "title": "Über diese Seite" }
+  ]
+}
