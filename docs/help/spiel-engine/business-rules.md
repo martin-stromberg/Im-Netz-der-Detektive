@@ -447,3 +447,76 @@ harte Regeln.
 
 **Umsetzung:** `Recorder.ts` (Serialisierung, Export, FIFO-Persistenz)
 und die `appendLog`-Aufrufstellen in `useGameStore`.
+
+## Deduktion — konsistente Positionshistorien
+
+**Beschreibung:** Die Detektivseite errechnet aus allen bekannten
+Hinweisen die Menge der möglichen Ganoven-Positionen. Grundlage ist
+`01-spielkonzept.md` §6 (Deduktionswerkzeuge): nicht Punktmengen pro
+Runde, sondern **Historien** — eine Position zählt nur, wenn sie über
+einen Kantenzug (oder `aktion`-Verharren) aus einer Position der
+Vor-Runde erreichbar ist.
+
+**Bedingungen:**
+- `camera`/`sichtbarkeit`/`aktion` pinnen die Position auf den Knoten
+  der jeweiligen Runde; `hinweis` schneidet mit dem gemeldeten
+  Zonenball.
+- Verharren ist nur mit `aktion`-Spur möglich (Zugzwang).
+- Bewegungsrunde ohne Kameratreffer → keine aktive Kamera betreten
+  (Negativ-Schluss); in `aktion`-Runden entfällt der Schluss.
+- `umwelt`-Sperrungen wirken erst ab der Folgerunde (Ereignis feuert
+  nach dem Ganovenzug).
+- Detektiv-belegte Knoten sind ausgeschlossen; der Spawn-Prior ist die
+  öffentliche `ganoveSpawnChoices`-Menge.
+- `falsche_spur` verfälscht bewusst — die Korrektheitsgarantie
+  (Ganovenposition nie falsch ausgeschlossen) gilt für unverfälschte
+  Hinweise; Monotonie: mehr Hinweise → nie mehr Kandidaten.
+
+**Umsetzung:** `Deduction.ts` (`deducePossiblePositions`,
+`lastHintAnchor`).
+
+## KI — Detektiv-Trupp und Ganove
+
+**Beschreibung:** `DetectiveAI` steuert den gesamten Trupp koordiniert;
+`GanoveAI` führt die Mission. Beide arbeiten nur auf gefilterten
+Sichten — die Informationsasymmetrie aus §1 ist strukturell, nicht
+konventionell.
+
+**Bedingungen:**
+- `DetectiveView` enthält keine Ganovenposition und keine
+  Missionszielknoten (nur `missionStructure` mit Stufen-Stati).
+- Detektiv-Heuristik: Summe der Mindestdistanzen über die Glaubensmenge
+  minimieren → automatische Aufteilung/Einkreisung; letzter Hinweis als
+  Anker; leere Menge → Hinweisbereich ansteuern.
+- `GanoveView` sieht Detektivpositionen, eigene Mission, Hitze und
+  eigene Events; Kameras sind unbekannt bis der Funk sie meldet.
+- Aktion nur bei sicherem Abstand (`SAFE_ACTION_GAP`) und Hitze unter
+  `kritisch`, außer die Deadline erzwingt sie; Züge meiden Nähe
+  (`MOVE_SAFE_GAP`), bekannte Kameras und ausweglose Knoten; auf der
+  letzten Etappe wird committed.
+- `chooseSabotagePath` akzeptiert die Sabotage, wenn der BFS-Umweg das
+  `sabotageDetour`-Budget einhält und die Hitze nicht `kritisch` ist.
+- Beide KIs deterministisch — Zufall nur über den zentralen `Rng`.
+
+**Umsetzung:** `DetectiveAI.ts`, `GanoveAI.ts`.
+
+## KI-vs.-KI-Simulation
+
+**Beschreibung:** Headless-Batchtreiber (`02-technisches-konzept.md` §7
+und §8): `runAiGame` spielt eine komplette Partie über den regulären
+Store, `runAiBatch` Serien über Seed-Listen, `summarizeBatch`
+aggregiert Balancing-Metriken.
+
+**Bedingungen:**
+- Jede Partie endet regulär (`caught`/`surrounded`/`escaped`/`timeout`)
+  oder als `draw` über das Sicherheitsnetz (`maxRounds`/`MAX_TURNS`).
+- Jede Partie erzeugt ein vollständiges JSONL-Eventlog; gleicher Seed →
+  bitgleiches Log.
+- Aggregation: Outcome-Verteilung, Runden (Ø/min/max), Hinweise/Partie,
+  Kameratreffer/Partie, Sabotage-Annahmequote, Radio-Quote.
+- CLI: `npm run sim` (`scripts/sim.ts`) mit `--map`, `--games`,
+  `--seed-start`/`--seeds`, `--detectives`, `--round-limit`,
+  `--mission`, `--out`.
+
+**Umsetzung:** `AiSimulation.ts`, `scripts/sim.ts`,
+`vite.sim.config.ts`, `sim`-Script in `package.json`.

@@ -14,6 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
+    "sim": "vite build --config vite.sim.config.ts && node dist-sim/sim.mjs",
     "coverage": "vitest run --coverage",
     "release": "semantic-release"
   },

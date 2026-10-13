@@ -41,6 +41,7 @@
 | `npm run lint` | ESLint |
 | `npm run format` / `npm run format:check` | Prettier schreiben / prüfen |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run sim` | KI-vs.-KI-Batchsimulation: `vite build --config vite.sim.config.ts` → `node dist-sim/sim.mjs` (Optionen: `--map`, `--games`, `--seed-start`/`--seeds`, `--detectives`, `--round-limit`, `--mission`, `--out`) |
 | `npm run release` | `semantic-release` (nur in der CI-Pipeline aufgerufen) |
 
 ## Git-Hook-Prüfungen
