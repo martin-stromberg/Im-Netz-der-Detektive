@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+set -eu
+
+# --- Repo-Root ermitteln ---
+repo_root="$(git rev-parse --show-toplevel)"
+
+# --- Branch-Blocker ---
+branch_name="$(git symbolic-ref --quiet --short HEAD || true)"
+case "$branch_name" in
+  main|staging)
+    echo "Direct commits to '$branch_name' are blocked. Create a feature branch and merge via pull request." >&2
+    exit 1
+    ;;
+esac
+
+# --- Python-Verfügbarkeit prüfen ---
+if ! command -v python >/dev/null 2>&1; then
+  echo "python not found. Install Python 3 to run the repository checks." >&2
+  exit 1
+fi
+
+# --- i18n Key Check (fixer Pfad, blockierend) ---
+echo "Running i18n check..."
+python "$repo_root/.githooks/i18n-check.py"
+
+# --- Map Package Schema Check (fixer Pfad, blockierend) ---
+echo "Running map package schema check..."
+python "$repo_root/.githooks/map-schema-check.py"
+
+# --- Math.random() Prohibition (fixer Pfad, blockierend) ---
+echo "Running Math.random() prohibition check..."
+python "$repo_root/.githooks/no-math-random-check.py"
+
+# --- Stub Implementation Check (fixer Pfad, nur Warnung) ---
+echo "Running stub implementation check..."
+python "$repo_root/.githooks/no-stub-check.py"
+
+# --- Component Usage Check (fixer Pfad, nur Warnung) ---
+echo "Running component usage check..."
+python "$repo_root/.githooks/component-usage-check.py"

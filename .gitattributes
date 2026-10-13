@@ -1,0 +1,10 @@
+* text=auto
+
+# Shell hooks and scripts must keep LF even on Windows checkouts
+# (core.autocrlf), otherwise Git Bash fails to execute them.
+.githooks/pre-commit text eol=lf
+.githooks/pre-push text eol=lf
+.githooks/*.sh text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.mjs text eol=lf

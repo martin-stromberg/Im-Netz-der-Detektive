@@ -1,0 +1,97 @@
+name: Release
+
+# Both triggers are always configured together. A manually pushed vX.Y.Z tag
+# is a fully supported, first-class way to cut a release - not a fallback.
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve release version
+        id: version
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/resolve-release-version.mjs
+
+      - name: Check out release tag for asset repair
+        if: steps.version.outputs.release_action == 'upload-existing'
+        run: |
+          git fetch origin "refs/tags/${{ steps.version.outputs.tag }}"
+          git checkout --detach "${{ steps.version.outputs.tag }}"
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse "${{ steps.version.outputs.tag }}")" ]; then
+            echo "::error::Release tag checkout did not resolve to the tagged commit."
+            exit 1
+          fi
+
+      - name: Release gate - regular tests
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'create'
+        run: npm test
+
+      - name: Build and package
+        if: steps.version.outputs.released == 'true'
+        uses: ./.github/actions/build-and-package
+        with:
+          release-version: ${{ steps.version.outputs.version }}
+          release-tag: ${{ steps.version.outputs.tag }}
+
+      - name: Create automatic GitHub release
+        # Goes through semantic-release's own publish pipeline
+        # (release.config.js: commit-analyzer, release-notes-generator, then
+        # @semantic-release/github, which creates the tag, the GitHub
+        # release, and uploads the asset below).
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'create' && steps.version.outputs.release_kind == 'automatic'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_ASSET_PATH: release.zip
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: npm run release
+
+      - name: Create manual-tag GitHub release
+        # Plain gh CLI, not semantic-release: semantic-release only knows
+        # about conventional-commit-driven releases on configured branches,
+        # not about a tag someone pushed by hand. gh release create
+        # --generate-notes is the CLI's exact equivalent of the template's
+        # third-party release action.
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'create' && steps.version.outputs.release_kind == 'manual'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${{ steps.version.outputs.tag }}"
+          gh release create "$tag" release.zip \
+            --title "$tag" \
+            --generate-notes
+
+      - name: Upload asset to existing GitHub release
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'upload-existing'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${{ steps.version.outputs.tag }}"
+          gh release upload "$tag" release.zip --clobber
