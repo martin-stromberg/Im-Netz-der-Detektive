@@ -76,8 +76,12 @@ export interface BatchSummary {
   radioUsageRate: number;
 }
 
-/** Deterministic per-round AI stream, one lane per actor index. */
-function aiRng(seed: number, round: number, lane: number): Rng {
+/**
+ * Deterministic per-round AI stream, one lane per actor index —
+ * exported so the UI-side detective driver (`detectiveDriver.ts`)
+ * shares the exact same draws as the headless simulation.
+ */
+export function aiRng(seed: number, round: number, lane: number): Rng {
   return createRng(mixSeed(mixSeed(seed ^ AI_RNG_SALT, round), lane));
 }
 

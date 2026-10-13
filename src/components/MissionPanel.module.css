@@ -1,0 +1,96 @@
+.panel {
+  background: #161b26;
+  border: 1px solid #2a3240;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.heading {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: #e8b45a;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #8a94a6;
+}
+
+.stepMarker {
+  width: 1.1em;
+  text-align: center;
+  flex: none;
+}
+
+.status_erledigt {
+  color: #5f6b7d;
+  text-decoration: line-through;
+}
+
+.status_aktuell {
+  color: #f5d76e;
+  font-weight: 600;
+}
+
+.status_offen {
+  color: #8a94a6;
+}
+
+.currentTarget {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  color: #eaf0f8;
+}
+
+.choice {
+  margin-top: 10px;
+  border-top: 1px dashed #2a3240;
+  padding-top: 10px;
+}
+
+.choiceTitle {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: #d98c8c;
+}
+
+.choiceButton {
+  display: block;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 8px 10px;
+  text-align: left;
+  border: 1px solid #3d5a80;
+  border-radius: 6px;
+  background: #1d2534;
+  color: #eaf0f8;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.choiceButton:hover,
+.choiceButton:focus-visible {
+  background: #243050;
+  outline: 2px solid #f5d76e;
+  outline-offset: 1px;
+}
+
+.hint {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: #8a94a6;
+}

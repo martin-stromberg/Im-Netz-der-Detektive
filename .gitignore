@@ -12,6 +12,7 @@ dist-sim/
 # Test coverage and test artifacts
 coverage/
 test-results/
+playwright-report/
 *.lcov
 
 # Environment files

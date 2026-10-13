@@ -1,0 +1,252 @@
+/* Dark detective-noir theme: deep blues/graphite with amber accents. */
+.screen {
+  min-height: 100vh;
+  background: #0c0f16;
+  color: #eaf0f8;
+  padding: 16px 24px;
+  box-sizing: border-box;
+}
+
+.header {
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: 0.06em;
+  color: #e8b45a;
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  color: #8a94a6;
+  font-size: 0.9rem;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.round {
+  font-variant-numeric: tabular-nums;
+  color: #c8d0dc;
+  font-weight: 600;
+}
+
+.phase {
+  color: #9db8d9;
+  font-size: 0.9rem;
+}
+
+.layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.mapArea {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sidebar {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel {
+  background: #161b26;
+  border: 1px solid #2a3240;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.panelHeading {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: #e8b45a;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.primaryButton {
+  display: inline-block;
+  padding: 9px 16px;
+  border: 1px solid #e8b45a;
+  border-radius: 6px;
+  background: #e8b45a;
+  color: #10141c;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.primaryButton:hover,
+.primaryButton:focus-visible {
+  background: #f5d76e;
+  outline: none;
+}
+
+.secondaryButton {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid #3d5a80;
+  border-radius: 6px;
+  background: #1d2534;
+  color: #eaf0f8;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.secondaryButton:hover:not(:disabled),
+.secondaryButton:focus-visible:not(:disabled) {
+  background: #243050;
+  outline: 2px solid #f5d76e;
+  outline-offset: 1px;
+}
+
+.secondaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dangerButton {
+  display: inline-block;
+  padding: 8px 14px;
+  margin-right: 8px;
+  border: 1px solid #d98c8c;
+  border-radius: 6px;
+  background: #4a2326;
+  color: #f0c8c8;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.dangerButton:hover,
+.dangerButton:focus-visible {
+  background: #5c2c30;
+  outline: 2px solid #d98c8c;
+  outline-offset: 1px;
+}
+
+.confirm {
+  border: 1px dashed #d98c8c;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.intelList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  color: #c8d0dc;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.intelList ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+
+.hint {
+  margin: 4px 0;
+  font-size: 0.8rem;
+  color: #8a94a6;
+}
+
+.notice {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-left: 3px solid #d98c8c;
+  background: #1d2534;
+  color: #f0c8c8;
+  font-size: 0.85rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #8a94a6;
+}
+
+.legendTitle {
+  font-weight: 600;
+  color: #c8d0dc;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.legendWeg {
+  stroke: #4a5568;
+  stroke-width: 2;
+}
+
+.legendFahrt {
+  stroke: #7a6a4f;
+  stroke-width: 3.5;
+  stroke-dasharray: 7 4;
+}
+
+.legendEscape {
+  fill: none;
+  stroke: #7fb8d4;
+  stroke-width: 1.6;
+}
+
+.legendDetective {
+  fill: #3d5a80;
+  stroke: #9db8d9;
+  stroke-width: 1.4;
+}
+
+.legendGanove {
+  fill: #e8b45a;
+  stroke: #10141c;
+  stroke-width: 1.2;
+}
+
+.legendTargetDot {
+  fill: #7fd4a8;
+}
+
+.legendTargetRing {
+  fill: none;
+  stroke: #7fd4a8;
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.outcomeText {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 6px 0;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
