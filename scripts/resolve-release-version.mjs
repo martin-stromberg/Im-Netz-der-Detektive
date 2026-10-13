@@ -210,7 +210,9 @@ async function runSemanticReleaseDryRun() {
     throw result.error;
   }
   const output = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
-  const match = output.match(/The next release version is (\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)/);
+  // Covers both "The next release version is X.Y.Z" and the first-release
+  // phrasing "There is no previous release, the next release version is X.Y.Z".
+  const match = output.match(/next release version is (\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)/);
   return { version: match ? match[1] : null };
 }
 
