@@ -15,15 +15,28 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-**Spielbar!** Ganove-Perspektive (Entwicklungsschritt 9): `npm run dev`
-startet den Primärmodus — du spielst den Ganoven gegen die
-KI-Detektive. Nach „Neue Partie" beziehen die Detektive ihre Posten,
-du wählst deinen Startpunkt aus den legalen Optionen und jagst die
-Mission (Diebstahl → Kontakt → Sabotage-Wahl → Flucht) über die
-SVG-Karte von Münster: legale Züge markiert und per Klick/Tastatur
-wählbar, Hitze-Indikator (Icon + Text, 4 Stufen), einmaliger
-Polizeifunk, alle Endzustände inklusive Remis-Abbruch — vollständig
-lokalisiert (DE/EN) und durch Playwright-E2E abgedeckt.
+**Spielbar — in beiden Perspektiven!** Detektiv-Perspektive
+(Entwicklungsschritt 10): `npm run dev` öffnet eine vorläufige
+Moduswahl — oder direkt `?mode=detektiv`. Du führst den kompletten
+Trupp D1 → Dn gegen den KI-Ganoven: freie Postenwahl auf der
+Stadtkarte (Ganove-Start bleibt verdeckt), legale Züge per Klick
+oder Tastatur, KI-Ganove-Zug automatisch nach dem letzten Detektiv.
+Detektiv-Werkzeuge an Bord: chronologische Hinweis-Chronik (Art,
+Ort/Zone, Runde), kommentierbare Spielermarker, das „Mögliche
+Positionen"-Overlay auf Basis des exakten Deduktionsmodells,
+Kameras (aktiv/sabotiert), Zonen und Ortskategorien mit
+Missions-Poolgrößen — ohne jemals den Ganoven oder die gezogenen
+Missionsziele zu sehen (strukturelle Informationsasymmetrie).
+
+Ganove-Perspektive (Entwicklungsschritt 9): `?mode=ganove` — du
+spielst den Ganoven gegen die KI-Detektive. Nach „Neue Partie"
+beziehen die Detektive ihre Posten, du wählst deinen Startpunkt aus
+den legalen Optionen und jagst die Mission (Diebstahl → Kontakt →
+Sabotage-Wahl → Flucht) über die SVG-Karte von Münster: legale Züge
+markiert und per Klick/Tastatur wählbar, Hitze-Indikator (Icon +
+Text, 4 Stufen), einmaliger Polizeifunk, alle Endzustände inklusive
+Remis-Abbruch — vollständig lokalisiert (DE/EN) und durch
+Playwright-E2E abgedeckt.
 
 Deduktion & KI (Entwicklungsschritt 8): Das geteilte
 Deduktionsmodell (`Deduction.ts`) errechnet aus allen

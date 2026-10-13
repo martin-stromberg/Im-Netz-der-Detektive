@@ -13,6 +13,7 @@
  * selectable nodes are keyboard-operable (`role="button"`, Tab/Enter).
  */
 import type { KeyboardEvent } from "react";
+import type { Camera } from "../logic/InformationSystem";
 import type { MissionKind } from "../logic/MissionSystem";
 import { isEdgeBlocked, type BlockedEdge, type MoveTarget } from "../logic/Movement";
 import type { MapNode, MapPack } from "../logic/mapPack";
@@ -37,6 +38,20 @@ export interface MapGraphProps {
   currentTargetId?: string | null;
   /** Escape point node ids (flag marker). */
   escapeNodeIds?: readonly string[];
+  /** Squad cameras — only pass them in the detective perspective. */
+  cameras?: readonly Camera[];
+  /** Render node-category badges on every node (detective perspective). */
+  showCategories?: boolean;
+  /** Render a zone halo behind every node (detective perspective). */
+  showZones?: boolean;
+  /** Highlights the marker of the currently moving detective. */
+  activeDetectiveIndex?: number | null;
+  /** Player-set marker pins (detective deduction tool). */
+  markedNodeIds?: readonly string[];
+  /** Nodes selectable in marker mode — toggles a marker pin on click. */
+  markableNodeIds?: readonly string[];
+  /** "Possible positions" deduction overlay ring (detective perspective). */
+  possibleNodeIds?: readonly string[];
   onNodeSelect?: (nodeId: string) => void;
 }
 
@@ -76,11 +91,26 @@ export function MapGraph({
   missionTargets = {},
   currentTargetId = null,
   escapeNodeIds = [],
+  cameras = [],
+  showCategories = false,
+  showZones = false,
+  activeDetectiveIndex = null,
+  markedNodeIds = [],
+  markableNodeIds = [],
+  possibleNodeIds = [],
   onNodeSelect,
 }: MapGraphProps) {
   const legalTargetIds = new Set(legalTargets.map((target) => target.nodeId));
   const selectableIds = new Set(selectableNodeIds);
   const escapeIds = new Set(escapeNodeIds);
+  const cameraByNode = new Map(cameras.map((camera) => [camera.nodeId, camera.active]));
+  const markedIds = new Set(markedNodeIds);
+  const markableIds = new Set(markableNodeIds);
+  const possibleIds = new Set(possibleNodeIds);
+  // Zone halos get a deterministic hue per zone — colour is only the
+  // secondary cue; the legend names every zone explicitly.
+  const zones = [...new Set(map.nodes.map((node) => node.zone))].sort();
+  const zoneHue = (zone: string): number => (zones.indexOf(zone) * 137) % 360;
   const missionKinds = new Map<string, MissionKind[]>();
   for (const kind of MISSION_KINDS) {
     const targetId = missionTargets[kind];
@@ -90,7 +120,7 @@ export function MapGraph({
   }
 
   const selectNode = (nodeId: string) => {
-    if (legalTargetIds.has(nodeId) || selectableIds.has(nodeId)) {
+    if (legalTargetIds.has(nodeId) || selectableIds.has(nodeId) || markableIds.has(nodeId)) {
       onNodeSelect?.(nodeId);
     }
   };
@@ -149,13 +179,17 @@ export function MapGraph({
       </g>
       <g data-layer="nodes">
         {map.nodes.map((node) => {
-          const interactive = legalTargetIds.has(node.id) || selectableIds.has(node.id);
+          const interactive =
+            legalTargetIds.has(node.id) || selectableIds.has(node.id) || markableIds.has(node.id);
           const ariaLabel = legalTargetIds.has(node.id)
             ? t("node.moveTo", { name: node.name })
             : selectableIds.has(node.id)
               ? t("node.spawnHere", { name: node.name })
-              : node.name;
+              : markableIds.has(node.id)
+                ? t("node.mark", { name: node.name })
+                : node.name;
           const kinds = missionKinds.get(node.id) ?? [];
+          const cameraActive = cameraByNode.get(node.id);
           return (
             <g
               key={node.id}
@@ -163,11 +197,14 @@ export function MapGraph({
               className={`${styles.node} ${interactive ? styles.nodeInteractive : ""} ${
                 legalTargetIds.has(node.id) ? styles.nodeLegal : ""
               } ${selectableIds.has(node.id) ? styles.nodeSelectable : ""} ${
-                node.id === currentTargetId ? styles.nodeCurrentTarget : ""
-              } ${node.id === ganovePosition ? styles.nodeGanoveHere : ""}`}
+                markableIds.has(node.id) ? styles.nodeSelectable : ""
+              } ${node.id === currentTargetId ? styles.nodeCurrentTarget : ""} ${
+                node.id === ganovePosition ? styles.nodeGanoveHere : ""
+              }`}
               data-node-id={node.id}
               data-legal-target={legalTargetIds.has(node.id) ? "true" : undefined}
               data-selectable={selectableIds.has(node.id) ? "true" : undefined}
+              data-markable={markableIds.has(node.id) ? "true" : undefined}
               role={interactive ? "button" : undefined}
               tabIndex={interactive ? 0 : undefined}
               aria-label={interactive ? ariaLabel : undefined}
@@ -178,9 +215,65 @@ export function MapGraph({
                 // Generous invisible hit area — r=8 dots are small targets.
                 <circle r={NODE_RADIUS + 6} className={styles.hitArea} />
               ) : null}
+              {showZones ? (
+                <circle
+                  r={NODE_RADIUS + 5}
+                  className={styles.zoneHalo}
+                  style={{ fill: `hsl(${zoneHue(node.zone)} 55% 60%)` }}
+                  data-zone={node.zone}
+                  aria-hidden="true"
+                />
+              ) : null}
               <circle r={NODE_RADIUS} className={styles.nodeDot} />
               {legalTargetIds.has(node.id) ? (
                 <circle r={NODE_RADIUS + 4} className={styles.legalRing} aria-hidden="true" />
+              ) : null}
+              {possibleIds.has(node.id) ? (
+                // Deduction overlay: diamond ring — a shape distinct from
+                // the dashed legal-target circle.
+                <path
+                  d={`M 0 ${-(NODE_RADIUS + 7)} L ${NODE_RADIUS + 7} 0 L 0 ${NODE_RADIUS + 7} L ${-(NODE_RADIUS + 7)} 0 Z`}
+                  className={styles.possibleRing}
+                  data-possible="true"
+                  aria-hidden="true"
+                />
+              ) : null}
+              {showCategories
+                ? node.categories.map((category, index) => (
+                    <path
+                      key={category}
+                      d={missionBadgePath(category, 13 + index * 10, 5)}
+                      className={`${styles.categoryBadge} ${styles[`mission_${category}`]}`}
+                      data-category={category}
+                    >
+                      <title>{t(`category.${category}`)}</title>
+                    </path>
+                  ))
+                : null}
+              {cameraActive !== undefined ? (
+                <g
+                  className={styles.cameraGlyph}
+                  transform="translate(-14, -15)"
+                  data-camera="true"
+                  data-camera-active={cameraActive ? "true" : "false"}
+                >
+                  <title>{t("camera.ariaLabel", { name: node.name })}</title>
+                  <rect x={0} y={0} width={9} height={7} rx={1.5} className={styles.cameraBody} />
+                  <path d="M 9 2.5 L 13 0.5 V 6.5 L 9 4.5 Z" className={styles.cameraLens} />
+                  {cameraActive ? null : (
+                    <line x1={-1} y1={8} x2={14} y2={-1} className={styles.cameraStrike} />
+                  )}
+                </g>
+              ) : null}
+              {markedIds.has(node.id) ? (
+                <g
+                  className={styles.markerPin}
+                  transform="translate(12, -16)"
+                  data-marker="true"
+                  aria-hidden="true"
+                >
+                  <path d="M 0 -2 A 4.5 4.5 0 1 1 -0.01 -2 Z M 0 3 L -2.8 -1 L 2.8 -1 Z" />
+                </g>
               ) : null}
               {escapeIds.has(node.id) ? (
                 <path
@@ -215,8 +308,11 @@ export function MapGraph({
             <g
               key={`detective-${index}`}
               transform={`translate(${node.x}, ${node.y - NODE_RADIUS - 8})`}
-              className={styles.detectiveMarker}
+              className={`${styles.detectiveMarker} ${
+                index === activeDetectiveIndex ? styles.detectiveActive : ""
+              }`}
               data-detective={index}
+              data-active-detective={index === activeDetectiveIndex ? "true" : undefined}
               aria-label={t("marker.detective", { index: index + 1 })}
             >
               <rect x={-6} y={-6} width={12} height={12} rx={2} className={styles.detectiveShape} />
