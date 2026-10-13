@@ -19,7 +19,17 @@ JSON-Missionssets pro Karte. Jede Partie wird vollständig als
 JSONL-Eventlog aufgezeichnet (`Recorder`) — über den Seed bitgleich
 rekonstruierbar, mit `visibleTo`-Sichtbarkeit je Eintrag,
 Balancing-Metriken im Abschluss-Eintrag, Datei-Export und automatischem
-Vorhalten der letzten Partien im Browser-Speicher (FIFO).
+Vorhalten der letzten Partien im Browser-Speicher (FIFO). Darauf setzen
+Deduktion und KI auf: `Deduction` errechnet aus allen sichtbaren
+Hinweisen die Menge konsistenter Ganoven-Positionen (Pfadinduktion über
+den Bewegungsverlauf, inklusive Negativ-Schluss durch stille Kameras),
+`DetectiveAI` steuert den gesamten Detektiv-Trupp koordiniert
+(Abdeckung der Glaubensmenge, Aufteilung/Einkreisung) und `GanoveAI`
+führt die Mission mit Hitze- und Abstands-Timing, Polizeifunk-Einsatz
+und der Sabotage-Binärwahl. `AiSimulation` treibt beide KIs auf dem
+gemeinsamen Store zu vollständigen KI-gegen-KI-Partien —
+deterministisch je Seed — und `npm run sim` (`scripts/sim.ts`) spielt
+Batch-Serien mit Outcome-Verteilung und Balancing-Metriken.
 
 ## Inhalt
 

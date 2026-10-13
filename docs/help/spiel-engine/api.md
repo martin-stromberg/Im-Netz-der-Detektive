@@ -291,3 +291,110 @@ Implementierungen (`StorageLike`, `LogDownloader`).
 **Auto-Persist:** `finish()` (Partieende) ruft `saveGameLog` auf — die
 letzten N Partien bleiben sitzungsübergreifend verfügbar, ohne dass
 headless Läufe etwas schreiben.
+
+### `Deduction.ts` — mögliche Ganoven-Positionen (rein, deterministisch)
+
+**Beschreibung:** Gemeinsames Deduktionsmodell für Detektiv-KI und
+spätere UI-Overlays (`02-technisches-konzept.md` §5). Aus allen
+detektivsichtbaren Hinweisen wird die Menge der Ganoven-Positionen
+errechnet, für die eine vollständig konsistente **Positionshistorie**
+existiert — nicht nur punktweise Mengen-Schnitte: jede Position muss
+über Kantenzüge aus einem Vorgänger der Vor-Runde erreichbar sein, ein
+Kameratreffer aus Runde 3 begrenzt Runde 5 also über die
+Maximalreichweite. Nur `detectives`-/`both`-sichtbare Events werden
+gewertet.
+
+| Methode / Typ | Beschreibung |
+|---|---|
+| `DeductionInput` | `{map, detectiveStarts, events, cameras, round, detectivePositions?}` |
+| `deducePossiblePositions(input)` | sortierte Knoten-IDs — alle Positionen mit konsistenter Historie bis `round` |
+| `lastHintAnchor(events)` | jüngstes positionsgebendes Event (`camera`/`sichtbarkeit`/`aktion`/`hinweis`) als `{round, nodeIds}` — Steueranker für die KI |
+
+**Regeln:** `camera`/`sichtbarkeit`/`aktion` pinnen die Position auf den
+Knoten der Runde; `hinweis` schneidet mit dem Zonenball; `umwelt`
+sperrt Kanten ab der Folgerunde; eine Bewegungsrunde ohne Kameratreffer
+schließt aktive Kameraknoten aus (Negativ-Schluss — bei `aktion`-Runden
+entfällt er, ein Verharren auf einer Kamera feuert nicht erneut);
+Runden ohne `aktion` erzwingen einen Kantenzug (Zugzwang); belegte
+Detektivknoten sind ausgeschlossen. `falsche_spur` erzeugt bewusst ein
+gefälschtes Bild — die Korrektheitsgarantie gilt für unverfälschte
+Beobachtungen.
+
+### `Movement.ts` — `bfsOpenDistances`
+
+**Beschreibung:** Ergänzt `bfsDistances` um blockungsbewusste BFS ohne
+Besetzungsfilter — für Deduktion und KI-Routing auf vergangene Runden.
+
+| Methode | Beschreibung |
+|---|---|
+| `bfsOpenDistances(graph, from, blockedEdges, round)` | `Map<nodeId, kantenDistanz>`; Startknoten → `0`; Kanten mit `isEdgeBlocked(…, round)` werden nicht traversiert; unerreichbare Knoten fehlen |
+
+### `DetectiveAI.ts` — koordinierter Detektiv-Trupp (rein)
+
+**Beschreibung:** Eine KI-Instanz steuert **alle** Detektive.
+`DetectiveView` ist der strukturell gefilterte Blick: detektivsichtbare
+Events/Kameras, Sperrungen, eigene Positionen, Missions*struktur* (nur
+Stufen-Stati — nie Zielknoten, nie die Ganoven-Position).
+`chooseDetectiveMove` minimiert die Abdeckung der aktuellen
+Glaubensmenge: für jeden Kandidatenzug wird die Summe der
+Mindestdistanzen aller Detektive zu allen möglichen Positionen gebildet
+— das verteilt den Trupp automatisch auf verschiedene Regionen
+(Einkreisung statt Einzelverfolgung). Zusätzliche Kriterien: letzter
+Hinweisanker und kleine Fangdistanz. Bei leerer Menge (widersprüchliche
+Hinweise, z. B. `falsche_spur`) steuert die KI auf den jüngsten
+Hinweisbereich.
+
+| Methode / Typ | Beschreibung |
+|---|---|
+| `DetectiveView` | `{map, round, detectiveStarts, detektivePositions, blockedEdges, events, cameras, missionStructure}` |
+| `chooseDetectiveMove(view, index, legalMoves, rng)` | Zielknoten-ID aus `legalMoves`; `RangeError` bei leerer Liste |
+| `MOVE_TARGET_EPSILON` | Distanz-Untergrenze, ab der Bewegung auf die Glaubensmenge „am Ziel" gilt |
+
+### `GanoveAI.ts` — missionsführende Ganove-KI (rein)
+
+**Beschreibung:** `GanoveView` ist die ganovenseitige Wahrheit: eigene
+Position, Detektivpositionen, Mission samt Zielen, eigene Events (Funk),
+Hitze, Fluchtpunkte — keine detektivseitigen Geheimnisse.
+`chooseGanoveTurn` entscheidet `move`/`action`: eine Aktion feuert nur
+bei sicherem Mindestabstand (`SAFE_ACTION_GAP`) und Hitze unter
+`kritisch` — es sei denn, das Rundenbudget erzwingt die Deadline. Züge
+halten `MOVE_SAFE_GAP`, wo möglich; im Evade-Modus (Detektiv im
+`EVADE_DISTANCE`-Umkreis oder `kritisch`) maximieren sie Mindestabstand,
+vermeiden Funk-bekannte Kameras und bevorzugen Knoten mit überlebenden
+Auswegen; auf `sabotage`/`flucht` wird committed. `chooseSabotagePath`
+wägt den BFS-Umweg gegen `sabotageDetour`, `shouldUseRadio` feuert den
+einmaligen Polizeifunk ab `RADIO_HEAT_THRESHOLD`.
+
+| Methode / Typ | Beschreibung |
+|---|---|
+| `GanoveView` | `{map, round, roundLimit, ganovePosition, detektivePositions, mission, events, blockedEdges, heatLevel, heatScore, radioUsed, escapeNodeIds, legalMoves, missionAction}` |
+| `GanoveTurn` | `{type: "move", target} \| {type: "action"}` |
+| `chooseGanoveTurn(view, rng)` | Zug oder Aktionsrunde; `RangeError` ohne legale Option |
+| `chooseSabotagePath(view)` | `"sabotage" \| "flucht"` — Binärwahl des Informanten |
+| `shouldUseRadio(view)` | Funk-Einsatzbedingung (Hitze ≥ `erhoeht`, einmalig) |
+| `SAFE_ACTION_GAP` / `MOVE_SAFE_GAP` / `EVADE_DISTANCE` / `RADIO_HEAT_THRESHOLD` | Heuristik-Konstanten |
+
+### `AiSimulation.ts` + `scripts/sim.ts` — KI-vs.-KI-Batchsimulation
+
+**Beschreibung:** Headless-Treiber (`02-technisches-konzept.md` §7):
+spielt vollständige Partien auf dem gemeinsamen Store — Phase für Phase
+über `pendingChoice`/`phase` — bis zu den regulären Endbedingungen
+(`abortAsDraw` als Sicherheitsnetz). Beide KIs teilen denselben
+deterministischen RNG-Strom (`mixSeed(seed ^ 0xa11ce5, round, index)`),
+sodass jeder Seed eine bitidentische Partie samt Eventlog erzeugt.
+
+| Methode / Typ | Beschreibung |
+|---|---|
+| `buildDetectiveView(state, detectiveStarts)` | gefilterte Sicht für `DetectiveAI` |
+| `buildGanoveView(state)` | gefilterte Sicht für `GanoveAI` |
+| `runAiGame(map, seed, options?)` | eine Partie → `SimGameResult` (`{seed, outcome, rounds, log, metrics}`); `options.observe` liest jeden Zwischenzustand (Tests) |
+| `runAiBatch(map, seeds, options?)` | Partien über eine Seed-Liste |
+| `summarizeBatch(results)` | `BatchSummary`: Outcome-Verteilung, Ø/min/max-Runden, Hinweise/Kameras pro Partie, Sabotage-Annahmequote, Radio-Quote |
+| `AiGameOptions` | `{startOptions?, maxRounds?, observe?}` |
+| `SimMetrics` | `{rounds, hintsTotal, camerasTriggered, sabotageOffered, sabotageChosen, radioUsed}` aus dem Eventlog |
+
+**CLI:** `npm run sim` baut `dist-sim/sim.mjs` (SSR-Bundle via
+`vite.sim.config.ts`) und führt `scripts/sim.ts` aus — Optionen
+`--map`, `--games`, `--seed-start`, `--seeds` (Range/Liste),
+`--detectives`, `--round-limit`, `--mission`, `--out` (JSONL-Logs je
+Partie). Die Zusammenfassung geht auf stdout.

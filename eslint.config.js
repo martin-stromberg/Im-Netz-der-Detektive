@@ -7,7 +7,7 @@ import prettier from "eslint-config-prettier";
 
 export default tseslint.config(
   {
-    ignores: ["dist/", "coverage/", "node_modules/", "docs/konzept/", ".agents/"],
+    ignores: ["dist/", "dist-sim/", "coverage/", "node_modules/", "docs/konzept/", ".agents/"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
