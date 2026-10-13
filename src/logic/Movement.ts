@@ -41,7 +41,8 @@ export type MoveRejection =
   | "not_adjacent"
   | "blocked_edge"
   | "occupied"
-  | "no_action_available";
+  | "no_action_available"
+  | "already_used";
 
 /** Raised when a move or phase action violates the movement rules. */
 export class MoveError extends Error {

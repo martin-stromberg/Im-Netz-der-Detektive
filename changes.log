@@ -1,5 +1,39 @@
 # Änderungsprotokoll
 
+## 2026-10-13 — Informationssystem (Schritt 5)
+
+- Drei neue reine Logikmodule: `src/logic/CameraSystem.ts`
+  (Kameraplatzierung mit `cameraMinGap`-BFS-Mindestabstand und
+  Ausschlussliste, `triggeredCamera`, `deactivateAll` für die spätere
+  Kamera-Sabotage), `src/logic/EreignisEngine.ts` (Auslösemodi
+  `cycle`/`chance`/`tension` mit Spannungsreset, gewichteter
+  `eventMix`-Typzug, `zoneHint` mit BFS-Ball `hintZoneRadius`,
+  `pickBlockableEdge` mit Konnektivitäts-/Isolations-Check — nie letzte
+  freie Kante, nie Graph-Zerteilung) und `src/logic/InformationSystem.ts`
+  (`visibleTo`-Asymmetrie-Sichten, `radioHintSummary`,
+  `revealedGanovePosition`, `heatLevel` mit Gewichtungstabelle und
+  3-Runden-Fenster).
+- `useGameStore` verdrahtet die Informationsschicht in den Rundenmotor:
+  `startGame` platziert die Kameras im selben Seed-Strom wie die
+  Spawns (Header-Log führt `cameras`), `moveGanove`/`ganoveAction`
+  führen Kamera- und Ereignisprüfung intern sofort nach dem
+  Ganovenzug aus — neue Hinweise liegen den Detektiven vor ihren Zügen
+  vor. Neue Actions `useRadio` (Polizeifunk, 1×/Partie, letzte
+  `radioHintCount` Hinweise inkl. Kameratreffer),
+  `deactivateCameras` und `getHeatLevel`; neue State-Felder
+  `radioUsed`/`radioHintCount`/`edgeBlockRounds`; `StartGameOptions`
+  um `cameraCount`, `cameraProtectedNodes`, `radioHintCount`,
+  `edgeBlockRounds` (korridorvalidiert via `GameConfigError`).
+- Datenseitige Asymmetrie: `GameEvent.visibleTo` um `"ganove"`
+  erweitert; Hinweise (`camera`/`sichtbarkeit`/`hinweis`/`aktion`)
+  ausschließlich detektivsichtig, `umwelt`-Sperrungen beidseitig.
+  `mixSeed(seed, round)` liefert den Ereignissen einen eigenen
+  deterministischen RNG-Strom pro Runde (serialisierbarer State).
+- 45 neue Tests (`CameraSystem.test.ts`, `EreignisEngine.test.ts`,
+  `InformationSystem.test.ts`, `gameStore.info.test.ts`) inklusive
+  Invarianz-Nachweisen über viele Seeds und des automatisierten
+  Asymmetrie-Checks.
+
 ## 2026-10-13 — Rundenmotor (Schritt 4)
 
 - Neues Logikmodul `src/logic/Movement.ts`: reine Bewegungsregeln

@@ -32,6 +32,9 @@ describe("useGameStore headless", () => {
     expect(s.roundLimit).toBeNull();
     expect(s.escapeNodeIds).toEqual([]);
     expect(s.ganoveCanAct).toBe(false);
+    expect(s.radioUsed).toBe(false);
+    expect(s.radioHintCount).toBe(0);
+    expect(s.edgeBlockRounds).toBe(0);
   });
 });
 

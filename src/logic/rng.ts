@@ -54,3 +54,13 @@ export function createRng(seed: number): Rng {
 
   return { next, nextInt, pick, shuffle };
 }
+
+/**
+ * Deterministic per-round seed derivation. Engines that roll once per
+ * round use `createRng(mixSeed(seed, round))`, so every round gets its
+ * own reproducible stream without keeping RNG state in the serializable
+ * store (SaveGame/replay stay deterministic).
+ */
+export function mixSeed(seed: number, round: number): number {
+  return (seed + Math.imul(round, 0x9e3779b9)) >>> 0;
+}

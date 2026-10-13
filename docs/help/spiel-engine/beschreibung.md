@@ -52,6 +52,22 @@ die Startaufstellung folgt den Regeln der jeweiligen Karte.
   Aktion), **Flucht** (der Ganove erreicht einen freien Fluchtpunkt),
   **Zeitlimit** (Ablauf ohne Flucht — abschaltbar per „unbegrenzt")
   und **Remis** (vorzeitiger Abbruch als Unentschieden).
+- **Informationssystem:** Die komplette Hinweisschicht erzeugt und
+  verteilt Informationen regelkonform. Beim Spielstart werden Kameras
+  per Zufall mit Mindestabstand verteilt (geschützte Orte bleiben
+  frei); betritt der Ganove einen Kameraort, erhalten nur die
+  Detektive einen exakten Hinweis mit Ort und Runde. Zusätzlich würfelt
+  die Ereignisengine pro Runde — wahlweise im festen Zyklus, mit
+  Wahrscheinlichkeit oder über einen Spannungsbalken — auf drei
+  Ereignistypen: exakte Sichtbarkeit (gilt nur die laufende Runde),
+  grober Zonenhinweis („im Bereich X") und Umweltsperrung einer Kante
+  (beidseitig sichtbar und wirksam, ohne das Wegenetz je zu zerteilen).
+  Hinweise zeigen grundsätzlich, wo der Ganove *war* — nie, wo er
+  *ist*; nur die Detektive sehen sie. Der Ganove erhält zwei eigene
+  Informationswerkzeuge: den einmaligen **Polizeifunk**, der ihm die
+  letzten Hinweise inklusive ausgelöster Kameras verrät, und den
+  **Hitze-Indikator**, der in vier Stufen anzeigt, *wie viel* die
+  Detektive gerade wissen — niemals *was* oder *woher*.
 
 ## Beispiele
 
@@ -71,9 +87,14 @@ die Startaufstellung folgt den Regeln der jeweiligen Karte.
   `ganoveCanAct` + `ganoveAction`), ihre fachlichen Effekte folgen erst
   mit dem Missionssystem — ebenso die missionsgebundene Flucht, die
   über `setEscapeNodeIds` an die vorhandene Fluchtpunkt-Prüfung
-  anschließt.
-- Missionslogik, Kameras/Ereignisse im Spielablauf und KI sind noch
-  nicht Teil der Engine — sie bauen auf dem Rundenmotor in späteren
-  Entwicklungsschritten auf.
-- Der Zustand speichert bereits Mission, Ereignisse und Kameras; die
-  Logik, die diese Felder befüllt, folgt später.
+  anschließt. Die Aktions-Spur ist im Hitze-Modell bereits gewichtet
+  (+2) und zählt automatisch, sobald das Missionssystem solche
+  Hinweise erzeugt.
+- Missionslogik und KI sind noch nicht Teil der Engine — sie bauen auf
+  dem Rundenmotor und der Informationsschicht in späteren
+  Entwicklungsschritten auf. Die Sabotage-Hooks `deactivateCameras`
+  (Kamera-Aus) und die Ereignisstruktur für `funkstille`/`falsche_spur`
+  sind bereits vorgesehen.
+- Die Informationsschicht existiert als Daten- und Regelschicht;
+  ihre sichtbare Aufbereitung (Karten-Icons, Hinweis-Chronik,
+  Hitze-Badge) folgt mit den Oberflächen.

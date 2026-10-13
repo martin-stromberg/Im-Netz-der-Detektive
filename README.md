@@ -15,17 +15,21 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-Rundenmotor (Entwicklungsschritt 4): Die Partie läuft komplett headless —
-Zwei-Phasen-Runden (Ganove, dann Detektive in fester Reihenfolge), alle
-Bewegungsregeln inklusive Zugzwang und Kantensperrungen, Sofort-Fangprüfung
-nach jedem Detektivzug und alle fünf Endbedingungen (Fang, Umzingelung,
-Flucht, Zeitlimit inklusive „unbegrenzt", Remis). Die Aktionsrunde des
-Ganoven und die missionsgebundene Flucht sind als Hooks vorbereitet.
-Darunter steht das Engine-Grundgerüst mit zwei echten Kartenpaketen
-(**Münster**: 59 Orte, 101 Kanten; **Lübeck-Altstadtinsel**: 22 Orte als
-Validierungskarte), Kartenpaket-Loader und -Validator, Graph-Funktionen
-(BFS), Seeded-RNG und Startaufstellungs-System. Informationssystem und
-Oberflächen folgen in den nächsten Entwicklungsschritten. Details:
+Informationssystem (Entwicklungsschritt 5): Die Hinweisschicht erzeugt
+und verteilt alle Informationen regelkonform — Kameras mit
+Mindestabstand und Ausschlussliste beim Spielstart, drei
+Ereignis-Auslösemodi (Zyklus, Wahrscheinlichkeit, Spannungsbalken) mit
+drei Ereignistypen (exakte Sichtbarkeit für die laufende Runde,
+Zonenhinweis, Umweltsperrung ohne Graph-Zerteilung), vergangenheits-
+bezogene Hinweise nur für die Detektive, einmaliger Polizeifunk für
+den Ganoven und der 4-stufige Hitze-Indikator — alles mit datenseitiger
+Sichtbarkeitsasymmetrie (`visibleTo`), vollständig headless und
+deterministisch. Darunter steht der komplette Rundenmotor (Zwei-Phasen-
+Runden, Zugzwang, Kantensperrungen, Sofort-Fangprüfung, alle fünf
+Endbedingungen) und das Engine-Grundgerüst mit zwei echten
+Kartenpaketen (**Münster**: 59 Orte, 101 Kanten; **Lübeck-Altstadtinsel**:
+22 Orte als Validierungskarte). Missionssystem und Oberflächen folgen
+in den nächsten Entwicklungsschritten. Details:
 `docs/help/spiel-engine/`, `docs/help/kartenpakete/`.
 
 ## Setup
