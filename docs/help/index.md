@@ -8,5 +8,5 @@
 
 ## Spiel
 
-- [Spiel-Engine](spiel-engine/index.md) — Headless-Spielkern: Kartenpaket-Loader und -Validator, Graph-Grundfunktionen (BFS), deterministischer Seeded-RNG, Startaufstellungs-System, Zustand-Store und kompletter Rundenmotor mit allen Endbedingungen.
+- [Spiel-Engine](spiel-engine/index.md) — Headless-Spielkern: Kartenpaket-Loader und -Validator, Graph-Grundfunktionen (BFS), deterministischer Seeded-RNG, Startaufstellungs-System, Zustand-Store, kompletter Rundenmotor mit allen Endbedingungen und die Informationsschicht (Kameras, Ereignisse, Hinweise, Polizeifunk, Hitze-Indikator).
 - [Kartenpakete](kartenpakete/index.md) — Die spielbaren Stadtkarten: Hauptkarte Münster (59 echte Orte) und die bewusst unbalancierte Lübeck-Altstadtinsel als Validierungskarte.

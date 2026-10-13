@@ -6,7 +6,11 @@ BFS-Kantendistanzen) bereit, liefert den zentralen deterministischen
 Zufallszahlengenerator, das Startaufstellungs-System und den
 React-frei nutzbaren Zustand-Store samt komplettem Rundenmotor —
 Zwei-Phasen-Runden mit fester Detektivreihenfolge, Zugzwang,
-Fangprüfung nach jedem Einzelzug und allen fünf Endbedingungen.
+Fangprüfung nach jedem Einzelzug und allen fünf Endbedingungen — plus
+die komplette Informationsschicht: Kameraplatzierung und -auslösung,
+drei Ereignis-Auslösemodi mit drei Ereignistypen, datenseitige
+Sichtbarkeitsasymmetrie, einmaliger Polizeifunk und der 4-stufige
+Hitze-Indikator.
 
 ## Inhalt
 

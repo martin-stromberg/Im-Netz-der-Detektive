@@ -150,3 +150,111 @@ gewertet werden (`outcome "draw"`, zählt in der Statistik als Remis).
 
 **Umsetzung:** `abortAsDraw` in `gameStore.ts`; `result.outcome`
 entspricht dem Eventlog-Format (`02-technisches-konzept.md` §8).
+
+## Kameras
+
+**Beschreibung:** Beim Spielstart werden `cameraCount` Kameras per RNG
+verteilt — mit Mindestabstand `cameraMinGap` Kanten untereinander und
+ohne die Ausschlussliste `cameraProtectedNodes` (öffentliche Regel:
+Missionsziele sind kamerafrei).
+
+**Bedingungen:**
+- Die Abstandsregel gilt als BFS-Kantendistanz `>= cameraMinGap`.
+- Kameras sind dauerhaft aktiv und lösen bei **jedem Betreten** durch
+  den Ganoven aus (Betreten ≠ Verharren: eine Aktionsrunde auf einem
+  Kameraknoten löst nicht erneut aus).
+- Der Hinweis enthält den exakten Knoten und die Auslöserunde —
+  ausschließlich `visibleTo: "detectives"`.
+- Der Ganove erfährt Kamerapositionen nie; die einzige Ausnahme ist
+  der Polizeifunk (ausgelöste Kameras als Hinweisdaten).
+- `deactivateCameras` (Sabotage `kamera_aus`) schaltet alle Kameras
+  für den Rest der Partie aus.
+- Kann die Karte die gewünschte Anzahl unter den Regeln nicht
+  hergeben, wird bestmöglich platziert (Invarianzen gelten immer).
+
+**Umsetzung:** `placeCameras`, `triggeredCamera`, `deactivateAll` in
+`CameraSystem.ts`; Verdrahtung in `startGame`/`moveGanove`.
+
+## Ereignisse — Auslösemodi und Typen
+
+**Beschreibung:** Pro Ganovenzug läuft genau eine Ereignisprüfung; der
+Modus steht in `settings.eventMode` bzw. `eventMode`, die Kadenz in
+`eventDefaults`, die Typmischung in `eventMix`.
+
+**Bedingungen:**
+- `cycle`: Auslösung exakt in Runden `round % cycle === 0`.
+- `chance`: Auslösung mit Wahrscheinlichkeit `chance` pro Runde.
+- `tension`: `tensionValue += perRound` pro Runde; bei `>= threshold`
+  Auslösung und Reset auf 0 — garantierte Kadenz
+  `ceil(threshold / perRound)` Runden.
+- Typzug gewichtet nach `eventMix` (`sichtbarkeit`/`hinweis`/`umwelt`);
+  Ganovenaktionen sind **keine** Zufallsereignisse.
+- `sichtbarkeit`: exakter aktueller Knoten — gilt nur die laufende
+  Runde und verfällt danach (`visibleTo: "detectives"`).
+- `hinweis`: zonenbasiert („im Bereich X") — Zone des tatsächlichen
+  Ganove-Knotens plus operative Region = BFS-Ball im Radius
+  `hintZoneRadius` (`visibleTo: "detectives"`).
+- `umwelt`: sperrt eine zufällige Kante für `edgeBlockRounds` Runden —
+  beidseitig sichtbar und wirksam (`visibleTo: "both"`). Eine Kante
+  wird nur gesperrt, wenn der Restgraph danach zusammenhängend bleibt:
+  nie die letzte freie Kante eines Knotens, nie eine Zerteilung.
+
+**Umsetzung:** `rollTrigger`, `drawEventType`, `zoneHint`,
+`pickBlockableEdge` in `EreignisEngine.ts`; `runEventRoll` in
+`gameStore.ts` (läuft nach `moveGanove` und `ganoveAction`, vor der
+Detektivphase — neue Hinweise sind den Detektiven vor ihren Zügen
+sichtbar).
+
+## Hinweis-Grundsatz und Asymmetrie
+
+**Beschreibung:** Hinweise zeigen, wo der Ganove *war* — nie, wo er
+*ist*. Exakte Knotenangaben nur vergangenheitsbezogen (Kamera:
+Knoten + Auslöserunde; Aktions-Spur: Tatort). Die einzige
+Live-Ausnahme ist das `sichtbarkeit`-Ereignis der laufenden Runde.
+Die Sichtbarkeit ist datenseitig verankert (`visibleTo` auf jedem
+`GameEvent`), nicht erst in der Anzeige.
+
+**Bedingungen:**
+- Hinweisgebende Ereignisse (`camera`, `sichtbarkeit`, `hinweis`,
+  `aktion`) werden nur mit `visibleTo: "detectives"` erzeugt.
+- Weltzustandsänderungen (`umwelt`) sind `visibleTo: "both"` — der
+  Ganove muss umplanen können.
+- `visibleCameras(cameras, "ganove")` ist strukturell leer.
+
+**Umsetzung:** `visibleEvents`, `visibleCameras` in
+`InformationSystem.ts`.
+
+## Polizeifunk
+
+**Beschreibung:** Der Ganove darf einmal pro Partie den Polizeifunk
+abhören und erhält die letzten `radioHintCount` Hinweise mit Typ und
+Runde — inklusive Kameraauslösungen (und damit implizit deren
+Positionen). Nicht enthalten: unentdeckte Kameras, kommende Ereignisse.
+
+**Bedingungen:**
+- Zweiter Aufruf wirft `MoveError "already_used"`.
+- Der Funkbericht ist selbst ein `GameEvent` mit
+  `visibleTo: "ganove"` — die Detektive erfahren das Abhören nicht.
+
+**Umsetzung:** `useRadio` + `radioUsed` in `gameStore.ts`,
+`radioHintSummary` in `InformationSystem.ts`.
+
+## Hitze-Indikator
+
+**Beschreibung:** „Polizeiaufmerksamkeit" zeigt dem Ganoven, *wie viel*
+die Detektive gerade wissen — gewichtete Hinweisaktivität der letzten
+3 Runden: Zonen-Hinweis +1, Kamera +2, Aktions-Spur +2,
+Sichtbarkeitsereignis +3.
+
+**Bedingungen:**
+- Stufen: `score` 0 → `ruhig`, 1–2 → `aktiv`, 3–4 → `erhoeht`,
+  ≥5 → `kritisch`.
+- Kein Info-Leak: das Modell kennt nur gewichtete Zähler pro Runde,
+  niemals Hinweisinhalte — Rückgabe ausschließlich `{ level, score }`.
+- `umwelt` und `polizeifunk` tragen keine Positionsinformation und
+  zählen mit Gewicht 0.
+- Die Aktions-Spur (`aktion` +2) ist bereits gewichtet und zählt
+  automatisch, sobald das Missionssystem solche Hinweise erzeugt.
+
+**Umsetzung:** `heatLevel`, `HEAT_WEIGHTS`, `HEAT_WINDOW` in
+`InformationSystem.ts`; Store-Selector `getHeatLevel`.
