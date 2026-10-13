@@ -10,7 +10,12 @@ Fangprüfung nach jedem Einzelzug und allen fünf Endbedingungen — plus
 die komplette Informationsschicht: Kameraplatzierung und -auslösung,
 drei Ereignis-Auslösemodi mit drei Ereignistypen, datenseitige
 Sichtbarkeitsasymmetrie, einmaliger Polizeifunk und der 4-stufige
-Hitze-Indikator.
+Hitze-Indikator. Darauf aufbauend das Missionssystem: regelbasierte
+Generierung der Ziele (Diebstahl → Kontakt → Binärwahl Sabotage/Flucht)
+mit per BFS prüfbaren Kriterien, Aktionsrunden mit Spur-Hinweisen, dem
+Sabotage-Angebot des Informanten mit drei wirksamen Effekten,
+missionsgebundener Flucht sowie vordefinierten benannten „Fällen" als
+JSON-Missionssets pro Karte.
 
 ## Inhalt
 

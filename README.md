@@ -15,21 +15,27 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-Informationssystem (Entwicklungsschritt 5): Die Hinweisschicht erzeugt
-und verteilt alle Informationen regelkonform — Kameras mit
-Mindestabstand und Ausschlussliste beim Spielstart, drei
-Ereignis-Auslösemodi (Zyklus, Wahrscheinlichkeit, Spannungsbalken) mit
-drei Ereignistypen (exakte Sichtbarkeit für die laufende Runde,
-Zonenhinweis, Umweltsperrung ohne Graph-Zerteilung), vergangenheits-
-bezogene Hinweise nur für die Detektive, einmaliger Polizeifunk für
-den Ganoven und der 4-stufige Hitze-Indikator — alles mit datenseitiger
+Missionssystem (Entwicklungsschritt 6): Jede Partie trägt eine Mission
+in fester Reihenfolge Diebstahl → Kontakt → Binärwahl
+(Sabotage/Flucht) — die Ziele werden per Seed aus den
+Kategorien-Pools gezogen und müssen BFS-prüfbare Kriterien erfüllen
+(Mindest-/Höchstentfernungen, Routen-Budget mit Aktionsrunden,
+Flucht-Abstände, Sabotage-Umweg). Aktionsrunden erzeugen exakte
+Spur-Hinweise vor den Detektivzügen, das Informanten-Angebot zieht
+einen von drei wirksamen Sabotage-Effekten (Kameras aus, Funkstille,
+falsche Spur), die Flucht gelingt nur am missionsgebundenen
+Fluchtknoten. Vordefinierte benannte „Fälle" (JSON-Missionssets,
+zwei Fälle für Münster) und spielerdefinierte Missionen werden gegen
+dieselben Kriterien validiert — alles mit datenseitiger
 Sichtbarkeitsasymmetrie (`visibleTo`), vollständig headless und
-deterministisch. Darunter steht der komplette Rundenmotor (Zwei-Phasen-
-Runden, Zugzwang, Kantensperrungen, Sofort-Fangprüfung, alle fünf
-Endbedingungen) und das Engine-Grundgerüst mit zwei echten
-Kartenpaketen (**Münster**: 59 Orte, 101 Kanten; **Lübeck-Altstadtinsel**:
-22 Orte als Validierungskarte). Missionssystem und Oberflächen folgen
-in den nächsten Entwicklungsschritten. Details:
+deterministisch. Darunter steht die komplette Informationsschicht
+(Kameras, Ereignisengine, Polizeifunk, Hitze-Indikator), der
+Rundenmotor (Zwei-Phasen-Runden, Zugzwang, Kantensperrungen,
+Sofort-Fangprüfung, alle fünf Endbedingungen) und das
+Engine-Grundgerüst mit zwei echten Kartenpaketen (**Münster**: 59
+Orte, 101 Kanten; **Lübeck-Altstadtinsel**: 22 Orte als
+Validierungskarte). Oberflächen und KI folgen in den nächsten
+Entwicklungsschritten. Details:
 `docs/help/spiel-engine/`, `docs/help/kartenpakete/`.
 
 ## Setup

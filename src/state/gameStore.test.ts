@@ -35,6 +35,8 @@ describe("useGameStore headless", () => {
     expect(s.radioUsed).toBe(false);
     expect(s.radioHintCount).toBe(0);
     expect(s.edgeBlockRounds).toBe(0);
+    expect(s.hintSilenceUntilRound).toBe(0);
+    expect(s.falseTrailUntilRound).toBe(0);
   });
 });
 
@@ -144,7 +146,14 @@ describe("phase machine and actions", () => {
 
   it("stores mission and event entries imperatively", () => {
     const s = useGameStore.getState();
-    s.setMission({ id: "m1", targetNodes: ["c", "e"], currentStepIndex: 0 });
+    s.setMission({
+      id: "m1",
+      targets: { diebstahl: "c", kontakt: "e", sabotage: null, flucht: "b" },
+      stage: "diebstahl",
+      pendingChoice: null,
+      offeredEffect: null,
+      appliedEffect: null,
+    });
     s.addEvent({ kind: "camera", round: 2, nodeId: "f", visibleTo: "detectives" });
 
     const state = useGameStore.getState();

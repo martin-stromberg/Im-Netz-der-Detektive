@@ -258,3 +258,151 @@ Sichtbarkeitsereignis +3.
 
 **Umsetzung:** `heatLevel`, `HEAT_WEIGHTS`, `HEAT_WINDOW` in
 `InformationSystem.ts`; Store-Selector `getHeatLevel`.
+
+## Missions-Generierung — BFS-Kriterien
+
+**Beschreibung:** Die Zielknoten einer Mission werden aus den
+Kategorien-Pools der Karte (`diebstahl`/`kontakt`/`sabotage`/`flucht`)
+gezogen und müssen **alle** folgenden, per BFS-Kantendistanz messbaren
+Kriterien erfüllen — sonst wird die Ziehung verworfen
+(Rejection-Sampling). Die Prüfung gilt für Generierung, benannte
+„Fälle" und spielerdefinierte Missionen gleichermaßen.
+
+**Bedingungen** (Korridore aus `settings.missionRules`):
+- **Paarweiser Mindestabstand:** jedes Zielpaar ≥ `minGap` Kanten.
+- **Aufeinanderfolge:** `d→k`, `k→f`, `k→s`, `s→f` jeweils ≤ `maxGap`
+  (und ≥ `minGap`, durch die Paarregel abgedeckt).
+- **Routen-Budget:** `Start→d→k→f` + `ACTION_ROUNDS` (3) ≤
+  `routeBudget`; mit Sabotage `Start→d→k→s→f` + 3 ≤
+  `routeBudgetSabotage`.
+- **Flucht-Abstände:** `k→f` ≥ 4 (`FLUCHT_MIN_KONTAKT_GAP`), `d→f` ≥ 3
+  (`FLUCHT_MIN_DIEBSTAHL_GAP`).
+- **Sabotage-Umweg:** `k→s + s→f` ≤ `k→f + sabotageDetour`.
+- **Eindeutigkeit:** kein Knoten trägt zwei Missionsrollen.
+
+**Verhalten:**
+- `generateMission` zieht und prüft, bis eine konforme Ziehung
+  gefunden ist; nach `GENERATION_MAX_ATTEMPTS` ohne Erfolg folgt
+  `MissionGenerationError`. Fehlt ein Pflicht-Pool
+  (diebstahl/kontakt/flucht), ist der Fehler sofort fällig; ein leerer
+  `sabotage`-Pool ist dagegen legal (`targets.sabotage === null` →
+  kein Sabotage-Angebot).
+- `auto` (Standard) fängt den Fehler und läuft missionslos weiter;
+  `random` lässt ihn durchschlagen; `case`/`custom` lehnen invalide
+  Ziele mit `MissionValidationError`/`GameConfigError` und allen
+  Kriteriencodes ab.
+
+**Umsetzung:** `missionCriteriaViolations`, `generateMission`,
+`validateCustomTargets` in `MissionSystem.ts`; `resolveMission` in
+`gameStore.ts`.
+
+## Missions-Ablauf — feste Reihenfolge und Aktionsrunden
+
+**Beschreibung:** Die Mission folgt zwingend der Kette
+Diebstahl → Kontakt → Binärwahl (Sabotage *oder* Flucht). Betreten
+eines Zielknotens ist keine Aktion — erst am freigegebenen Ziel der
+laufenden Stufe kann der Ganove eine Aktionsrunde ausführen.
+
+**Bedingungen:**
+- Die Aktion ersetzt den Zug der Runde: der Ganove bleibt stehen und
+  voll fangbar (Fangprüfung in der folgenden Detektivphase gilt).
+- Jede ausgeführte Aktion erzeugt sofort ein `aktion`-Spur-Event mit
+  exaktem `nodeId` + `details.action`, `visibleTo: "detectives"` — vor
+  den Detektivzügen derselben Runde; Gewicht +2 in der Hitze.
+- Nur die Aktion des **aktiven** Schritts ist ausführbar
+  (`executableMissionAction`); die Umzingelungsprüfung zählt diese
+  als legalen Zug.
+- Nach `kontakt` mit `targets.sabotage !== null` liegt das
+  Sabotage-Angebot (`pendingChoice` + `offeredEffect`); Ganovenzug
+  und -aktion sind bis zur Beantwortung gesperrt
+  (`mission_choice_pending`). `chooseMissionPath` ist endgültig
+  (`no_mission_choice` ohne offene Wahl).
+- Das Kontakt-Spur-Event verrät die Wahl nicht (kein Effekt, keine
+  Knoten-IDs im Event).
+- Ohne Sabotage-Pool geht die Mission vom Kontakt direkt in
+  `stage "flucht"`.
+
+**Umsetzung:** `ganoveAction`, `chooseMissionPath`, `advanceMission`
+in `gameStore.ts`; `executableMissionAction`, `missionStructure` in
+`MissionSystem.ts`.
+
+## Sabotage-Effekte
+
+**Beschreibung:** Der Informant bietet ein Sabotageziel mit einem per
+Seed gezogenen Effekt aus `settings.sabotageEffects` an. Die Sabotage
+wird als eigene Missionsaktion am Sabotageziel ausgeführt; `wahl` und
+`flucht` haben keine Aktion.
+
+**Bedingungen:**
+- `kamera_aus`: alle Kameras `active: false` — sofort und bis
+  Partieende.
+- `funkstille`: `hintSilenceUntilRound = round + sabotageDuration` —
+  bis dahin erzeugt der Ereignis-Roll keine `hinweis`-/
+  `sichtbarkeit`-Ereignisse (`umwelt` läuft weiter, Trigger feuern
+  normal).
+- `falsche_spur`: `falseTrailUntilRound` analog — `hinweis`-Ereignisse
+  liefern eine garantiert andere Zone samt konsistentem Köder-Ball;
+  formal ein normaler Zonen-Hinweis, nur falsch.
+- `sabotageDuration` = `settings.eventDefaults.cycle` der Karte.
+- `offeredEffect` ist Ganove-Wissen: ein Fall mit fixiertem
+  `sabotageEffect` wird beim Kontakt verwendet, sonst zieht
+  `missionRng(seed, round)` (eigener Salt `MISSION_RNG_SALT`).
+
+**Umsetzung:** `applySabotageEffect`, `emitRoundEvent`,
+`emitFalseTrailHint` in `gameStore.ts`.
+
+## Missionsgebundene Flucht
+
+**Beschreibung:** Mit Mission ist genau der gezogene
+`flucht`-Zielknoten der Fluchtpunkt — `escapeNodeIds` enthält nur
+ihn, die Flucht gelingt ausschließlich in `stage "flucht"` und per
+normalem Zug (keine Aktionsrunde am Fluchtpunkt).
+
+**Bedingungen:**
+- Frühes Betreten des Missions-Fluchtknotens (Stufe < `flucht`) ist
+  ein normaler Zug ohne `escaped`.
+- Ohne Mission (`auto`-Fallback oder `none`) bleiben alle
+  `flucht`-Kategorie-Knoten Fluchtpunkte.
+
+**Umsetzung:** `escapeNodeIds`-Init und Flucht-Gating in
+`moveGanove`/`startGame`.
+
+## Fallsammlungen („Fälle") und Custom-Missionen
+
+**Beschreibung:** Pro Karte kann `src/data/missions/<mapId>.json`
+benannte Szenarien bündeln: `{ mapId, cases: [{ id, name, story,
+diebstahl, kontakt, flucht, sabotage?, sabotageEffect? }] }`.
+Spielerdefinierte Missionen übergeben dieselben Ziel-IDs.
+
+**Bedingungen:**
+- `mapId` muss zur Karte passen; Fall-IDs eindeutig; `id`, `name`,
+  `story` nicht-leer; alle Ziel-IDs bekannte Knoten der passenden
+  Kategorie; `sabotageEffect` ∈ `settings.sabotageEffects`.
+- Fall- und Custom-Ziele werden zusätzlich gegen die
+  Generierungskriterien für den tatsächlichen Start geprüft.
+- Münster liefert mindestens zwei Fälle (`diebstahlserie-altstadt`,
+  `kurier-am-hafen`) — die Datenintegritätssuite verifiziert jeden
+  Fall für jeden möglichen Ganoven-Start.
+
+**Umsetzung:** `validateMissionSet`, `validateCustomTargets` in
+`MissionSystem.ts`; `loadMissionSet`, `getMissionCase` in
+`MissionLoader.ts`; `missionData.test.ts` als Daten-Guard.
+
+## Missionssichtbarkeit
+
+**Beschreibung:** Detektive kennen die Missionsstruktur und die
+öffentlichen Kategorien-Pools — niemals die gezogenen Zielknoten.
+
+**Bedingungen:**
+- `getMissionStructure` liefert nur `{ kind, status }` je Schritt —
+  keine `targets`.
+- Spur-Events tragen den Tatort (`nodeId`) und die Aktionsart, keine
+  zukünftigen Ziele; die Binärwahl erscheint nicht in Events.
+- `mission` (inkl. `targets`, `pendingChoice`, `offeredEffect`) ist
+  Ganove-Wissen — nur das Ganove-Feld; detektivseitige Sichten gehen
+  über `missionStructure`.
+- Missionszielknoten sind kamerafrei (`cameraProtectedNodes` ∪
+  `missionTargetIds`).
+
+**Umsetzung:** `missionStructure` in `MissionSystem.ts`,
+`getMissionStructure`/`emitInfoEvent` in `gameStore.ts`.
