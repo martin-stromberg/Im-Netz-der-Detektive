@@ -1,25 +1,5 @@
 .shell {
-  max-width: 48rem;
-  margin: 0 auto;
-  padding: 3rem 1.5rem;
-  font-family: "Segoe UI", system-ui, sans-serif;
-  background-color: #141b24;
-  color: #e8eef5;
-  min-height: 100vh;
-}
-
-.title {
   margin: 0;
-  font-size: 2rem;
-}
-
-.subtitle {
-  margin-top: 0.25rem;
-  color: #7f93a8;
-}
-
-.round {
-  margin-top: 1rem;
-  font-variant-numeric: tabular-nums;
-  color: #c7d3df;
+  min-height: 100vh;
+  background: #0c0f16;
 }

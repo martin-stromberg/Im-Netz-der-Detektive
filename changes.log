@@ -1,5 +1,36 @@
 # Änderungsprotokoll
 
+## 2026-10-14 — Ganove-Perspektive / spielbarer Primärmodus (Schritt 9)
+
+- Der Primärmodus ist vollständig spielbar: `GanoveScreen`
+  (`src/components/`) führt durch Startansicht, Ganove-Startpunktwahl
+  (Detektive zuerst per Seed gelegt, Ganove wählt zuletzt aus legalen
+  Optionen) und die laufende Partie mit allen Endzuständen samt
+  „Als Remis beenden".
+- Neue geteilte SVG-Kartenkomponente `MapGraph`: Knoten mit Klarnamen,
+  `weg`/`fahrt` unterschiedlich gezeichnet, gesperrte Kanten ausgegraut
+  mit Sperr-Glyphe, Detektiv-/Ganove-/Missions-/Flucht-Marker
+  formkodiert (nicht nur farblich), interaktive Knoten per Klick und
+  Tastatur (Tab + Eingabe), Legende unter der Karte. Die Komponente
+  besitzt strukturell keine Kamera-/Hinweis-Schnittstelle — die
+  Ganove-Sicht kann Asymmetrie-Informationen nicht anzeigen.
+- `src/state/detectiveDriver.ts`: `installDetectiveDriver` abonniert
+  den Store und treibt jede Detektivphase synchron mit
+  `chooseDetectiveMove`/`moveDetective` und `aiRng(seed, round,
+  index+1)` — bitgleiche KI-Konvention wie die Simulation;
+  `detectiveStartsFromLog` rekonstruiert den Spawn-Prior aus dem
+  Log-Header.
+- `MissionPanel` (Schrittfolge, aktuelles Ziel, endgültige
+  Sabotage-Binärwahl), `HeatBadge` (4 Stufen mit Icon + Text) und der
+  Intel-Feed (nur ganovensichtbare Events: `umwelt`, `polizeifunk`) in
+  der Seitenleiste; alle Texte über neue i18n-Schlüssel in
+  `de.json`/`en.json` (paritätisch, Hook-geprüft).
+- Testinfrastruktur: Vitest + jsdom + Testing Library
+  (`src/test/setup.ts`), Playwright-E2E (`playwright.config.ts`,
+  `e2e/ganove.spec.ts`, `npm run test:e2e`) inklusive einer kompletten
+  deterministischen Münster-Partie bis zur Flucht; DEV-only
+  `window.__gameStore`-Exposition für E2E-Introspektion.
+
 ## 2026-10-13 — Deduktion, Detektiv-/Ganove-KI, KI-Simulation (Schritt 8)
 
 - Neues Modul `src/logic/Deduction.ts`: `deducePossiblePositions`

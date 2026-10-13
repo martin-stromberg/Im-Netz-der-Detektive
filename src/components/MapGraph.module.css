@@ -1,0 +1,140 @@
+/* Dark detective-noir theme for the shared SVG map. Shapes, glyphs and
+ * stroke patterns carry the semantics — colour is never the only cue. */
+.map {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #10141c;
+  border: 1px solid #2a3240;
+  border-radius: 8px;
+}
+
+.edge {
+  stroke: #4a5568;
+  stroke-width: 2;
+}
+
+.edgeWeg {
+  stroke: #4a5568;
+}
+
+/* fahrt: thicker, dashed — a fast but predictable axis. */
+.edgeFahrt {
+  stroke: #7a6a4f;
+  stroke-width: 3.5;
+  stroke-dasharray: 10 5;
+}
+
+/* Blocked edges are greyed AND shape-marked by a crossed barrier. */
+.edgeBlocked {
+  stroke: #3a3f4a;
+  stroke-opacity: 0.5;
+  stroke-dasharray: 4 4;
+}
+
+.blockGlyph line {
+  stroke: #d98c8c;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.nodeDot {
+  fill: #c8d0dc;
+  stroke: #10141c;
+  stroke-width: 1.5;
+}
+
+.nodeLabel {
+  fill: #8a94a6;
+  font-size: 10px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.nodeInteractive {
+  cursor: pointer;
+  outline: none;
+}
+
+.hitArea {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
+
+.nodeInteractive:focus-visible .nodeDot {
+  stroke: #f5d76e;
+  stroke-width: 3;
+}
+
+.nodeLegal .nodeDot,
+.nodeSelectable .nodeDot {
+  fill: #7fd4a8;
+}
+
+.nodeInteractive:hover .nodeDot {
+  fill: #a8e8c8;
+}
+
+.legalRing {
+  fill: none;
+  stroke: #7fd4a8;
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+
+.nodeCurrentTarget .nodeDot {
+  stroke: #f5d76e;
+  stroke-width: 3;
+}
+
+.nodeGanoveHere .nodeDot {
+  fill: #e8b45a;
+}
+
+.escapeMarker {
+  fill: none;
+  stroke: #7fb8d4;
+  stroke-width: 1.6;
+}
+
+.missionBadge {
+  fill: none;
+  stroke-width: 1.6;
+}
+
+.mission_diebstahl {
+  stroke: #e8b45a;
+}
+
+.mission_kontakt {
+  stroke: #b48ad4;
+}
+
+.mission_sabotage {
+  stroke: #d98c8c;
+}
+
+.mission_flucht {
+  stroke: #7fb8d4;
+}
+
+.detectiveMarker .detectiveShape {
+  fill: #3d5a80;
+  stroke: #9db8d9;
+  stroke-width: 1.4;
+}
+
+.ganoveMarker .ganoveShape {
+  fill: #e8b45a;
+  stroke: #10141c;
+  stroke-width: 1.4;
+}
+
+.markerText {
+  fill: #eaf0f8;
+  font-size: 9px;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+}
