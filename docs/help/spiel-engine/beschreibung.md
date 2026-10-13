@@ -34,8 +34,24 @@ die Startaufstellung folgt den Regeln der jeweiligen Karte.
   Startpunkte unterhalb des Mindestabstands werden nie angeboten.
 - **Spielzustand:** Ein zentraler Zustandsspeicher hält Runde, Phase,
   Positionen, Mission, Ereignisse, Kameras, gesperrte Kanten,
-  Ereignismodus, Spannungswert, Seed und das Aktionsprotokoll — und
-  lässt sich vollständig ohne Oberfläche steuern.
+  Ereignismodus, Spannungswert, Seed, Spielergebnis, Rundenlimit,
+  Fluchtpunkte und das Aktionsprotokoll — und lässt sich vollständig
+  ohne Oberfläche steuern.
+- **Rundenablauf:** Jede Runde hat zwei Phasen. Zuerst zieht der
+  Ganove auf einen legalen Nachbarort — oder nutzt seine Aktionsrunde
+  (einzige Ausnahme vom Zugzwang, vorgesehen für das Missionssystem).
+  Danach zieht jeder Detektiv einzeln in fester Reihenfolge. Ein Zug
+  ist immer genau eine Kante — egal ob Weg oder Fahrt — und
+  stehenbleiben ist verboten. Von Detektiven besetzte Orte sind für
+  den Ganoven tabu; Detektive dürfen sich einen Ort teilen. Gesperrte
+  Kanten sind für beide Seiten unpassierbar.
+- **Spielende:** Die Engine erkennt alle fünf Enden: **Fang** (ein
+  Detektiv beendet seinen Zug auf dem Ganoven-Ort — die Partie endet
+  sofort mitten in der Detektivphase), **Umzingelung** (der Ganove hat
+  zu Beginn seiner Phase keinen legalen Zug und keine ausführbare
+  Aktion), **Flucht** (der Ganove erreicht einen freien Fluchtpunkt),
+  **Zeitlimit** (Ablauf ohne Flucht — abschaltbar per „unbegrenzt")
+  und **Remis** (vorzeitiger Abbruch als Unentschieden).
 
 ## Beispiele
 
@@ -51,8 +67,13 @@ die Startaufstellung folgt den Regeln der jeweiligen Karte.
 
 ## Einschränkungen
 
-- Bewegung, Missionslogik, Kameras/Ereignisse im Spielablauf und KI
-  sind noch nicht Teil der Engine — sie bauen auf diesem Grundgerüst
-  in späteren Entwicklungsschritten auf.
-- Der Zustand speichert bereits Mission, Ereignisse, Kameras und
-  gesperrte Kanten; die Logik, die diese Felder befüllt, folgt später.
+- Die Aktionsrunde des Ganoven ist strukturell vorgesehen (Prüfpunkt
+  `ganoveCanAct` + `ganoveAction`), ihre fachlichen Effekte folgen erst
+  mit dem Missionssystem — ebenso die missionsgebundene Flucht, die
+  über `setEscapeNodeIds` an die vorhandene Fluchtpunkt-Prüfung
+  anschließt.
+- Missionslogik, Kameras/Ereignisse im Spielablauf und KI sind noch
+  nicht Teil der Engine — sie bauen auf dem Rundenmotor in späteren
+  Entwicklungsschritten auf.
+- Der Zustand speichert bereits Mission, Ereignisse und Kameras; die
+  Logik, die diese Felder befüllt, folgt später.
