@@ -28,6 +28,10 @@ describe("useGameStore headless", () => {
     expect(s.tensionValue).toBe(0);
     expect(s.seed).toBe(0);
     expect(s.log).toEqual([]);
+    expect(s.outcome).toBeNull();
+    expect(s.roundLimit).toBeNull();
+    expect(s.escapeNodeIds).toEqual([]);
+    expect(s.ganoveCanAct).toBe(false);
   });
 });
 

@@ -1,5 +1,29 @@
 # Änderungsprotokoll
 
+## 2026-10-13 — Rundenmotor (Schritt 4)
+
+- Neues Logikmodul `src/logic/Movement.ts`: reine Bewegungsregeln
+  (1 Zug = 1 Kante `weg`/`fahrt`, Zugzwang, besetzte Knoten für den
+  Ganoven tabu, Detektive teilen Knoten, `blockedEdges` für beide
+  Seiten), `legalMoves`-/`validateMove`-Funktionen und `MoveError` mit
+  maschinenlesbaren `reason`-Codes.
+- `useGameStore` ist jetzt der vollständige Rundenmotor:
+  `moveGanove`/`moveDetective` (feste Reihenfolge D1→Dn) treiben die
+  Zwei-Phasen-Runden; die Fangprüfung läuft nach jedem Einzelzug und
+  beendet die Partie sofort mitten in der Detektivphase.
+- Alle fünf Endbedingungen als `outcome` (`caught`/`surrounded`/
+  `escaped`/`timeout`/`draw`, konsistent zum Eventlog-`result.outcome`):
+  Umzingelung zu Beginn jeder Ganovenphase, Flucht über `flucht`-Knoten
+  (`escapeNodeIds`, per `setEscapeNodeIds` für die missionsgebundene
+  Flucht vorbereitet), Zeitlimit aus `roundLimit` inklusive
+  `null` = „unbegrenzt", Remis via `abortAsDraw()`.
+- Aktionsrunde des Ganoven als Prüfpunkt vorgesehen (`ganoveCanAct`-Flag
+  + `ganoveAction()`, einzige Zugzwang-Ausnahme) — das Missionssystem
+  befüllt den Hook in einem Folgeschritt.
+- 52 neue Engine-Tests (`Movement.test.ts`, `gameStore.rounds.test.ts`,
+  `gameStore.endings.test.ts`) mit skriptgesteuerten Partien auf
+  `teststadt` und eigenen Mini-Fixture-Karten.
+
 ## 2026-10-13 — Kartenpakete Münster und Lübeck (Schritt 3)
 
 - Hauptkarte `src/data/maps/muenster.json`: 59 echte, wiedererkennbare
