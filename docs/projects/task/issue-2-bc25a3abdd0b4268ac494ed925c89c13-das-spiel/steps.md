@@ -12,7 +12,7 @@ Branch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 | 6 | Missionssystem — Generierung, Aktionen, Sabotage und Fälle | 5 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-6-missionssystem` | Fertig |
 | 7 | Eventlog, Aufzeichnung und Export | 6 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-7-eventlog` | Fertig |
 | 8 | Deduktion und KI — Detektiv-KI, Ganove-KI, KI-vs.-KI-Modus | 7 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-8-deduktion-ki` | Fertig |
-| 9 | Ganove-Perspektive (Primärmodus) | 8 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-9-ganove-perspektive` | In Arbeit |
+| 9 | Ganove-Perspektive (Primärmodus) | 8 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-9-ganove-perspektive` | Fertig |
 | 10 | Detektiv-Perspektive mit Deduktions-Werkzeugen | 8, 9 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-10-detektiv-perspektive` | Offen |
 | 11 | Menü, Einstellungen und Szenarien-Auswahl | 9, 10 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-11-menue-einstellungen` | Offen |
 | 12 | Persistenz — Save/Load, Replay-Player und Statistiken | 7, 11 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-12-persistenz-replay` | Offen |
