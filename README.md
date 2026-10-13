@@ -15,16 +15,18 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-Kartenpakete (Entwicklungsschritt 3): Beide Prototyp-Städte liegen als
-spielbare Kartenpakete vor — die Hauptkarte **Münster** (59 echte Orte,
-101 Verbindungen auf angenäherter Topografie) und die bewusst
-unbalancierte **Lübeck-Altstadtinsel** (22 Orte) als Validierungskarte.
-Darunter steht das Engine-Grundgerüst: Kartenpaket-Loader und
--Validator, Graph-Grundfunktionen (BFS-Distanzen), deterministischer
-Seeded-RNG, Startaufstellungs-System und Zustand-Store. Rundenlogik,
-Informationssystem und Oberflächen folgen in den nächsten
-Entwicklungsschritten. Details: `docs/help/kartenpakete/`,
-`docs/help/spiel-engine/`.
+Rundenmotor (Entwicklungsschritt 4): Die Partie läuft komplett headless —
+Zwei-Phasen-Runden (Ganove, dann Detektive in fester Reihenfolge), alle
+Bewegungsregeln inklusive Zugzwang und Kantensperrungen, Sofort-Fangprüfung
+nach jedem Detektivzug und alle fünf Endbedingungen (Fang, Umzingelung,
+Flucht, Zeitlimit inklusive „unbegrenzt", Remis). Die Aktionsrunde des
+Ganoven und die missionsgebundene Flucht sind als Hooks vorbereitet.
+Darunter steht das Engine-Grundgerüst mit zwei echten Kartenpaketen
+(**Münster**: 59 Orte, 101 Kanten; **Lübeck-Altstadtinsel**: 22 Orte als
+Validierungskarte), Kartenpaket-Loader und -Validator, Graph-Funktionen
+(BFS), Seeded-RNG und Startaufstellungs-System. Informationssystem und
+Oberflächen folgen in den nächsten Entwicklungsschritten. Details:
+`docs/help/spiel-engine/`, `docs/help/kartenpakete/`.
 
 ## Setup
 

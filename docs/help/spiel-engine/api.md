@@ -99,6 +99,26 @@ gibt es als `MapPack` getypt zurück.
 |-----------|---------|
 | `SpawnError` | `choice` ohne auflösbare Kandidaten; kein Ganoven-Kandidat erfüllt `minDistanceToDetective`; vom Store übergebene Position verletzt die Startregeln |
 
+### `Movement.ts` — Bewegungsregeln (rein, deterministisch)
+
+`MoveContext` = `{ graph, round, blockedEdges, ganovePosition,
+detektivePositions }`; `MoveTarget` = `{ nodeId, edgeType }`.
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `isEdgeBlocked(a, b, blockedEdges, round)` | `true`, wenn die Kante `a`–`b` in `round` gesperrt ist (`untilRound >= round`, beide Richtungen) |
+| `legalMovesFrom(ctx, nodeId)` | ungesperrte Nachbarziele inkl. `edgeType`; eigener Knoten nie enthalten (Zugzwang) |
+| `legalGanoveMoves(ctx)` | `legalMovesFrom` abzüglich Detektiv-besetzter Knoten |
+| `legalDetectiveMoves(ctx, detectiveIndex)` | `legalMovesFrom` des Detektivs — besetzte Knoten bleiben legal (Teilen); `[]` bei ungültigem Index |
+| `validateGanoveMove(ctx, target)` | liefert `MoveTarget` oder wirft `MoveError` (`stay_forbidden`/`not_adjacent`/`blocked_edge`/`occupied`) |
+| `validateDetectiveMove(ctx, detectiveIndex, target)` | wie oben plus `not_active_detective`; ohne `occupied` |
+| `mapEscapeNodeIds(map)` | IDs aller Knoten mit Kategorie `flucht` |
+
+`MoveError.reason` ist ein maschinenlesbarer `MoveRejection`-Code
+(`no_game`, `game_over`, `wrong_phase`, `not_active_detective`,
+`stay_forbidden`, `not_adjacent`, `blocked_edge`, `occupied`,
+`no_action_available`).
+
 ### `useGameStore` (`src/state/gameStore.ts`) — State-Felder
 
 | Feld | Typ | Bedeutung |
@@ -117,17 +137,28 @@ gibt es als `MapPack` getypt zurück.
 | `tensionValue` | `number` | Spannungswert für `tension`-Modus |
 | `seed` | `number` | Seed der laufenden Partie |
 | `log` | `LogEntry[]` | sequenziertes Aktionsprotokoll |
+| `outcome` | `GameOutcome \| null` | `caught`/`surrounded`/`escaped`/`timeout`/`draw`; `null` solange die Partie läuft |
+| `roundLimit` | `number \| null` | effektives Rundenlimit; `null` = unbegrenzt |
+| `escapeNodeIds` | `string[]` | Fluchtpunkte (Init: Kategorie `flucht`; Missions-Hook: `setEscapeNodeIds`) |
+| `ganoveCanAct` | `boolean` | Missionssystem-Hook: darf der Ganove diese Runde eine Aktion ausführen? |
 
 ### `useGameStore` — Actions
 
 | Action | Wirkung |
 |--------|---------|
-| `startGame(map, seed, options?)` | setzt Map/Seed/`eventMode`, vergibt Startpositionen (explizite `detectivePositions`/`ganovePosition` werden gegen `SpawnSystem` validiert, fehlende per `createRng(seed)` ergänzt) und schreibt den `header`-Logeintrag |
+| `startGame(map, seed, options?)` | setzt Map/Seed/`eventMode`, vergibt Startpositionen (explizite `detectivePositions`/`ganovePosition` werden gegen `SpawnSystem` validiert, fehlende per `createRng(seed)` ergänzt), löst `roundLimit` aus `options.roundLimit` bzw. `settings.roundLimit.suggested` auf (`null` nur bei `unlimited`), initialisiert `escapeNodeIds` aus der `flucht`-Kategorie, schreibt den `header`-Logeintrag und prüft die initiale Umzingelung |
 | `resetGame()` | setzt den kompletten Daten-Zustand zurück |
 | `appendLog({ round, type, details? })` | hängt einen `LogEntry` mit auto-`seq` an |
+| `moveGanove(target)` | validierter Ganovenzug (`MoveError` bei Regelverstoß); Fluchtpunkt → `outcome "escaped"`, sonst Detektivphase |
+| `moveDetective(target)` | Zug des aktiven Detektivs; Sofort-Fangprüfung (`outcome "caught"` mitten in der Phase); letzter Detektiv → Rundenende |
+| `ganoveAction()` | Aktionsrunde (Zugzwang-Ausnahme, erfordert `ganoveCanAct`); Ganove bleibt stehen und fangbar |
+| `abortAsDraw()` | beendet die laufende Partie als `outcome "draw"` |
+| `getLegalGanoveMoves()` / `getLegalDetectiveMoves()` | legale Ziele (`MoveTarget[]`) des Ganoven / des aktiven Detektivs; `[]` außerhalb der jeweiligen Phase oder nach Spielende |
+| `setEscapeNodeIds(ids)` | überschreibt die Fluchtpunktliste (missionsgebundene Flucht); `GameConfigError` bei unbekannten IDs |
+| `setGanoveCanAct(flag)` | Missionssystem-Hook für die Aktionsverfügbarkeit |
 | `endGanovePhase()` | `phase` → `detektive`, `activeDetectiveIndex` → `0` (No-Op außerhalb) |
 | `advanceDetective()` | `activeDetectiveIndex` +1 (nur in `detektive`-Phase) |
-| `endDetectivePhase()` | `phase` → `ganove`, `round` +1 (No-Op außerhalb) |
+| `endDetectivePhase()` | Rundenende-Sequenz: Timeout (`round >= roundLimit` → `outcome "timeout"`), sonst `round` +1, Kanten-Ablauf, Umzingelungsprüfung |
 | `setMission(mission)` | Mission setzen/löschen |
 | `addEvent(event)` | Ereignis an `events` anhängen |
 | `setCameras(nodeIds)` | Kameras (aktiv) auf Knoten setzen |
@@ -141,6 +172,8 @@ gibt es als `MapPack` getypt zurück.
 ```ts
 const map = loadMap("teststadt");
 useGameStore.getState().startGame(map, 42);
-useGameStore.getState().endGanovePhase();
-useGameStore.getState().endDetectivePhase(); // round === 2
+useGameStore.getState().moveGanove("c");          // Ganovenphase Runde 1
+useGameStore.getState().moveDetective("b");       // D1
+useGameStore.getState().moveDetective("h");       // letzter Detektiv -> Runde 2
+// ... bis outcome !== null: "caught" | "surrounded" | "escaped" | "timeout" | "draw"
 ```
