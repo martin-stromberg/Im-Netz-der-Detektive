@@ -46,10 +46,7 @@ export function placeCameras(
  * The active camera on `nodeId`, if any — the ganove triggers it by
  * entering the node. Inactive (sabotaged) cameras never trigger.
  */
-export function triggeredCamera(
-  cameras: readonly Camera[],
-  nodeId: string,
-): Camera | undefined {
+export function triggeredCamera(cameras: readonly Camera[], nodeId: string): Camera | undefined {
   return cameras.find((camera) => camera.active && camera.nodeId === nodeId);
 }
 

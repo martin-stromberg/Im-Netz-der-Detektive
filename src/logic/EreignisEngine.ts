@@ -7,13 +7,7 @@
  */
 import { bfsDistances, type Graph } from "./Graph";
 import type { BlockedEdge } from "./Movement";
-import type {
-  EventDefaults,
-  EventMix,
-  EventMode,
-  MapEdge,
-  MapPack,
-} from "./mapPack";
+import type { EventDefaults, EventMix, EventMode, MapEdge, MapPack } from "./mapPack";
 import type { Rng } from "./rng";
 
 /** The three drawable event types (`eventMix` keys). */

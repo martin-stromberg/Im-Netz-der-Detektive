@@ -99,18 +99,12 @@ describe("startGame camera placement", () => {
   it("honours the cameraCount override and validates the corridor", () => {
     store().startGame(muenster, 5, { cameraCount: 2 });
     expect(store().cameras).toHaveLength(2);
-    expect(() =>
-      store().startGame(muenster, 5, { cameraCount: 99 }),
-    ).toThrow(GameConfigError);
-    expect(() =>
-      store().startGame(muenster, 5, { cameraProtectedNodes: ["unbekannt"] }),
-    ).toThrow(GameConfigError);
-    expect(() =>
-      store().startGame(muenster, 5, { radioHintCount: 99 }),
-    ).toThrow(GameConfigError);
-    expect(() =>
-      store().startGame(muenster, 5, { edgeBlockRounds: 0 }),
-    ).toThrow(GameConfigError);
+    expect(() => store().startGame(muenster, 5, { cameraCount: 99 })).toThrow(GameConfigError);
+    expect(() => store().startGame(muenster, 5, { cameraProtectedNodes: ["unbekannt"] })).toThrow(
+      GameConfigError,
+    );
+    expect(() => store().startGame(muenster, 5, { radioHintCount: 99 })).toThrow(GameConfigError);
+    expect(() => store().startGame(muenster, 5, { edgeBlockRounds: 0 })).toThrow(GameConfigError);
   });
 
   it("is deterministic and records cameras in the header log", () => {
@@ -352,4 +346,3 @@ describe("asymmetry end-to-end", () => {
     expect(detectiveEvents.some((event) => event.kind === "camera")).toBe(true);
   });
 });
-

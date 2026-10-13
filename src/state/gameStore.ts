@@ -308,10 +308,7 @@ function resolveRangeSetting(
  * Validates the camera exclusion list: every id must exist on the map,
  * otherwise `GameConfigError` is thrown.
  */
-function resolveCameraProtectedNodes(
-  map: MapPack,
-  option: string[] | undefined,
-): string[] {
+function resolveCameraProtectedNodes(map: MapPack, option: string[] | undefined): string[] {
   if (option === undefined) {
     return [];
   }
@@ -514,13 +511,7 @@ export const useGameStore = create<GameState>((set, get) => {
     if (!trigger.fires) {
       return;
     }
-    emitRoundEvent(
-      drawEventType(map.settings.eventMix, rng),
-      map,
-      position,
-      state.round,
-      rng,
-    );
+    emitRoundEvent(drawEventType(map.settings.eventMix, rng), map, position, state.round, rng);
   };
 
   const requireRunningGame = (phase?: GamePhase): void => {
@@ -782,10 +773,7 @@ export const useGameStore = create<GameState>((set, get) => {
       requireRunningGame();
       const state = get();
       if (state.radioUsed) {
-        throw new MoveError(
-          "already_used",
-          "the police radio can only be tapped once per game",
-        );
+        throw new MoveError("already_used", "the police radio can only be tapped once per game");
       }
       const hints = radioHintSummary(state.events, state.radioHintCount);
       set({ radioUsed: true });

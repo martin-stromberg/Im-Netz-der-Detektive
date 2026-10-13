@@ -3,12 +3,7 @@ import { bfsDistances, buildGraph, type Graph } from "./Graph";
 import { loadMap } from "./MapLoader";
 import type { MapEdge, MapPack } from "./mapPack";
 import { createRng } from "./rng";
-import {
-  drawEventType,
-  pickBlockableEdge,
-  rollTrigger,
-  zoneHint,
-} from "./EreignisEngine";
+import { drawEventType, pickBlockableEdge, rollTrigger, zoneHint } from "./EreignisEngine";
 
 const teststadt = loadMap("teststadt");
 const muenster = loadMap("muenster");

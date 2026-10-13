@@ -109,7 +109,11 @@ describe("moveGanove", () => {
     store().moveDetective("h"); // D2 i -> h
     store().moveGanove("f"); // g -> f (fahrt)
     // A camera on "f" may add a hint entry after the move entry.
-    expect(store().log.filter((e) => e.type === "move").at(-1)).toMatchObject({
+    expect(
+      store()
+        .log.filter((e) => e.type === "move")
+        .at(-1),
+    ).toMatchObject({
       type: "move",
       details: { actor: "ganove", from: "g", to: "f", edgeType: "fahrt" },
     });

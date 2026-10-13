@@ -13,12 +13,7 @@
 
 /** All event kinds the information layer can produce. */
 export type GameEventKind =
-  | "camera"
-  | "sichtbarkeit"
-  | "hinweis"
-  | "umwelt"
-  | "aktion"
-  | "polizeifunk";
+  "camera" | "sichtbarkeit" | "hinweis" | "umwelt" | "aktion" | "polizeifunk";
 
 /** Who is allowed to see an event — enforced at data level. */
 export type Visibility = "detectives" | "ganove" | "both";
@@ -92,10 +87,7 @@ export const HEAT_WEIGHTS: Readonly<Record<GameEventKind, number>> = {
 export const HEAT_WINDOW = 3;
 
 /** Events a side may see — data-level asymmetry, not a display filter. */
-export function visibleEvents(
-  events: readonly GameEvent[],
-  side: ViewSide,
-): GameEvent[] {
+export function visibleEvents(events: readonly GameEvent[], side: ViewSide): GameEvent[] {
   return events.filter((event) => event.visibleTo === side || event.visibleTo === "both");
 }
 
@@ -113,10 +105,7 @@ export function visibleCameras(cameras: readonly Camera[], side: ViewSide): Came
  * order — the police radio content. Never contains untriggered cameras
  * or upcoming events, because it only summarises emitted events.
  */
-export function radioHintSummary(
-  events: readonly GameEvent[],
-  count: number,
-): RadioHint[] {
+export function radioHintSummary(events: readonly GameEvent[], count: number): RadioHint[] {
   return events
     .filter((event) => HINT_EVENT_KINDS.includes(event.kind))
     .slice(-count)
@@ -133,10 +122,7 @@ export function radioHintSummary(
  * during the round it fired in; afterwards the reveal has expired and
  * `null` is returned (the event itself stays in the chronicle).
  */
-export function revealedGanovePosition(
-  events: readonly GameEvent[],
-  round: number,
-): string | null {
+export function revealedGanovePosition(events: readonly GameEvent[], round: number): string | null {
   for (let i = events.length - 1; i >= 0; i -= 1) {
     const event = events[i];
     if (event.kind === "sichtbarkeit" && event.round === round) {
