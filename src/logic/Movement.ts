@@ -42,7 +42,9 @@ export type MoveRejection =
   | "blocked_edge"
   | "occupied"
   | "no_action_available"
-  | "already_used";
+  | "already_used"
+  | "mission_choice_pending"
+  | "no_mission_choice";
 
 /** Raised when a move or phase action violates the movement rules. */
 export class MoveError extends Error {

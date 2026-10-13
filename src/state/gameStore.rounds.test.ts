@@ -72,12 +72,26 @@ describe("startGame roundLimit resolution", () => {
 describe("startGame escape nodes and outcome fields", () => {
   beforeEach(reset);
 
-  it("initialises outcome, escapeNodeIds and ganoveCanAct", () => {
+  it("initialises outcome, mission-bound escapeNodeIds and ganoveCanAct", () => {
     startStandard();
     const s = store();
     expect(s.outcome).toBeNull();
-    expect(s.escapeNodeIds).toEqual(["b", "d", "g"]);
+    // Auto-generated mission: the escape list holds only the drawn
+    // mission escape node, not every flucht-category node.
+    expect(s.mission).not.toBeNull();
+    expect(s.escapeNodeIds).toEqual([s.mission!.targets.flucht]);
     expect(s.ganoveCanAct).toBe(false);
+  });
+
+  it("falls back to all flucht nodes with mission 'none'", () => {
+    store().startGame(map, 1, {
+      detectivePositions: ["a", "i"],
+      ganovePosition: "d",
+      mission: "none",
+    });
+    const s = store();
+    expect(s.mission).toBeNull();
+    expect(s.escapeNodeIds).toEqual(["b", "d", "g"]);
   });
 });
 

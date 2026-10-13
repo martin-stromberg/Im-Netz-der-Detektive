@@ -1,0 +1,24 @@
+{
+  "mapId": "muenster",
+  "cases": [
+    {
+      "id": "diebstahlserie-altstadt",
+      "name": "Diebstahlserie in der Altstadt",
+      "story": "Drei Nächte, drei Einbrüche rund um Domplatz und Prinzipalmarkt — jetzt schlägt die Bande am Schloss zu. Ein Informant im Wienburgpark will die Fluchtroute kennen, aber er verlangt einen Gefallen: Die Stadtwerke am Hafen sollen stillgelegt werden. Danach raus über den Hafenpier, bevor die Detektive das Netz zuziehen.",
+      "diebstahl": "schloss",
+      "kontakt": "wienburgpark",
+      "flucht": "hafenpier",
+      "sabotage": "stadtwerke"
+    },
+    {
+      "id": "kurier-am-hafen",
+      "name": "Der Kurier am Hafen",
+      "story": "Ein Kurier hat in der Speicherstadt die falschen Akten mitgehen lassen. Das Depot muss ausgeräumt werden, bevor der Inhalt den Besitzer wechselt. Kontakt ist ein Bootsmann im Schlosspark — er bietet an, das Rathaus lahmzulegen, damit die Fahndung ins Leere läuft. Oder direkt raus nach Wolbeck.",
+      "diebstahl": "speicherstadt",
+      "kontakt": "schlosspark",
+      "flucht": "wolbeck",
+      "sabotage": "rathaus",
+      "sabotageEffect": "funkstille"
+    }
+  ]
+}

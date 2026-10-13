@@ -68,6 +68,27 @@ die Startaufstellung folgt den Regeln der jeweiligen Karte.
   letzten Hinweise inklusive ausgelöster Kameras verrät, und den
   **Hitze-Indikator**, der in vier Stufen anzeigt, *wie viel* die
   Detektive gerade wissen — niemals *was* oder *woher*.
+- **Missionssystem:** Jede Partie trägt eine Mission mit fester
+  Reihenfolge: Diebstahl → Kontakt → Binärwahl (Sabotage *oder* Flucht).
+  Die Ziele werden per Seed aus den Kategorien-Pools der Karte gezogen;
+  jede Ziehung muss messbare Regeln erfüllen (Mindest- und
+  Höchstentfernungen zwischen den Zielen, realistisches Routen-Budget
+  vom Startpunkt, Mindestabstände des Fluchtpunkts, kleiner
+  Sabotage-Umweg) — ungültige Ziehungen werden verworfen, bis eine
+  regelkonforme gefunden ist. Betreten ist nicht gleich Aktion: Erst am
+  freigegebenen Zielknoten kann der Ganove seine Aktionsrunde
+  ausführen — er bleibt stehen und voll fangbar, die Aktion erzeugt
+  einen exakten Spur-Hinweis, den die Detektive noch vor ihren Zügen
+  derselben Runde sehen. Nach der Kontakt-Aktion bietet der Informant
+  ein Sabotageziel mit zufällig gezogenem Effekt an — Kameras aus,
+  Funkstille oder falsche Spur — und der Ganove wählt endgültig
+  zwischen Sabotage-Umweg und direkter Flucht; der Kontakt-Hinweis
+  verrät die Wahl nicht. Die Flucht gelingt nur am gezogenen
+  Missions-Fluchtpunkt. Neben der Zufallsgenerierung gibt es benannte
+  „Fälle" (kuratierte Szenarien mit Mini-Story als JSON-Missionsset pro
+  Karte, z. B. zwei Fälle für Münster) und spielerdefinierte Missionen,
+  die gegen Kategorien und Generierungskriterien validiert werden.
+  Missionszielknoten sind garantiert kamerafrei.
 
 ## Beispiele
 
@@ -83,18 +104,18 @@ die Startaufstellung folgt den Regeln der jeweiligen Karte.
 
 ## Einschränkungen
 
-- Die Aktionsrunde des Ganoven ist strukturell vorgesehen (Prüfpunkt
-  `ganoveCanAct` + `ganoveAction`), ihre fachlichen Effekte folgen erst
-  mit dem Missionssystem — ebenso die missionsgebundene Flucht, die
-  über `setEscapeNodeIds` an die vorhandene Fluchtpunkt-Prüfung
-  anschließt. Die Aktions-Spur ist im Hitze-Modell bereits gewichtet
-  (+2) und zählt automatisch, sobald das Missionssystem solche
-  Hinweise erzeugt.
-- Missionslogik und KI sind noch nicht Teil der Engine — sie bauen auf
-  dem Rundenmotor und der Informationsschicht in späteren
-  Entwicklungsschritten auf. Die Sabotage-Hooks `deactivateCameras`
-  (Kamera-Aus) und die Ereignisstruktur für `funkstille`/`falsche_spur`
-  sind bereits vorgesehen.
-- Die Informationsschicht existiert als Daten- und Regelschicht;
-  ihre sichtbare Aufbereitung (Karten-Icons, Hinweis-Chronik,
-  Hitze-Badge) folgt mit den Oberflächen.
+- Die Aktionsrunde des Ganoven ist vollständig missionsgebunden; der
+  manuelle `ganoveCanAct`/`setGanoveCanAct`-Hook bleibt als
+  Test-Erweiterungspunkt bestehen.
+- Auf Karten ohne `sabotage`-Kategorie-Knoten entfällt das
+  Sabotage-Angebot — die Mission geht nach dem Kontakt direkt in die
+  Flucht. Hat eine Karte für den gezogenen Ganoven-Start gar keine
+  regelkonforme Mission, läuft die Partie missionslos (Option `auto`;
+  `random` meldet stattdessen einen Generierungsfehler).
+- KI-Steuerung beider Seiten ist noch nicht Teil der Engine — sie baut
+  auf dem Rundenmotor, der Informationsschicht und dem Missionssystem
+  in späteren Entwicklungsschritten auf.
+- Informations- und Missionsschicht existieren als Daten- und
+  Regelschicht; ihre sichtbare Aufbereitung (Karten-Icons,
+  Hinweis-Chronik, Hitze-Badge, Missionsanzeige) folgt mit den
+  Oberflächen.

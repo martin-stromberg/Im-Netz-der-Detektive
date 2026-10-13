@@ -136,6 +136,40 @@ detektivePositions }`; `MoveTarget` = `{ nodeId, edgeType }`.
 | `zoneHint(position, map, graph, radius)` | `{ zone, nodeIds }` — Zone des Ganove-Knotens + BFS-Ball im Radius; `null` bei unbekannter Position |
 | `pickBlockableEdge(graph, edges, blockedEdges, round, rng)` | zufällige Kante, deren Sperrung den Restgraphen (abzüglich aktiver Sperren) zusammenhängend lässt; `null`, wenn keine Kandidatin existiert |
 
+### `MissionSystem.ts` — Missionen (rein, deterministisch)
+
+Typen: `MissionKind` (`diebstahl`/`kontakt`/`sabotage`/`flucht`),
+`MissionStage` (`diebstahl`/`kontakt`/`wahl`/`sabotage`/`flucht`),
+`MissionTargets` (`sabotage: string | null`), `MissionCase`
+(`id`, `name`, `story`, Ziel-IDs, optionales `sabotageEffect`),
+`MissionSet`, `MissionStructureStep`. Konstanten: `ACTION_ROUNDS` (3),
+`FLUCHT_MIN_KONTAKT_GAP` (4), `FLUCHT_MIN_DIEBSTAHL_GAP` (3),
+`GENERATION_MAX_ATTEMPTS`. Fehler: `MissionGenerationError`,
+`MissionValidationError` (`errors[]`).
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `nodesByCategory(map, category)` | Pool aller Knoten mit Kategorie |
+| `missionTargetIds(targets)` | gesetzte Ziel-IDs (für Kamera-Ausschluss) |
+| `missionCriteriaViolations(graph, rules, targets, start)` | `string[]` der Verstöße (`min_gap`/`max_gap`/`flucht_*_gap`/`sabotage_detour`/`route_budget*`), `[]` = konform |
+| `generateMission(map, graph, start, rng, maxAttempts?)` | Rejection-Sampling bis Kriterien erfüllt; `MissionGenerationError` bei leerem Pool/Budget |
+| `validateCustomTargets(map, graph, targets, start)` | Befundliste (Kategorie, Duplikate, Kriterien); `[]` = gültig |
+| `validateMissionSet(data, map)` | Schema-Prüfung eines Missionsets → `MissionSet` oder `MissionValidationError` |
+| `caseTargets(entry)` | `MissionCase` → `MissionTargets` |
+| `executableMissionAction(mission, position)` | ausführbare `MissionKind` an Position/Stufe oder `null` |
+| `missionStructure(mission)` | detektivsichere Stufenliste `{kind, status}` — niemals Knoten-IDs |
+| `drawSabotageEffect(map, rng)` | Effekt aus `settings.sabotageEffects` |
+| `sabotageDuration(map)` | Fensterlänge = `eventDefaults.cycle` |
+
+### `MissionLoader.ts` — Fallsammlungen (rein)
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `loadMissionSet(map)` | lädt `src/data/missions/<map.id>.json` synchron und validiert es; `MissionValidationError` bei fehlendem/ungültigem Set |
+| `listMissionSetIds()` | IDs aller gebündelten Sets |
+| `hasMissionSet(mapId)` | ob ein Set gebündelt ist |
+| `getMissionCase(set, caseId)` | Fall auflösen; `MissionValidationError` nennt verfügbare IDs |
+
 ### `InformationSystem.ts` — Verteilung, Funk, Hitze (rein)
 
 Typen: `GameEvent` (`kind`, `round`, `nodeId?`, `zone?`, `nodeIds?`,
@@ -162,7 +196,7 @@ Typen: `GameEvent` (`kind`, `round`, `nodeId?`, `zone?`, `nodeIds?`,
 | `activeDetectiveIndex` | `number` | Zugindex innerhalb der Detektivphase |
 | `ganovePosition` | `string \| null` | Knoten-ID des Ganoven |
 | `detektivePositions` | `string[]` | Knoten-IDs der Detektive |
-| `mission` | `Mission \| null` | `{ id, targetNodes, currentStepIndex }` |
+| `mission` | `Mission \| null` | `{ id, name?, story?, targets, stage, pendingChoice, offeredEffect, appliedEffect }` — `targets` ist Ganove-Wissen |
 | `events` | `GameEvent[]` | eingetragene Ereignisse/Hinweise |
 | `cameras` | `Camera[]` | `{ nodeId, active }` |
 | `blockedEdges` | `BlockedEdge[]` | `{ a, b, untilRound }` (inklusive) |
@@ -172,8 +206,10 @@ Typen: `GameEvent` (`kind`, `round`, `nodeId?`, `zone?`, `nodeIds?`,
 | `log` | `LogEntry[]` | sequenziertes Aktionsprotokoll |
 | `outcome` | `GameOutcome \| null` | `caught`/`surrounded`/`escaped`/`timeout`/`draw`; `null` solange die Partie läuft |
 | `roundLimit` | `number \| null` | effektives Rundenlimit; `null` = unbegrenzt |
-| `escapeNodeIds` | `string[]` | Fluchtpunkte (Init: Kategorie `flucht`; Missions-Hook: `setEscapeNodeIds`) |
-| `ganoveCanAct` | `boolean` | Missionssystem-Hook: darf der Ganove diese Runde eine Aktion ausführen? |
+| `escapeNodeIds` | `string[]` | Fluchtpunkte — mit Mission genau `[mission.targets.flucht]`, ohne Mission alle `flucht`-Kategorie-Knoten; manuell via `setEscapeNodeIds` |
+| `ganoveCanAct` | `boolean` | Hook für generische Aktionsverfügbarkeit; Missionsaktionen laufen über `executableMissionAction` |
+| `hintSilenceUntilRound` | `number` | `funkstille`-Fenster (inkl.): keine hinweisgebenden Ereignisse bis zu dieser Runde |
+| `falseTrailUntilRound` | `number` | `falsche_spur`-Fenster (inkl.): Zonen-Hinweise werden verfälscht |
 | `radioUsed` | `boolean` | Polizeifunk bereits abgehört (1×/Partie) |
 | `radioHintCount` | `number` | effektive Funk-Tiefe (aus `settings.radioHintCount` bzw. Option) |
 | `edgeBlockRounds` | `number` | effektive `umwelt`-Sperrdauer in Runden |
@@ -182,15 +218,18 @@ Typen: `GameEvent` (`kind`, `round`, `nodeId?`, `zone?`, `nodeIds?`,
 
 | Action | Wirkung |
 |--------|---------|
-| `startGame(map, seed, options?)` | setzt Map/Seed/`eventMode`, vergibt Startpositionen (explizite `detectivePositions`/`ganovePosition` werden gegen `SpawnSystem` validiert, fehlende per `createRng(seed)` ergänzt), löst `roundLimit` aus `options.roundLimit` bzw. `settings.roundLimit.suggested` auf (`null` nur bei `unlimited`), löst `cameraCount`/`radioHintCount`/`edgeBlockRounds` gegen die Map-Korridore auf (`GameConfigError`), platziert die Kameras via `placeCameras` (`cameraProtectedNodes` bleiben frei), initialisiert `escapeNodeIds` aus der `flucht`-Kategorie, schreibt den `header`-Logeintrag (inkl. `cameras`) und prüft die initiale Umzingelung |
+| `startGame(map, seed, options?)` | setzt Map/Seed/`eventMode`, vergibt Startpositionen (explizite `detectivePositions`/`ganovePosition` werden gegen `SpawnSystem` validiert, fehlende per `createRng(seed)` ergänzt), löst `roundLimit` aus `options.roundLimit` bzw. `settings.roundLimit.suggested` auf (`null` nur bei `unlimited`), löst `cameraCount`/`radioHintCount`/`edgeBlockRounds` gegen die Map-Korridore auf (`GameConfigError`), löst `options.mission` auf (`"auto"` Standard, `"random"`, `"none"`, `{type:"case",id}`, `{type:"custom",targets}`), platziert die Kameras via `placeCameras` (`cameraProtectedNodes` ∪ Missionsziele bleiben frei), initialisiert `escapeNodeIds` missionsgebunden (mit Mission: `[targets.flucht]`; ohne: Kategorie `flucht`), schreibt `header`- + `mission`-Logeintrag und prüft die initiale Umzingelung |
 | `useRadio()` | Polizeifunk: hängt ein `polizeifunk`-Event (`visibleTo: "ganove"`) mit den letzten `radioHintCount` Hinweisen (inkl. Kameratreffern) an; `MoveError "already_used"` beim zweiten Aufruf |
 | `deactivateCameras()` | setzt alle Kameras `active: false` (Sabotage-Hook) |
 | `getHeatLevel()` | `{ level, score }` des Hitze-Indikators (3-Runden-Fenster, gewichtet — ohne Hinweisinhalte) |
 | `resetGame()` | setzt den kompletten Daten-Zustand zurück |
 | `appendLog({ round, type, details? })` | hängt einen `LogEntry` mit auto-`seq` an |
-| `moveGanove(target)` | validierter Ganovenzug (`MoveError` bei Regelverstoß); Fluchtpunkt → `outcome "escaped"`, sonst Kameraprüfung + Ereignis-Roll, dann Detektivphase |
+| `moveGanove(target)` | validierter Ganovenzug (`MoveError` bei Regelverstoß; `mission_choice_pending` bei offener Binärwahl); Missions-Fluchtpunkt in `stage "flucht"` → `outcome "escaped"`, sonst Kameraprüfung + Ereignis-Roll, dann Detektivphase |
 | `moveDetective(target)` | Zug des aktiven Detektivs; Sofort-Fangprüfung (`outcome "caught"` mitten in der Phase); letzter Detektiv → Rundenende |
-| `ganoveAction()` | Aktionsrunde (Zugzwang-Ausnahme, erfordert `ganoveCanAct`); Ganove bleibt stehen und fangbar |
+| `ganoveAction()` | Missions-Aktionsrunde (Zugzwang-Ausnahme): `executableMissionAction` am freigegebenen Zielknoten — Ganove bleibt stehen und fangbar, `aktion`-Spur-Event vor der Detektivphase, Stufenfortschritt (Kontakt → Sabotage-Angebot mit gezogenem Effekt; Sabotage → Effektanwendung) |
+| `chooseMissionPath(choice)` | beantwortet das Sabotage-Angebot endgültig (`"sabotage"`/`"flucht"`); `MoveError "no_mission_choice"` ohne offene Wahl |
+| `getMissionAction()` | aktuell ausführbare Missionsaktion (Ganove-Sicht) oder `null` |
+| `getMissionStructure()` | detektivsichere Missionsstruktur `{kind, status}[]` — nie Zielknoten-IDs |
 | `abortAsDraw()` | beendet die laufende Partie als `outcome "draw"` |
 | `getLegalGanoveMoves()` / `getLegalDetectiveMoves()` | legale Ziele (`MoveTarget[]`) des Ganoven / des aktiven Detektivs; `[]` außerhalb der jeweiligen Phase oder nach Spielende |
 | `setEscapeNodeIds(ids)` | überschreibt die Fluchtpunktliste (missionsgebundene Flucht); `GameConfigError` bei unbekannten IDs |

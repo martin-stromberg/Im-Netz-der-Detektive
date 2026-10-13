@@ -19,24 +19,54 @@ Reihenfolge `activeDetectiveIndex` 0→n-1). Die Regel-Actions
 
 1. `requireRunningGame("ganove")` — `map` gesetzt, `outcome === null`,
    Phase `ganove`; sonst `MoveError` (`no_game`/`game_over`/`wrong_phase`).
-2. `validateGanoveMove(moveContext, target)` — Zugzwang
+2. Missions-Guard: `mission.pendingChoice !== null` → `MoveError
+   "mission_choice_pending"` — das Sabotage-Angebot des Informanten
+   muss zuerst per `chooseMissionPath` beantwortet werden.
+3. `validateGanoveMove(moveContext, target)` — Zugzwang
    (`stay_forbidden`), Nachbarschaft (`not_adjacent`), gesperrte Kante
    (`blocked_edge`), Detektiv-besetztes Ziel (`occupied`).
-3. `ganovePosition` setzen, `move`-Logeintrag (`actor`, `from`, `to`,
+4. `ganovePosition` setzen, `move`-Logeintrag (`actor`, `from`, `to`,
    `edgeType`).
-4. Fluchtprüfung: `target ∈ escapeNodeIds` → `outcome "escaped"` +
-   `result`-Log (danach keine Info-Checks mehr).
+5. Fluchtprüfung (missionsgebunden): `target ∈ escapeNodeIds` **und**
+   `mission === null || mission.stage === "flucht"` →
+   `outcome "escaped"` + `result`-Log (danach keine Info-Checks mehr).
+   Mit laufender Mission ist `escapeNodeIds` genau der gezogene
+   Missions-Fluchtknoten — ein frühes Betreten ist ein normaler Zug.
 5. **Kameraprüfung** (`runCameraCheck`): aktive Kamera auf dem
    Zielknoten → `camera`-Event (`nodeId` + `round`,
    `visibleTo: "detectives"`) + `hint`-Logeintrag.
 6. **Ereignis-Roll** (`runEventRoll`): siehe Abschnitt
-   „Informationschecks" unten.
+   „Informationschecks" unten (beachtet die Sabotage-Fenster).
 7. Sonst `phase = "detektive"`, `activeDetectiveIndex = 0`.
 
-Alternative `ganoveAction()` (einzige Zugzwang-Ausnahme): nur bei
-`ganoveCanAct === true` (Missionssystem-Hook); der Ganove bleibt stehen
-und fangbar, `action`-Log, danach läuft nur der Ereignis-Roll — keine
-Kameraprüfung, da kein Knoten betreten wird (Betreten ≠ Verharren).
+Alternative `ganoveAction()` (einzige Zugzwang-Ausnahme):
+
+1. `pendingChoice`-Guard wie oben; dann `executableMissionAction`
+   (Mission, Position) — `null` und kein `ganoveCanAct`-Flag →
+   `MoveError "no_action_available"`.
+2. `action`-Log; bei Missionsaktion zusätzlich das `aktion`-Spur-Event
+   (`nodeId` + `details.action`, `visibleTo: "detectives"`) — sichtbar
+   für die Detektive **vor** ihren Zügen derselben Runde.
+3. `advanceMission(action)` — Stufenfortschritt:
+   - `diebstahl` → `stage "kontakt"`
+   - `kontakt` → bei `targets.sabotage === null` direkt `stage "flucht"`;
+     sonst Effekt per `drawSabotageEffect` aus `missionRng(seed, round)`
+     (eigener Salt `MISSION_RNG_SALT`, entkoppelt vom Ereignisstrom),
+     `stage "wahl"` + `pendingChoice` + `sabotage_offer`-Log
+   - `sabotage` → `applySabotageEffect` (`kamera_aus` →
+     `deactivateCameras`; `funkstille`/`falsche_spur` →
+     `untilRound = round + sabotageDuration`), `appliedEffect`,
+     `stage "flucht"`
+4. `runEventRoll`, `phase = "detektive"`. Der Ganove bleibt stehen und
+   voll fangbar (Betreten ≠ Verharren, keine Kameraprüfung).
+
+### Binärwahl (`chooseMissionPath`)
+
+Phasenunabhängig, solange `mission.pendingChoice` gesetzt ist (sonst
+`MoveError "no_mission_choice"`): `"sabotage"` → `stage "sabotage"`,
+`"flucht"` → `stage "flucht"`, `pendingChoice` wird aufgelöst —
+endgültig, die Stufenmaschine läuft nie rückwärts
+(`mission_choice`-Log).
 
 Beteiligte Komponenten:
 - `useGameStore.moveGanove` / `useGameStore.ganoveAction`
@@ -67,8 +97,12 @@ Beteiligte Komponenten:
 2. Sonst `round + 1`, `phase = "ganove"`, `activeDetectiveIndex = 0`,
    `unblockExpiredEdges` (`untilRound < round` fällt weg).
 3. Umzingelungsprüfung zu Beginn der Ganovenphase:
-   `legalGanoveMoves` leer **und** `ganoveCanAct === false` →
+   `legalGanoveMoves` leer **und** keine ausführbare Aktion
+   (`canGanoveAct()` = `ganoveCanAct`-Hook **oder**
+   `executableMissionAction` auf dem aktuellen Zielknoten) →
    `outcome "surrounded"` + `result`-Log (Detektiv-Sieg).
+   Ein Ganove auf dem freigegebenen Missionsziel ist damit nie
+   umzingelt — seine Aktionsrunde ist ein legaler Zug.
    Dieselbe Prüfung läuft direkt nach `startGame` für Runde 1.
 
 ### 4. Remis
@@ -77,12 +111,37 @@ Beteiligte Komponenten:
 
 ## Informationschecks (in der Ganovenphase, Schritt 5/6)
 
+### Missionsauflösung (bei `startGame`, zwischen Spawns und Kameras)
+
+`resolveMission(map, graph, ganovePosition, missionOption, rng)`:
+
+1. Option `"none"` → `null` (alle `flucht`-Knoten bleiben
+   Fluchtpunkte).
+2. Option `"auto"` (Standard) bzw. `"random"` → `generateMission` aus
+   dem Start-RNG-Strom; `"auto"` fängt `MissionGenerationError` und
+   fällt auf `null` zurück (fehlende Pools oder keine konforme
+   Ziehung), `"random"` lässt ihn durchschlagen.
+3. Option `{ type: "case", id }` → `loadMissionSet` +
+   `getMissionCase` (`MissionValidationError`), anschließend
+   Kriterienprüfung gegen den tatsächlichen Ganoven-Start
+   (`GameConfigError` mit allen Codes).
+4. Option `{ type: "custom", targets }` → `validateCustomTargets`
+   (`GameConfigError` mit allen Befunden).
+
+Danach: `escapeNodeIds = [targets.flucht]` (missionsgebunden) und
+`missionTargetIds(targets)` gehen in die Kamera-Ausschlussliste —
+Missionsziele sind garantiert kamerafrei. `offeredEffect` wird bei
+Fällen mit fixiertem `sabotageEffect` vorgesetzt (kein RNG-Zug am
+Kontakt). `mission`-Feld `{ id, name?, story?, targets, stage,
+pendingChoice, offeredEffect, appliedEffect }` + `mission`-Logeintrag.
+
 ### Kameraplatzierung (bei `startGame`)
 
 `placeCameras(graph, rng, count, minGap, protectedIds)` in
 `CameraSystem.ts`: `rng.shuffle` über alle Knoten minus
-`cameraProtectedNodes`; ein Kandidat wird nur gesetzt, wenn seine
-BFS-Distanz zu jeder bereits gesetzten Kamera `>= cameraMinGap` ist —
+`cameraProtectedNodes` ∪ Missionsziel-IDs; ein Kandidat wird nur
+gesetzt, wenn seine BFS-Distanz zu jeder bereits gesetzten Kamera
+`>= cameraMinGap` ist —
 bestmögliche Platzierung, wenn die Karte `count` nicht hergibt. Der
 gleiche `createRng(seed)`-Strom liefert zuerst die Spawns, dann die
 Kameras → gleiche Seed = gleiche Aufstellung. Der Header-Log führt
@@ -98,7 +157,15 @@ Pro Ganovenzug (Zug **oder** Aktionsrunde), RNG aus
    `tension` → `tensionValue += perRound`, Auslösung bei
    `>= threshold` und Reset auf 0 (Akkumulation nur im `tension`-Modus).
 2. Bei Auslösung `drawEventType(eventMix, rng)` (gewichtet
-   sichtbarkeit/hinweis/umwelt):
+   sichtbarkeit/hinweis/umwelt) — unter Sabotage-Fenstern:
+   - `round <= hintSilenceUntilRound` (`funkstille`): `sichtbarkeit` und
+     `hinweis` werden unterdrückt — der Trigger feuert dennoch (die
+     Spannung resettet normal), nur kein Hinweis entsteht.
+   - `round <= falseTrailUntilRound` (`falsche_spur`): `hinweis` wird
+     verfälscht — `emitFalseTrailHint` zieht per `missionRng` eine
+     **andere** Zone plus einen Köderknoten darin und liefert den
+     dazu konsistenten BFS-Ball; das Event ist formal ein normaler
+     Zonen-Hinweis, nur falsch.
    - `sichtbarkeit` → `GameEvent { kind, round, nodeId, visibleTo:
      "detectives" }` — Live-Position, gültig nur diese Runde
      (`revealedGanovePosition` liefert sie nur, wenn
@@ -139,16 +206,19 @@ als `RadioHint`-Daten im `polizeifunk`-Event.
 
 ```mermaid
 flowchart TD
-    A[Ganovenphase] --> B{moveGanove legal?}
-    B -- Ziel = Fluchtpunkt --> E[outcome: escaped]
+    A[Ganovenphase] --> P{pendingChoice?}
+    P -- ja --> P2[chooseMissionPath: sabotage oder flucht]
+    P2 --> A
+    P -- nein --> B{moveGanove legal?}
+    B -- Ziel = Missions-Fluchtpunkt + stage flucht --> E[outcome: escaped]
     B -- sonst --> C[Detektivphase]
-    A -->|ganoveAction, ganoveCanAct| C
+    A -->|ganoveAction am freigegebenen Ziel| C
     C --> D{moveDetective}
     D -- landet auf Ganoven --> F[outcome: caught]
     D -- letzter Detektiv --> G{round >= roundLimit?}
     G -- ja --> H[outcome: timeout]
     G -- nein --> I[Runde +1, Phase ganove]
-    I --> J{legaler Zug oder ganoveCanAct?}
+    I --> J{legaler Zug oder ausführbare Aktion?}
     J -- nein --> K[outcome: surrounded]
     J -- ja --> A
 ```
@@ -165,6 +235,10 @@ flowchart TD
 | Kein Nachbarknoten | `not_adjacent` | keine Kante zum Ziel |
 | Kante gesperrt | `blocked_edge` | `untilRound >= round` |
 | Ziel besetzt (Ganove) | `occupied` | Detektiv steht auf dem Ziel |
-| Keine Aktion | `no_action_available` | `ganoveAction` ohne `ganoveCanAct` |
+| Keine Aktion | `no_action_available` | `ganoveAction` ohne ausführbare Aktion (`executableMissionAction`/`ganoveCanAct`) |
+| Sabotage-Angebot offen | `mission_choice_pending` | `moveGanove`/`ganoveAction` vor `chooseMissionPath` |
+| Keine Wahl offen | `no_mission_choice` | `chooseMissionPath` ohne `pendingChoice` |
 | Schon verbraucht | `already_used` | `useRadio` nach bereits erfolgtem Abhören |
-| Ungültige Konfiguration | `GameConfigError` | `roundLimit` außerhalb `min`/`max`, `null` ohne `unlimited`, unbekannte `escapeNodeIds`, `cameraCount`/`radioHintCount`/`edgeBlockRounds` außerhalb des Map-Korridors, unbekannte `cameraProtectedNodes` |
+| Ungültige Konfiguration | `GameConfigError` | `roundLimit` außerhalb `min`/`max`, `null` ohne `unlimited`, unbekannte `escapeNodeIds`, `cameraCount`/`radioHintCount`/`edgeBlockRounds` außerhalb des Map-Korridors, unbekannte `cameraProtectedNodes`, ungültige Custom-/Fall-Missionsziele (Kriteriencodes) |
+| Mission nicht generierbar | `MissionGenerationError` | Option `random` ohne konforme Ziehung (leere Pools oder Budget erschöpft); `auto` fällt auf `null` zurück |
+| Ungültige Fallsammlung | `MissionValidationError` | Schema-/Referenzfehler des Missionssets, unbekannte Fall-ID (`errors` listet alle Funde) |
