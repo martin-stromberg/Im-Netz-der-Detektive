@@ -25,9 +25,7 @@ describe("loadMap", () => {
 
 describe("listMapIds", () => {
   it("lists the bundled map packages", () => {
-    expect(listMapIds()).toEqual(
-      expect.arrayContaining(["luebeck", "muenster", "teststadt"]),
-    );
+    expect(listMapIds()).toEqual(expect.arrayContaining(["luebeck", "muenster", "teststadt"]));
   });
 });
 

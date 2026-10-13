@@ -120,27 +120,30 @@ describe("muenster structural metrics", () => {
 });
 
 describe("settings format of both maps", () => {
-  it.each([muenster, luebeck])("keeps range settings in {suggested, min, max} form ($id)", (map) => {
-    for (const key of [
-      "detectiveCount",
-      "cameraCount",
-      "roundLimit",
-      "radioHintCount",
-      "edgeBlockRounds",
-    ] as const) {
-      const range = map.settings[key];
-      expect(range.suggested).toBeGreaterThanOrEqual(range.min);
-      if (range.unlimited === true) {
-        // unlimited replaces the upper bound
-      } else {
-        expect(range.max).toBeGreaterThanOrEqual(range.suggested);
+  it.each([muenster, luebeck])(
+    "keeps range settings in {suggested, min, max} form ($id)",
+    (map) => {
+      for (const key of [
+        "detectiveCount",
+        "cameraCount",
+        "roundLimit",
+        "radioHintCount",
+        "edgeBlockRounds",
+      ] as const) {
+        const range = map.settings[key];
+        expect(range.suggested).toBeGreaterThanOrEqual(range.min);
+        if (range.unlimited === true) {
+          // unlimited replaces the upper bound
+        } else {
+          expect(range.max).toBeGreaterThanOrEqual(range.suggested);
+        }
       }
-    }
-    expect(typeof map.settings.cameraMinGap).toBe("number");
-    expect(typeof map.settings.hintZoneRadius).toBe("number");
-    const mix = map.settings.eventMix;
-    expect(mix.sichtbarkeit + mix.hinweis + mix.umwelt).toBeCloseTo(1, 5);
-  });
+      expect(typeof map.settings.cameraMinGap).toBe("number");
+      expect(typeof map.settings.hintZoneRadius).toBe("number");
+      const mix = map.settings.eventMix;
+      expect(mix.sichtbarkeit + mix.hinweis + mix.umwelt).toBeCloseTo(1, 5);
+    },
+  );
 });
 
 describe("muenster mission-generation feasibility", () => {
