@@ -1,0 +1,36 @@
+name: Build and package
+description: Builds the static Vite bundle and packages it as the single release asset release.zip.
+
+inputs:
+  release-version:
+    description: Version without a leading v (e.g. 1.2.3 or 1.2.3-rc.1). Kept for interface compatibility with the template pipeline; the static bundle does not embed it.
+    required: true
+  release-tag:
+    description: Release tag (e.g. v1.2.3 or v1.2.3-rc.1). Kept for interface compatibility with the template pipeline.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: "24"
+        cache: npm
+
+    - name: Install dependencies
+      run: npm ci
+      shell: bash
+
+    - name: Build static bundle
+      run: npm run build
+      shell: bash
+
+    - name: Create release ZIP
+      # Asset name deliberately fixed (no project name/version baked in) -
+      # resolve-release-version.mjs's expected-asset list depends on this
+      # exact name never changing between versions.
+      shell: bash
+      run: |
+        set -euo pipefail
+        (cd dist && zip -r ../release.zip .)
