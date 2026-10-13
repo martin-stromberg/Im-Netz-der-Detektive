@@ -112,7 +112,7 @@ describe("startGame camera placement", () => {
     const first = store().cameras.map((camera) => camera.nodeId);
     store().startGame(muenster, 77);
     expect(store().cameras.map((camera) => camera.nodeId)).toEqual(first);
-    expect(store().log[0].details?.cameras).toEqual(first);
+    expect(store().log[0].cameras).toEqual(first);
     expect(store().cameras.every((camera) => camera.active)).toBe(true);
   });
 });

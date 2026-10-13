@@ -89,6 +89,16 @@ die Startaufstellung folgt den Regeln der jeweiligen Karte.
   Karte, z. B. zwei Fälle für Münster) und spielerdefinierte Missionen,
   die gegen Kategorien und Generierungskriterien validiert werden.
   Missionszielknoten sind garantiert kamerafrei.
+- **Partieprotokoll:** Jede Partie wird vollständig mitgeschrieben —
+  Startaufstellung, jeder Zug samt Wegart, Kameraauslösungen,
+  Ereignisse, Hinweise, Aktions-Spuren, die Sabotage-Entscheidung und
+  der Polizeifunk-Einsatz — bis zum abschließenden Ergebnis mit
+  Kennzahlen (Rundenzahl, Hinweise gesamt, Kameratreffer). Das
+  Protokoll liegt als kompaktes Textformat vor (ein JSON-Eintrag pro
+  Zeile), lässt sich als Datei exportieren und ist über den
+  Startwert (Seed) exakt reproduzierbar — Grundlage für Replays,
+  Statistiken und Balancing. Die letzten Partien bleiben automatisch
+  im Browser gespeichert.
 
 ## Beispiele
 

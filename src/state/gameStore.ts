@@ -11,12 +11,15 @@ import {
   type EventTypeKind,
 } from "../logic/EreignisEngine";
 import {
+  HINT_EVENT_KINDS,
   heatLevel,
   radioHintSummary,
   type Camera,
   type GameEvent,
   type HeatLevel,
+  type Visibility,
 } from "../logic/InformationSystem";
+import { exportGameLog as exportGameLogFile, saveGameLog } from "../logic/Recorder";
 import {
   legalDetectiveMoves,
   legalGanoveMoves,
@@ -118,13 +121,34 @@ export type MissionOption =
       targets: { diebstahl: string; kontakt: string; flucht: string; sabotage?: string };
     };
 
-export type { Camera, GameEvent, GameEventKind, HeatLevel } from "../logic/InformationSystem";
+export type {
+  Camera,
+  GameEvent,
+  GameEventKind,
+  HeatLevel,
+  Visibility,
+} from "../logic/InformationSystem";
 
-export interface LogEntry {
-  seq: number;
+/**
+ * A log entry as the caller describes it — `seq` is assigned by
+ * `appendLog`. Fields are flat (JSONL shape of spec section 8), every
+ * entry carries `visibleTo` so later perspective replays can filter at
+ * data level.
+ */
+export interface LogInput {
   round: number;
   type: string;
-  details?: Record<string, unknown>;
+  visibleTo?: Visibility;
+  [field: string]: unknown;
+}
+
+/**
+ * One line of the event log. The `header` is the only entry with
+ * `seq: 0` — it is serialized without `seq`/`round` (spec section 8:
+ * events count 1..n, the header precedes them).
+ */
+export interface LogEntry extends LogInput {
+  seq: number;
 }
 
 export interface StartGameOptions {
@@ -149,6 +173,11 @@ export interface StartGameOptions {
   edgeBlockRounds?: number;
   /** Mission to play; defaults to `"auto"` (see `MissionOption`). */
   mission?: MissionOption;
+  /**
+   * Id recorded in the log header; defaults to `g-{seed}`. Must be
+   * part of the inputs when bit-identical logs are required.
+   */
+  gameId?: string;
 }
 
 export interface GameState {
@@ -198,7 +227,9 @@ export interface GameState {
 
   startGame: (map: MapPack, seed: number, options?: StartGameOptions) => void;
   resetGame: () => void;
-  appendLog: (entry: Omit<LogEntry, "seq">) => void;
+  appendLog: (entry: LogInput) => void;
+  /** "Partie exportieren": the log as a downloadable JSONL Blob. */
+  exportGameLog: () => Blob | null;
   endGanovePhase: () => void;
   advanceDetective: () => void;
   endDetectivePhase: () => void;
@@ -232,6 +263,7 @@ type GameData = Omit<
   | "startGame"
   | "resetGame"
   | "appendLog"
+  | "exportGameLog"
   | "endGanovePhase"
   | "advanceDetective"
   | "endDetectivePhase"
@@ -545,9 +577,24 @@ function moveContext(state: {
  */
 export const useGameStore = create<GameState>((set, get) => {
   const finish = (outcome: GameOutcome): void => {
-    const { round } = get();
+    const { round, events } = get();
+    // Balancing metrics of the result line (spec section 8): hints the
+    // detectives received and how many cameras fired this game.
+    const hintsTotal = events.filter((event) => HINT_EVENT_KINDS.includes(event.kind)).length;
+    const camerasTriggered = events.filter((event) => event.kind === "camera").length;
     set({ outcome });
-    get().appendLog({ round, type: "result", details: { outcome, rounds: round } });
+    get().appendLog({
+      round,
+      type: "result",
+      outcome,
+      rounds: round,
+      hintsTotal,
+      camerasTriggered,
+      visibleTo: "both",
+    });
+    // Auto-persist the finished log — a no-op where localStorage is
+    // unavailable (headless runs, tests), so the store stays pure.
+    saveGameLog(get().log);
   };
 
   /**
@@ -620,7 +667,9 @@ export const useGameStore = create<GameState>((set, get) => {
     get().appendLog({
       round: state.round,
       type: "hint",
-      details: { kind: "camera", nodeId: camera.nodeId, visibleTo: "detectives" },
+      kind: "camera",
+      node: camera.nodeId,
+      visibleTo: "detectives",
     });
   };
 
@@ -630,14 +679,14 @@ export const useGameStore = create<GameState>((set, get) => {
     get().appendLog({
       round: event.round,
       type: event.kind === "umwelt" ? "event" : "hint",
-      details: {
-        kind: event.kind,
-        nodeId: event.nodeId,
-        zone: event.zone,
-        edge: event.edge,
-        untilRound: event.untilRound,
-        visibleTo: event.visibleTo,
-      },
+      kind: event.kind,
+      node: event.nodeId,
+      zone: event.zone,
+      nodeIds: event.nodeIds,
+      edge: event.edge,
+      untilRound: event.untilRound,
+      ...event.details,
+      visibleTo: event.visibleTo,
     });
   };
 
@@ -780,7 +829,9 @@ export const useGameStore = create<GameState>((set, get) => {
     get().appendLog({
       round: state.round,
       type: "sabotage",
-      details: { effect, untilRound: effect === "kamera_aus" ? null : untilRound },
+      effect,
+      untilRound: effect === "kamera_aus" ? null : untilRound,
+      visibleTo: "ganove",
     });
   };
 
@@ -825,7 +876,9 @@ export const useGameStore = create<GameState>((set, get) => {
       get().appendLog({
         round: state.round,
         type: "sabotage_offer",
-        details: { sabotageNode: mission.targets.sabotage, effect },
+        offered: effect,
+        node: mission.targets.sabotage,
+        visibleTo: "ganove",
       });
       return;
     }
@@ -884,8 +937,9 @@ export const useGameStore = create<GameState>((set, get) => {
       const mission = resolveMission(map, graph, ganovePosition, rng, options?.mission);
       // Public rule (spec section 4.1): mission target nodes never
       // carry a camera — they join the caller's exclusion list.
+      const cameraProtectedNodes = resolveCameraProtectedNodes(map, options?.cameraProtectedNodes);
       const protectedNodes = [
-        ...resolveCameraProtectedNodes(map, options?.cameraProtectedNodes),
+        ...cameraProtectedNodes,
         ...(mission !== null ? missionTargetIds(mission.targets) : []),
       ];
       const cameras = placeCameras(
@@ -895,6 +949,9 @@ export const useGameStore = create<GameState>((set, get) => {
         map.settings.cameraMinGap,
         protectedNodes,
       );
+      // The gameId is deterministic (`g-{seed}` default): same seed and
+      // same inputs must produce a bit-identical log (spec section 8).
+      const gameId = options?.gameId ?? `g-${seed}`;
       set({
         ...initialData(),
         map,
@@ -912,19 +969,28 @@ export const useGameStore = create<GameState>((set, get) => {
         edgeBlockRounds,
       });
       get().appendLog({
-        round: 1,
+        round: 0,
         type: "header",
-        details: {
-          mapId: map.id,
-          seed,
+        gameId,
+        mapId: map.id,
+        seed,
+        config: {
+          detectiveCount: detectivePositions.length,
           roundLimit,
-          cameras: cameras.map((camera) => camera.nodeId),
-          starts: { detectives: detectivePositions, ganove: ganovePosition },
-          mission:
-            mission !== null
-              ? { id: mission.id, name: mission.name, targets: mission.targets }
-              : null,
+          cameraCount,
+          radioHintCount,
+          edgeBlockRounds,
+          eventMode: map.settings.eventMode,
+          mission: options?.mission ?? "auto",
+          cameraProtectedNodes,
         },
+        mission:
+          mission !== null
+            ? { id: mission.id, name: mission.name, targets: mission.targets }
+            : null,
+        cameras: cameras.map((camera) => camera.nodeId),
+        starts: { detectives: detectivePositions, ganove: ganovePosition },
+        visibleTo: "both",
       });
       // The game starts in the ganove phase — check surrounded immediately.
       checkGanoveSurrounded();
@@ -933,7 +999,20 @@ export const useGameStore = create<GameState>((set, get) => {
     resetGame: () => set({ ...initialData() }),
 
     appendLog: (entry) =>
-      set((state) => ({ log: [...state.log, { ...entry, seq: state.log.length + 1 }] })),
+      set((state) => ({
+        log: [
+          ...state.log,
+          {
+            // The header carries `seq: 0` and is serialized without it —
+            // event seqs count 1..n across the game (spec section 8).
+            seq:
+              entry.type === "header" ? 0 : state.log.filter((e) => e.type !== "header").length + 1,
+            ...entry,
+          },
+        ],
+      })),
+
+    exportGameLog: () => exportGameLogFile(get().log),
 
     endGanovePhase: () =>
       set((state) =>
@@ -979,7 +1058,12 @@ export const useGameStore = create<GameState>((set, get) => {
       get().appendLog({
         round: state.round,
         type: "move",
-        details: { actor: "ganove", from, to: target, edgeType: move.edgeType },
+        actor: "ganove",
+        from,
+        to: target,
+        edgeType: move.edgeType,
+        // The ganove's position stays hidden from the detectives.
+        visibleTo: "ganove",
       });
       // Mission-bound escape: the drawn escape node only wins once the
       // mission reached its "flucht" stage — earlier visits are plain
@@ -1017,13 +1101,13 @@ export const useGameStore = create<GameState>((set, get) => {
       get().appendLog({
         round: state.round,
         type: "move",
-        details: {
-          actor: "detective",
-          detectiveIndex: index,
-          from,
-          to: target,
-          edgeType: move.edgeType,
-        },
+        actor: "detective",
+        detectiveIndex: index,
+        from,
+        to: target,
+        edgeType: move.edgeType,
+        // The ganove sees all detective positions exactly.
+        visibleTo: "both",
       });
       if (target === state.ganovePosition) {
         finish("caught");
@@ -1064,7 +1148,10 @@ export const useGameStore = create<GameState>((set, get) => {
       get().appendLog({
         round: state.round,
         type: "action",
-        details: { actor: "ganove", nodeId: state.ganovePosition, missionAction: action },
+        actor: "ganove",
+        node: state.ganovePosition,
+        action,
+        visibleTo: "ganove",
       });
       if (action !== null) {
         // Exact trace hint, visible to the detectives before their
@@ -1102,8 +1189,13 @@ export const useGameStore = create<GameState>((set, get) => {
       });
       get().appendLog({
         round: state.round,
-        type: "mission_choice",
-        details: { choice, effect: choice === "sabotage" ? pending.effect : null },
+        // The resolved offer reuses the spec's record shape
+        // (section 8 example: sabotage_offer with offered + chosen).
+        type: "sabotage_offer",
+        offered: pending.effect,
+        node: pending.sabotageNode,
+        chosen: choice === "sabotage",
+        visibleTo: "ganove",
       });
     },
 
@@ -1195,7 +1287,8 @@ export const useGameStore = create<GameState>((set, get) => {
       get().appendLog({
         round: state.round,
         type: "radio",
-        details: { hintCount: hints.length },
+        hintCount: hints.length,
+        visibleTo: "ganove",
       });
     },
 
@@ -1213,10 +1306,25 @@ export const useGameStore = create<GameState>((set, get) => {
     blockEdge: (a, b, untilRound) =>
       set((state) => ({ blockedEdges: [...state.blockedEdges, { a, b, untilRound }] })),
 
-    unblockExpiredEdges: () =>
+    unblockExpiredEdges: () => {
+      const { blockedEdges, round } = get();
+      const expired = blockedEdges.filter((edge) => edge.untilRound < round);
+      if (expired.length === 0) {
+        return;
+      }
       set((state) => ({
         blockedEdges: state.blockedEdges.filter((edge) => edge.untilRound >= state.round),
-      })),
+      }));
+      // Expiry of an edge block is a world event both sides observe.
+      for (const edge of expired) {
+        get().appendLog({
+          round,
+          type: "edge_unblock",
+          edge: { a: edge.a, b: edge.b },
+          visibleTo: "both",
+        });
+      }
+    },
 
     setTension: (value) => set({ tensionValue: value }),
 

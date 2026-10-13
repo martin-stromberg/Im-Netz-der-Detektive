@@ -203,7 +203,7 @@ Typen: `GameEvent` (`kind`, `round`, `nodeId?`, `zone?`, `nodeIds?`,
 | `eventMode` | `EventMode` | `cycle`/`chance`/`tension` |
 | `tensionValue` | `number` | Spannungswert für `tension`-Modus |
 | `seed` | `number` | Seed der laufenden Partie |
-| `log` | `LogEntry[]` | sequenziertes Aktionsprotokoll |
+| `log` | `LogEntry[]` | das JSONL-Eventlog in Arbeit — flache Einträge `{seq, round, type, visibleTo, …}` (Header trägt `seq: 0`); Serialisierung via `Recorder.serializeLog` |
 | `outcome` | `GameOutcome \| null` | `caught`/`surrounded`/`escaped`/`timeout`/`draw`; `null` solange die Partie läuft |
 | `roundLimit` | `number \| null` | effektives Rundenlimit; `null` = unbegrenzt |
 | `escapeNodeIds` | `string[]` | Fluchtpunkte — mit Mission genau `[mission.targets.flucht]`, ohne Mission alle `flucht`-Kategorie-Knoten; manuell via `setEscapeNodeIds` |
@@ -218,12 +218,13 @@ Typen: `GameEvent` (`kind`, `round`, `nodeId?`, `zone?`, `nodeIds?`,
 
 | Action | Wirkung |
 |--------|---------|
-| `startGame(map, seed, options?)` | setzt Map/Seed/`eventMode`, vergibt Startpositionen (explizite `detectivePositions`/`ganovePosition` werden gegen `SpawnSystem` validiert, fehlende per `createRng(seed)` ergänzt), löst `roundLimit` aus `options.roundLimit` bzw. `settings.roundLimit.suggested` auf (`null` nur bei `unlimited`), löst `cameraCount`/`radioHintCount`/`edgeBlockRounds` gegen die Map-Korridore auf (`GameConfigError`), löst `options.mission` auf (`"auto"` Standard, `"random"`, `"none"`, `{type:"case",id}`, `{type:"custom",targets}`), platziert die Kameras via `placeCameras` (`cameraProtectedNodes` ∪ Missionsziele bleiben frei), initialisiert `escapeNodeIds` missionsgebunden (mit Mission: `[targets.flucht]`; ohne: Kategorie `flucht`), schreibt `header`- + `mission`-Logeintrag und prüft die initiale Umzingelung |
+| `startGame(map, seed, options?)` | setzt Map/Seed/`eventMode`, vergibt Startpositionen (explizite `detectivePositions`/`ganovePosition` werden gegen `SpawnSystem` validiert, fehlende per `createRng(seed)` ergänzt), löst `roundLimit` aus `options.roundLimit` bzw. `settings.roundLimit.suggested` auf (`null` nur bei `unlimited`), löst `cameraCount`/`radioHintCount`/`edgeBlockRounds` gegen die Map-Korridore auf (`GameConfigError`), löst `options.mission` auf (`"auto"` Standard, `"random"`, `"none"`, `{type:"case",id}`, `{type:"custom",targets}`), platziert die Kameras via `placeCameras` (`cameraProtectedNodes` ∪ Missionsziele bleiben frei), initialisiert `escapeNodeIds` missionsgebunden (mit Mission: `[targets.flucht]`; ohne: Kategorie `flucht`), schreibt den `header`-Logeintrag (`gameId` aus `options.gameId` bzw. `g-{seed}`, `mapId`, `seed`, `config` mit allen effektiven Werten, `mission`, `cameras`, `starts`) und prüft die initiale Umzingelung |
 | `useRadio()` | Polizeifunk: hängt ein `polizeifunk`-Event (`visibleTo: "ganove"`) mit den letzten `radioHintCount` Hinweisen (inkl. Kameratreffern) an; `MoveError "already_used"` beim zweiten Aufruf |
 | `deactivateCameras()` | setzt alle Kameras `active: false` (Sabotage-Hook) |
 | `getHeatLevel()` | `{ level, score }` des Hitze-Indikators (3-Runden-Fenster, gewichtet — ohne Hinweisinhalte) |
 | `resetGame()` | setzt den kompletten Daten-Zustand zurück |
-| `appendLog({ round, type, details? })` | hängt einen `LogEntry` mit auto-`seq` an |
+| `appendLog(entry)` | hängt einen flachen `LogInput`-Eintrag (`{round, type, visibleTo, …}`) mit auto-`seq` an (`header` → `seq: 0`, sonst laufende Nummer der Ereignisse) |
+| `exportGameLog()` | „Partie exportieren": liefert das Log als `Blob` (`application/x-ndjson`) und löst — sofern ein DOM vorhanden ist — den Datei-Download aus (`Recorder.exportGameLog`) |
 | `moveGanove(target)` | validierter Ganovenzug (`MoveError` bei Regelverstoß; `mission_choice_pending` bei offener Binärwahl); Missions-Fluchtpunkt in `stage "flucht"` → `outcome "escaped"`, sonst Kameraprüfung + Ereignis-Roll, dann Detektivphase |
 | `moveDetective(target)` | Zug des aktiven Detektivs; Sofort-Fangprüfung (`outcome "caught"` mitten in der Phase); letzter Detektiv → Rundenende |
 | `ganoveAction()` | Missions-Aktionsrunde (Zugzwang-Ausnahme): `executableMissionAction` am freigegebenen Zielknoten — Ganove bleibt stehen und fangbar, `aktion`-Spur-Event vor der Detektivphase, Stufenfortschritt (Kontakt → Sabotage-Angebot mit gezogenem Effekt; Sabotage → Effektanwendung) |
@@ -255,3 +256,38 @@ useGameStore.getState().moveDetective("b");       // D1
 useGameStore.getState().moveDetective("h");       // letzter Detektiv -> Runde 2
 // ... bis outcome !== null: "caught" | "surrounded" | "escaped" | "timeout" | "draw"
 ```
+
+### `Recorder.ts` — JSONL-Eventlog, Export, Persistenz
+
+**Beschreibung:** Aufzeichnung gemäß `02-technisches-konzept.md` §8.
+`useGameStore.log` ist ein event-sourced Log: eine `header`-Zeile
+(`gameId`, `mapId`, `seed`, `config`, `mission`, `cameras`, `starts`),
+danach sequenzierte Events (`seq`, `round`, `type`, `visibleTo`, …) für
+Startaufstellung, Züge (inkl. `edgeType`), Kameraauslösungen,
+Ereignisse je Typ (`sichtbarkeit`/`hinweis`/`umwelt`), Ablauf von
+Kantensperrungen (`edge_unblock`), Aktionsausführungen und -Spuren,
+Sabotage-Angebot und -Wahl (`sabotage_offer`, die Wahl trägt `chosen`),
+Polizeifunk-Einsatz (`radio`) — abgeschlossen von einer `result`-Zeile
+mit `outcome` (inkl. `"draw"`) und Balancing-Metriken (`rounds`,
+`hintsTotal`, `camerasTriggered`). Gleicher Seed + gleiche Eingaben →
+bitgleiches Log.
+
+Die Browsergrenze ist injizierbar: `localStorage`- und Download-Zugriffe
+laufen nur, wenn `window`/`document` existieren, oder über übergebene
+Implementierungen (`StorageLike`, `LogDownloader`).
+
+| Methode / Konstante | Beschreibung |
+|---------------------|--------------|
+| `serializeLog(log)` / `serializeLogEntry(entry)` | Log bzw. Eintrag als JSONL — `header` ohne `seq`/`round` |
+| `parseLog(jsonl)` | JSONL-Text zurück in Eintrags-Objekte |
+| `headerFromLog(log)` | der `header`-Eintrag oder `undefined` |
+| `startOptionsFromHeader(header)` | `{mapId, seed, options}` — `startGame`-Eingaben für die Rekonstruktion des Anfangszustands; `TypeError` bei Nicht-Header |
+| `saveGameLog(log, {storage?, maxLogs?})` | hängt die serialisierte Partie an den `localStorage`-Bestand (FIFO, `MAX_STORED_LOGS` = 10); `null` ohne Storage; Schreibfehler werden geschluckt |
+| `listGameLogs(storage?)` | vorgehaltene JSONL-Logs, älteste → neueste |
+| `clearGameLogs(storage?)` | entfernt den Bestand (`LOG_STORAGE_KEY`) |
+| `exportGameLog(log, {filename?, download?})` | `Blob` (`application/x-ndjson`) + Download-Auslösung (Default: DOM-Anker); Dateiname `im-netz-der-detektive-{gameId}.jsonl` |
+| `LOG_STORAGE_KEY` | `"im-netz-der-detektive:game-logs"` |
+
+**Auto-Persist:** `finish()` (Partieende) ruft `saveGameLog` auf — die
+letzten N Partien bleiben sitzungsübergreifend verfügbar, ohne dass
+headless Läufe etwas schreiben.
