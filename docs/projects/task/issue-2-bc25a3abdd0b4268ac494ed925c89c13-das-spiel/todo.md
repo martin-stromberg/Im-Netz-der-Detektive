@@ -1,8 +1,8 @@
 # Projekt-Tracking — Das Spiel (Issue #2)
 
-Basisbranch: `task/issue-2-bc25a3ab-dd0b-4268-ac49-4ed925c89c13-das-spiel`
+Basisbranch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 Issue: #2
-Projektverzeichnis: `docs/projects/task/issue-2-bc25a3ab-dd0b-4268-ac49-4ed925c89c13-das-spiel/`
+Projektverzeichnis: `docs/projects/task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel/`
 
 ## Checkliste
 
