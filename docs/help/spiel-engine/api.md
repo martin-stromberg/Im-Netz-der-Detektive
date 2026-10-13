@@ -306,9 +306,9 @@ gewertet.
 
 | Methode / Typ | Beschreibung |
 |---|---|
-| `DeductionInput` | `{map, detectiveStarts, events, cameras, round, detectivePositions?}` |
+| `DeductionInput` | `{map, detectiveStarts, events, cameras, round, detectiveHistory?, detectivePositions?}` |
 | `deducePossiblePositions(input)` | sortierte Knoten-IDs — alle Positionen mit konsistenter Historie bis `round` |
-| `lastHintAnchor(events)` | jüngstes positionsgebendes Event (`camera`/`sichtbarkeit`/`aktion`/`hinweis`) als `{round, nodeIds}` — Steueranker für die KI |
+| `lastHintAnchor(events)` | jüngstes positionsgebendes `GameEvent` (`camera`/`sichtbarkeit`/`aktion`/`hinweis`) — `nodeId` bzw. Zonenball `nodeIds` als Steueranker für die KI; `null`, solange nichts Positionsgebendes existiert |
 
 **Regeln:** `camera`/`sichtbarkeit`/`aktion` pinnen die Position auf den
 Knoten der Runde; `hinweis` schneidet mit dem Zonenball; `umwelt`
@@ -348,7 +348,6 @@ Hinweisbereich.
 |---|---|
 | `DetectiveView` | `{map, round, detectiveStarts, detektivePositions, blockedEdges, events, cameras, missionStructure}` |
 | `chooseDetectiveMove(view, index, legalMoves, rng)` | Zielknoten-ID aus `legalMoves`; `RangeError` bei leerer Liste |
-| `MOVE_TARGET_EPSILON` | Distanz-Untergrenze, ab der Bewegung auf die Glaubensmenge „am Ziel" gilt |
 
 ### `GanoveAI.ts` — missionsführende Ganove-KI (rein)
 
@@ -387,11 +386,12 @@ sodass jeder Seed eine bitidentische Partie samt Eventlog erzeugt.
 |---|---|
 | `buildDetectiveView(state, detectiveStarts)` | gefilterte Sicht für `DetectiveAI` |
 | `buildGanoveView(state)` | gefilterte Sicht für `GanoveAI` |
-| `runAiGame(map, seed, options?)` | eine Partie → `SimGameResult` (`{seed, outcome, rounds, log, metrics}`); `options.observe` liest jeden Zwischenzustand (Tests) |
-| `runAiBatch(map, seeds, options?)` | Partien über eine Seed-Liste |
-| `summarizeBatch(results)` | `BatchSummary`: Outcome-Verteilung, Ø/min/max-Runden, Hinweise/Kameras pro Partie, Sabotage-Annahmequote, Radio-Quote |
+| `runAiGame(map, seed, options?)` | eine Partie → `SimGameResult`; `options.observe` liest jeden Zwischenzustand (Tests) |
+| `runAiBatch(map, seeds, options?)` | Partien über eine Seed-Liste → `SimGameResult[]` |
+| `summarizeBatch(results)` | `BatchSummary`: Outcome-Verteilung, Ø/min/max-Runden, Hinweise/Kameras pro Partie, Sabotage-Annahmequote (`null` ohne Angebot), Radio-Quote |
 | `AiGameOptions` | `{startOptions?, maxRounds?, observe?}` |
-| `SimMetrics` | `{rounds, hintsTotal, camerasTriggered, sabotageOffered, sabotageChosen, radioUsed}` aus dem Eventlog |
+| `SimGameResult` | `{seed, outcome, rounds, log, hintsTotal, camerasTriggered, sabotageOffers, sabotageAccepted, radioUsed}` — Metriken aus dem Eventlog |
+| `BatchSummary` | `{games, outcomes, avgRounds, minRounds, maxRounds, avgHints, avgCamerasTriggered, sabotageAcceptanceRate, radioUsageRate}` |
 
 **CLI:** `npm run sim` baut `dist-sim/sim.mjs` (SSR-Bundle via
 `vite.sim.config.ts`) und führt `scripts/sim.ts` aus — Optionen
