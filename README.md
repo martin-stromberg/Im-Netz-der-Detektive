@@ -15,6 +15,22 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
+Deduktion & KI (Entwicklungsschritt 8): Das geteilte
+Deduktionsmodell (`Deduction.ts`) errechnet aus allen
+detektivsichtbaren Hinweisen die Menge konsistenter
+Ganoven-Positionshistorien — inklusive Zugzwang, Kantensperrungen,
+Belegung und Negativ-Schluss durch stille Kameras. Darauf spielen zwei
+KIs gegeneinander: `DetectiveAI` steuert den ganzen Trupp koordiniert
+(Abdeckung der Glaubensmenge → Aufteilung/Einkreisung, letzter Hinweis
+als Anker, strukturell ohne Zugriff auf Position oder Missionsziele),
+`GanoveAI` führt die Mission mit Aktions-Timing (Hitze, Abstand,
+Deadline), einmaligem Polizeifunk und der Sabotage-Binärwahl.
+`AiSimulation.ts` treibt beide Seiten auf dem gemeinsamen Store —
+deterministisch je Seed — bis zur regulären Endbedingung samt
+komplettem Eventlog; `npm run sim` spielt Batch-Serien und gibt
+Outcome-Verteilung plus Balancing-Metriken (Runden, Hinweise,
+Kameratreffer, Sabotage-Quote) aus, optional mit JSONL-Logs je Partie.
+
 Eventlog (Entwicklungsschritt 7): Jede Partie wird vollständig als
 JSONL-Eventlog aufgezeichnet — `header` (Spiel-ID, Karte, Seed,
 effektive Konfiguration, Mission, Kameras, Startaufstellung),
@@ -48,8 +64,8 @@ Rundenmotor (Zwei-Phasen-Runden, Zugzwang, Kantensperrungen,
 Sofort-Fangprüfung, alle fünf Endbedingungen) und das
 Engine-Grundgerüst mit zwei echten Kartenpaketen (**Münster**: 59
 Orte, 101 Kanten; **Lübeck-Altstadtinsel**: 22 Orte als
-Validierungskarte). Oberflächen und KI folgen in den nächsten
-Entwicklungsschritten. Details:
+Validierungskarte). Die KI-Seite steht bereits als Engine-Feature —
+die Oberflächen folgen in den nächsten Entwicklungsschritten. Details:
 `docs/help/spiel-engine/`, `docs/help/kartenpakete/`.
 
 ## Setup
@@ -74,6 +90,7 @@ npm run dev                     # Dev-Server starten
 | `npm run lint` | ESLint |
 | `npm run format` / `npm run format:check` | Prettier schreiben / prüfen |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run sim` | KI-vs.-KI-Batchsimulation (`--map/--games/--seeds/--detectives/--mission/--out`) |
 | `npm run release` | `semantic-release` (nur in CI) |
 
 ## Projektstruktur

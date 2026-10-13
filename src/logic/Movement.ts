@@ -166,6 +166,41 @@ export function validateDetectiveMove(
   return validateSharedMove(ctx, "detective", from, target);
 }
 
+/**
+ * BFS edge distances from `from` over the edges passable in `round` —
+ * `umwelt` blocks are impassable for both sides (spec section 4.3), so
+ * route planning and deduction both measure on the open graph.
+ * Unreachable/unknown nodes are absent; `from` maps to 0 — the same
+ * contract as `bfsDistances` in `Graph.ts`.
+ */
+export function bfsOpenDistances(
+  graph: Graph,
+  from: string,
+  blockedEdges: readonly BlockedEdge[],
+  round: number,
+): Map<string, number> {
+  const dist = new Map<string, number>();
+  if (!graph.adjacency.has(from)) {
+    return dist;
+  }
+  dist.set(from, 0);
+  const queue: string[] = [from];
+  for (let head = 0; head < queue.length; head += 1) {
+    const current = queue[head];
+    const nextDist = (dist.get(current) ?? 0) + 1;
+    for (const edge of graph.adjacency.get(current) ?? []) {
+      if (isEdgeBlocked(current, edge.nodeId, blockedEdges, round)) {
+        continue;
+      }
+      if (!dist.has(edge.nodeId)) {
+        dist.set(edge.nodeId, nextDist);
+        queue.push(edge.nodeId);
+      }
+    }
+  }
+  return dist;
+}
+
 /** Ids of all nodes carrying the `flucht` category — the map's escape points. */
 export function mapEscapeNodeIds(map: MapPack): string[] {
   return map.nodes.filter((node) => node.categories.includes("flucht")).map((node) => node.id);

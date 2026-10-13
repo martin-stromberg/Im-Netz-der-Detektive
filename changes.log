@@ -1,5 +1,44 @@
 # Änderungsprotokoll
 
+## 2026-10-13 — Deduktion, Detektiv-/Ganove-KI, KI-Simulation (Schritt 8)
+
+- Neues Modul `src/logic/Deduction.ts`: `deducePossiblePositions`
+  errechnet alle Ganoven-Positionen mit konsistenter Positionshistorie
+  aus den detektivsichtbaren Events — Pfadinduktion über Kantenzüge
+  (Verharren nur mit `aktion`), Constraints für `camera`,
+  `sichtbarkeit`, `aktion`, `hinweis` (Zonenball) und `umwelt`
+  (ab Folgerunde), Besetzungsfilter durch Detektive, Negativ-Schluss
+  für stille aktive Kameras in Bewegungsrunden, Spawn-Prior aus
+  `ganoveSpawnChoices`; `lastHintAnchor` liefert den jüngsten
+  positionsgebenden Hinweis.
+- `Movement.ts`: `bfsOpenDistances` — blockungsbewusste BFS ohne
+  Besetzungsfilter (Deduktion filtert selbst).
+- Neues Modul `src/logic/DetectiveAI.ts`: `DetectiveView` (strukturell
+  gefilterte Detektivsicht — keine Ganovenposition, nur
+  Missions*struktur*), `chooseDetectiveMove` steuert alle Detektive
+  koordiniert: Summe der Mindestdistanzen über die Glaubensmenge
+  minimieren (Aufteilung/Einkreisung), Hinweisanker, Fallback auf den
+  letzten Hinweisbereich bei widersprüchlicher Menge.
+- Neues Modul `src/logic/GanoveAI.ts`: `GanoveView` (ganovenseitige
+  Wahrheit), `chooseGanoveTurn` (Zug/Aktion mit `SAFE_ACTION_GAP`-,
+  `MOVE_SAFE_GAP`-, `EVADE_DISTANCE`- und Hitze-Timing plus
+  Deadline-Override; Funk-bekannte Kameras und ausweglose Knoten
+  werden gemieden; auf `sabotage`/`flucht` wird committed),
+  `chooseSabotagePath` (BFS-Umweg gegen `sabotageDetour`, `kritisch` →
+  Flucht), `shouldUseRadio` (einmalig ab Hitze ≥ `erhoeht`).
+- Neues Modul `src/logic/AiSimulation.ts` + `scripts/sim.ts` +
+  `vite.sim.config.ts` + `npm run sim`: headless KI-vs.-KI auf dem
+  gemeinsamen Store bis zu regulären Endbedingungen, deterministisch
+  je Seed (`mixSeed(seed ^ 0xa11ce5, round, index)`), `runAiBatch` +
+  `summarizeBatch` mit Outcome-Verteilung, Runden, Hinweisen,
+  Kameratreffern, Sabotage- und Radio-Quoten; `--out` schreibt pro
+  Partie ein JSONL-Log.
+- `eslint.config.js`: `dist-sim/` in `ignores`; `.gitignore`: `dist-sim/`.
+- 54 neue Tests (Deduction/DetectiveAI/GanoveAI/AiSimulation/sim):
+  exakte Skript-Szenarien, Belief-Invarianz (echte Position nie
+  ausgeschlossen), strukturelle Info-Trennung, Reproduzierbarkeit,
+  Batch-Aggregation, CLI-Parsing.
+
 ## 2026-10-13 — Eventlog-Korrektur: Zustandsrekonstruktion (Schritt 7)
 
 - `startOptionsFromHeader` übergibt die im `header` aufgezeichneten
