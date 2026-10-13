@@ -19,16 +19,16 @@ Branch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-2-engin
 | [x] | 5 | Umsetzungsplanung (selbst) | `plan.md` |
 | [x] | 5a | Offene Punkte prüfen (keine vorhanden) | `plan.md` |
 | [x] | 5b | Plan gegen Anforderung und Testbedarf prüfen (selbst) | `plan-check.md` |
-| [ ] | 5c | Planungscommit | – |
-| [ ] | 6 | Implementierung (selbst) | Codeänderungen |
-| [ ] | 7 | Plan-Review (selbst, bedingt) | `review.md` |
-| [ ] | 8 | Usability-Review (selbst, bei UI-Änderungen) | `review-usability.md` |
-| [ ] | 9 | Code-Review (selbst) | `review-code.md` |
-| [ ] | 10 | Tests ausführen (selbst) | `test-results.md` |
-| [ ] | – | Iteration oder Abschluss entscheiden | – |
-| [ ] | 11 | Folgeaufgaben dokumentieren (bei Schleifenabbruch) | `continue.md` |
-| [ ] | 12 | Dokumentation erstellen (selbst) | `docs/help/` |
-| [ ] | 12b | README aktualisieren (selbst) | `README.md` |
-| [ ] | 12c | Release Notes aktualisieren (selbst) | `docs/RELEASE_NOTES.md` |
-| [ ] | – | Feature-Verzeichnis löschen | – |
-| [ ] | – | Commit durchführen | – |
+| [x] | 5c | Planungscommit | – |
+| [x] | 6 | Implementierung (selbst) | Codeänderungen |
+| [x] | 7 | Plan-Review (selbst) → `Vollständig umgesetzt` | `review.md` |
+| [x] | 8 | Usability-Review → `Keine Befunde` (keine UI-Änderungen) | `review-usability.md` |
+| [x] | 9 | Code-Review (selbst) → `Keine Befunde` | `review-code.md` |
+| [x] | 10 | Tests ausführen (selbst) → `Keine Fehler` (87/87, 87,9 % Zeilen) | `test-results.md` |
+| [x] | – | Iteration oder Abschluss: alle Prüfungen grün in Iteration 1 → Abschluss | – |
+| [x] | 11 | Folgeaufgaben dokumentieren — nicht nötig, kein Schleifenabbruch | – |
+| [x] | 12 | Dokumentation erstellen (selbst) | `docs/help/spiel-engine/` |
+| [x] | 12b | README aktualisieren (selbst) | `README.md` |
+| [x] | 12c | Release Notes aktualisieren (selbst) | `docs/RELEASE_NOTES.md` |
+| [x] | – | Feature-Verzeichnis löschen | – |
+| [x] | – | Commit durchführen | – |

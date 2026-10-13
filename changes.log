@@ -1,5 +1,23 @@
 # Änderungsprotokoll
 
+## 2026-10-13 — Engine-Grundgerüst (Schritt 2)
+
+- Headless-fähiger Spielkern in `src/logic/`: Kartenpaket-Typen plus
+  Laufzeit-Validierung (`validateMapPack`, `MapValidationError`) als
+  Spiegel des Schema-Hooks, `MapLoader.loadMap(id)` über gebündelte
+  JSON-Pakete, Graph-Grundfunktionen (Nachbarschaften,
+  BFS-Kantendistanzen) und `SpawnSystem` (choice/free/random,
+  Detektive-vor-Ganove, `minDistanceToDetective`).
+- Zentraler deterministischer Seeded-RNG (`createRng`, mulberry32) als
+  einzige Zufallsquelle der Engine-Module.
+- `useGameStore` um die spezifizierten State-Felder (round, phase,
+  Positionen, mission, events, cameras, blockedEdges, eventMode,
+  tensionValue, seed, log) und imperative Actions erweitert —
+  vollständig headless treibbar.
+- Gültige Test-Karte `teststadt` als Fixture-Paket angelegt;
+  Scaffold-Platzhalter (`placeholder.ts`) durch die echte
+  Engine-Struktur ersetzt.
+
 ## 2026-10-13 — Projekt-Scaffold und Qualitätsinfrastruktur (Schritt 1)
 
 - Vite + React 18 + TypeScript-Grundgerüst mit Feature-Slice-Struktur
