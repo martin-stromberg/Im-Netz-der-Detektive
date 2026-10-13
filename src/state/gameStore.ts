@@ -1,7 +1,22 @@
 import { create } from "zustand";
-import type { MapPack } from "../logic/mapPack";
-import { createRng } from "../logic/rng";
+import type { MapPack, RangeSetting } from "../logic/mapPack";
+import { createRng, mixSeed, type Rng } from "../logic/rng";
 import { buildGraph } from "../logic/Graph";
+import { deactivateAll, placeCameras, triggeredCamera } from "../logic/CameraSystem";
+import {
+  drawEventType,
+  pickBlockableEdge,
+  rollTrigger,
+  zoneHint,
+  type EventTypeKind,
+} from "../logic/EreignisEngine";
+import {
+  heatLevel,
+  radioHintSummary,
+  type Camera,
+  type GameEvent,
+  type HeatLevel,
+} from "../logic/InformationSystem";
 import {
   legalDetectiveMoves,
   legalGanoveMoves,
@@ -46,19 +61,7 @@ export interface Mission {
   currentStepIndex: number;
 }
 
-/** A hint or world event as it lands in the detectives' chronicle. */
-export interface GameEvent {
-  kind: string;
-  round: number;
-  nodeId?: string;
-  zone?: string;
-  visibleTo: "detectives" | "both";
-}
-
-export interface Camera {
-  nodeId: string;
-  active: boolean;
-}
+export type { Camera, GameEvent, GameEventKind, HeatLevel } from "../logic/InformationSystem";
 
 export interface LogEntry {
   seq: number;
@@ -79,6 +82,14 @@ export interface StartGameOptions {
    * `settings.roundLimit.unlimited`. Defaults to `roundLimit.suggested`.
    */
   roundLimit?: number | null;
+  /** Camera count override inside `cameraCount.[min,max]`; defaults to `suggested`. */
+  cameraCount?: number;
+  /** Nodes that may never carry a camera (e.g. mission targets). */
+  cameraProtectedNodes?: string[];
+  /** Police-radio depth override inside `radioHintCount.[min,max]`. */
+  radioHintCount?: number;
+  /** `umwelt` block duration override inside `edgeBlockRounds.[min,max]`. */
+  edgeBlockRounds?: number;
 }
 
 export interface GameState {
@@ -112,6 +123,12 @@ export interface GameState {
    * Conservatively `false` until the mission engine fills it.
    */
   ganoveCanAct: boolean;
+  /** Police radio has already been tapped (once per game). */
+  radioUsed: boolean;
+  /** Effective police-radio depth (how many hints `useRadio` reports). */
+  radioHintCount: number;
+  /** Effective `umwelt` block duration in rounds. */
+  edgeBlockRounds: number;
 
   startGame: (map: MapPack, seed: number, options?: StartGameOptions) => void;
   resetGame: () => void;
@@ -129,6 +146,9 @@ export interface GameState {
   setGanoveCanAct: (canAct: boolean) => void;
   setMission: (mission: Mission | null) => void;
   addEvent: (event: GameEvent) => void;
+  useRadio: () => void;
+  deactivateCameras: () => void;
+  getHeatLevel: () => { level: HeatLevel; score: number };
   setCameras: (nodeIds: readonly string[]) => void;
   blockEdge: (a: string, b: string, untilRound: number) => void;
   unblockExpiredEdges: () => void;
@@ -154,6 +174,9 @@ type GameData = Omit<
   | "setGanoveCanAct"
   | "setMission"
   | "addEvent"
+  | "useRadio"
+  | "deactivateCameras"
+  | "getHeatLevel"
   | "setCameras"
   | "blockEdge"
   | "unblockExpiredEdges"
@@ -182,15 +205,17 @@ function initialData(): GameData {
     roundLimit: null,
     escapeNodeIds: [],
     ganoveCanAct: false,
+    radioUsed: false,
+    radioHintCount: 0,
+    edgeBlockRounds: 0,
   };
 }
 
 function resolveSpawnPositions(
   map: MapPack,
-  seed: number,
+  rng: Rng,
   options?: StartGameOptions,
 ): { detectivePositions: string[]; ganovePosition: string } {
-  const rng = createRng(seed);
   const count =
     options?.detectiveCount ??
     options?.detectivePositions?.length ??
@@ -252,6 +277,53 @@ function resolveRoundLimit(map: MapPack, option: number | null | undefined): num
     );
   }
   return value;
+}
+
+/**
+ * Resolves a plain `{suggested, min, max}` map setting against an
+ * optional override — the integer must lie inside the allowed corridor,
+ * otherwise `GameConfigError` is thrown (same contract as
+ * `resolveRoundLimit`, which additionally handles `unlimited`).
+ */
+function resolveRangeSetting(
+  setting: RangeSetting,
+  option: number | undefined,
+  label: string,
+): number {
+  const value = option ?? setting.suggested;
+  if (
+    !Number.isInteger(value) ||
+    value < setting.min ||
+    (setting.max !== undefined && value > setting.max)
+  ) {
+    const max = setting.max === undefined ? "∞" : setting.max;
+    throw new GameConfigError(
+      `${label} ${value} is outside the allowed range [${setting.min}, ${max}]`,
+    );
+  }
+  return value;
+}
+
+/**
+ * Validates the camera exclusion list: every id must exist on the map,
+ * otherwise `GameConfigError` is thrown.
+ */
+function resolveCameraProtectedNodes(
+  map: MapPack,
+  option: string[] | undefined,
+): string[] {
+  if (option === undefined) {
+    return [];
+  }
+  const known = new Set(map.nodes.map((node) => node.id));
+  for (const id of option) {
+    if (!known.has(id)) {
+      throw new GameConfigError(
+        `cameraProtectedNodes: node ${JSON.stringify(id)} does not exist on map ${JSON.stringify(map.id)}`,
+      );
+    }
+  }
+  return [...option];
 }
 
 function moveContext(state: {
@@ -323,6 +395,134 @@ export const useGameStore = create<GameState>((set, get) => {
     checkGanoveSurrounded();
   };
 
+  /**
+   * Camera check after the ganove entered a node (spec section 3.1):
+   * an active camera on his new node produces a detective-only hint
+   * with the exact node and the triggering round.
+   */
+  const runCameraCheck = (): void => {
+    const state = get();
+    const position = state.ganovePosition;
+    if (position === null) {
+      return;
+    }
+    const camera = triggeredCamera(state.cameras, position);
+    if (camera === undefined) {
+      return;
+    }
+    get().addEvent({
+      kind: "camera",
+      round: state.round,
+      nodeId: camera.nodeId,
+      visibleTo: "detectives",
+    });
+    get().appendLog({
+      round: state.round,
+      type: "hint",
+      details: { kind: "camera", nodeId: camera.nodeId, visibleTo: "detectives" },
+    });
+  };
+
+  /** Appends an info-layer event plus its matching log entry. */
+  const emitInfoEvent = (event: GameEvent): void => {
+    get().addEvent(event);
+    get().appendLog({
+      round: event.round,
+      type: event.kind === "umwelt" ? "event" : "hint",
+      details: {
+        kind: event.kind,
+        nodeId: event.nodeId,
+        zone: event.zone,
+        edge: event.edge,
+        untilRound: event.untilRound,
+        visibleTo: event.visibleTo,
+      },
+    });
+  };
+
+  /** `umwelt` event: blocks a connectivity-safe edge for both sides. */
+  const emitUmwelt = (map: MapPack, round: number, rng: Rng): void => {
+    const state = get();
+    const edge = pickBlockableEdge(buildGraph(map), map.edges, state.blockedEdges, round, rng);
+    if (edge === null) {
+      return;
+    }
+    const untilRound = round + state.edgeBlockRounds - 1;
+    get().blockEdge(edge.a, edge.b, untilRound);
+    emitInfoEvent({
+      kind: "umwelt",
+      round,
+      edge: { a: edge.a, b: edge.b },
+      untilRound,
+      visibleTo: "both",
+    });
+  };
+
+  /** Produces the drawn event type for the current round. */
+  const emitRoundEvent = (
+    type: EventTypeKind,
+    map: MapPack,
+    position: string,
+    round: number,
+    rng: Rng,
+  ): void => {
+    if (type === "sichtbarkeit") {
+      emitInfoEvent({ kind: "sichtbarkeit", round, nodeId: position, visibleTo: "detectives" });
+      return;
+    }
+    if (type === "hinweis") {
+      const hint = zoneHint(position, map, buildGraph(map), map.settings.hintZoneRadius);
+      if (hint !== null) {
+        emitInfoEvent({
+          kind: "hinweis",
+          round,
+          zone: hint.zone,
+          nodeIds: hint.nodeIds,
+          visibleTo: "detectives",
+        });
+      }
+      return;
+    }
+    emitUmwelt(map, round, rng);
+  };
+
+  /**
+   * Event roll once per ganove turn (spec sections 4.2/4.3). The RNG is
+   * derived from `seed`+`round`, so replays stay deterministic and the
+   * serializable state carries no RNG instance. `hinweis`/`sichtbarkeit`
+   * land in the detectives' chronicle before their moves; `umwelt`
+   * blocks an edge for both sides for `edgeBlockRounds` rounds.
+   */
+  const runEventRoll = (): void => {
+    const state = get();
+    const map = state.map;
+    const position = state.ganovePosition;
+    if (map === null || position === null || state.outcome !== null) {
+      return;
+    }
+    const rng = createRng(mixSeed(state.seed, state.round));
+    const trigger = rollTrigger(
+      state.eventMode,
+      state.round,
+      state.tensionValue,
+      map.settings.eventDefaults,
+      rng,
+    );
+    if (trigger.tensionValue !== state.tensionValue) {
+      set({ tensionValue: trigger.tensionValue });
+    }
+    if (!trigger.fires) {
+      return;
+    }
+    emitRoundEvent(
+      drawEventType(map.settings.eventMix, rng),
+      map,
+      position,
+      state.round,
+      rng,
+    );
+  };
+
   const requireRunningGame = (phase?: GamePhase): void => {
     const state = get();
     if (state.map === null) {
@@ -343,8 +543,34 @@ export const useGameStore = create<GameState>((set, get) => {
     ...initialData(),
 
     startGame: (map, seed, options) => {
-      const { detectivePositions, ganovePosition } = resolveSpawnPositions(map, seed, options);
+      // One RNG stream per game: spawns first (unchanged draw order),
+      // then the camera placement — same seed, same game.
+      const rng = createRng(seed);
+      const { detectivePositions, ganovePosition } = resolveSpawnPositions(map, rng, options);
       const roundLimit = resolveRoundLimit(map, options?.roundLimit);
+      const cameraCount = resolveRangeSetting(
+        map.settings.cameraCount,
+        options?.cameraCount,
+        "cameraCount",
+      );
+      const radioHintCount = resolveRangeSetting(
+        map.settings.radioHintCount,
+        options?.radioHintCount,
+        "radioHintCount",
+      );
+      const edgeBlockRounds = resolveRangeSetting(
+        map.settings.edgeBlockRounds,
+        options?.edgeBlockRounds,
+        "edgeBlockRounds",
+      );
+      const protectedNodes = resolveCameraProtectedNodes(map, options?.cameraProtectedNodes);
+      const cameras = placeCameras(
+        buildGraph(map),
+        rng,
+        cameraCount,
+        map.settings.cameraMinGap,
+        protectedNodes,
+      );
       set({
         ...initialData(),
         map,
@@ -354,6 +580,9 @@ export const useGameStore = create<GameState>((set, get) => {
         ganovePosition,
         roundLimit,
         escapeNodeIds: mapEscapeNodeIds(map),
+        cameras,
+        radioHintCount,
+        edgeBlockRounds,
       });
       get().appendLog({
         round: 1,
@@ -362,6 +591,7 @@ export const useGameStore = create<GameState>((set, get) => {
           mapId: map.id,
           seed,
           roundLimit,
+          cameras: cameras.map((camera) => camera.nodeId),
           starts: { detectives: detectivePositions, ganove: ganovePosition },
         },
       });
@@ -418,6 +648,10 @@ export const useGameStore = create<GameState>((set, get) => {
         finish("escaped");
         return;
       }
+      // Info checks run internally right after the ganove's move
+      // (spec section 3.1) — hints reach the detectives before theirs.
+      runCameraCheck();
+      runEventRoll();
       set({ phase: "detektive", activeDetectiveIndex: 0 });
     },
 
@@ -479,6 +713,9 @@ export const useGameStore = create<GameState>((set, get) => {
         type: "action",
         details: { actor: "ganove", nodeId: state.ganovePosition },
       });
+      // No camera check — the ganove stays on his node (Betreten ≠
+      // Verharren); the event roll still runs for this round.
+      runEventRoll();
       set({ phase: "detektive", activeDetectiveIndex: 0 });
     },
 
@@ -534,6 +771,45 @@ export const useGameStore = create<GameState>((set, get) => {
     setMission: (mission) => set({ mission }),
 
     addEvent: (event) => set((state) => ({ events: [...state.events, event] })),
+
+    /**
+     * Police radio (spec section 4.5): once per game the ganove taps the
+     * detectives' channel and learns the last `radioHintCount` hints —
+     * including camera triggers. The report lands as a `ganove`-visible
+     * event; untriggered cameras and future events are never included.
+     */
+    useRadio: () => {
+      requireRunningGame();
+      const state = get();
+      if (state.radioUsed) {
+        throw new MoveError(
+          "already_used",
+          "the police radio can only be tapped once per game",
+        );
+      }
+      const hints = radioHintSummary(state.events, state.radioHintCount);
+      set({ radioUsed: true });
+      get().addEvent({
+        kind: "polizeifunk",
+        round: state.round,
+        visibleTo: "ganove",
+        details: { hints },
+      });
+      get().appendLog({
+        round: state.round,
+        type: "radio",
+        details: { hintCount: hints.length },
+      });
+    },
+
+    /** Sabotage hook: permanently disables every camera. */
+    deactivateCameras: () => set((state) => ({ cameras: deactivateAll(state.cameras) })),
+
+    /**
+     * Heat indicator for the ganove — level and score only, no hint
+     * contents (info-leak safe by construction).
+     */
+    getHeatLevel: () => heatLevel(get().events, get().round),
 
     setCameras: (nodeIds) => set({ cameras: nodeIds.map((nodeId) => ({ nodeId, active: true })) }),
 

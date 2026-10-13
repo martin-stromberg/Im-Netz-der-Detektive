@@ -117,7 +117,40 @@ detektivePositions }`; `MoveTarget` = `{ nodeId, edgeType }`.
 `MoveError.reason` ist ein maschinenlesbarer `MoveRejection`-Code
 (`no_game`, `game_over`, `wrong_phase`, `not_active_detective`,
 `stay_forbidden`, `not_adjacent`, `blocked_edge`, `occupied`,
-`no_action_available`).
+`no_action_available`, `already_used`).
+
+### `CameraSystem.ts` — Kameraplatzierung und -auslösung (rein)
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `placeCameras(graph, rng, count, minGap, protectedNodeIds?)` | verteilt bis zu `count` Kameras; jede hält `minGap` BFS-Kanten Abstand zu allen anderen; `protectedNodeIds` sind tabu; bestmögliche Platzierung bei knapper Karte |
+| `triggeredCamera(cameras, nodeId)` | aktive Kamera auf `nodeId` oder `undefined` |
+| `deactivateAll(cameras)` | Kopie mit allen Kameras `active: false` (Sabotage-Hook `kamera_aus`) |
+
+### `EreignisEngine.ts` — Auslösemodi und Ereignistypen (rein)
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `rollTrigger(mode, round, tensionValue, defaults, rng)` | `{ fires, tensionValue }` — `cycle`: `round % cycle === 0`; `chance`: `next() < chance`; `tension`: `+perRound`, Auslösung `>= threshold`, Reset |
+| `drawEventType(mix, rng)` | gewichteter Typzug: `"sichtbarkeit" \| "hinweis" \| "umwelt"` |
+| `zoneHint(position, map, graph, radius)` | `{ zone, nodeIds }` — Zone des Ganove-Knotens + BFS-Ball im Radius; `null` bei unbekannter Position |
+| `pickBlockableEdge(graph, edges, blockedEdges, round, rng)` | zufällige Kante, deren Sperrung den Restgraphen (abzüglich aktiver Sperren) zusammenhängend lässt; `null`, wenn keine Kandidatin existiert |
+
+### `InformationSystem.ts` — Verteilung, Funk, Hitze (rein)
+
+Typen: `GameEvent` (`kind`, `round`, `nodeId?`, `zone?`, `nodeIds?`,
+`edge?`, `untilRound?`, `visibleTo`, `details?`), `GameEventKind`
+(`camera`/`sichtbarkeit`/`hinweis`/`umwelt`/`aktion`/`polizeifunk`),
+`Camera`, `RadioHint`, `HeatLevel` (`ruhig`/`aktiv`/`erhoeht`/`kritisch`),
+`Visibility` (`detectives`/`ganove`/`both`).
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `visibleEvents(events, side)` | Events mit `visibleTo ∈ {side, "both"}` — datenseitige Asymmetrie |
+| `visibleCameras(cameras, side)` | alle für `detectives`, `[]` für `ganove` |
+| `radioHintSummary(events, count)` | letzte `count` Events aus `HINT_EVENT_KINDS` (`camera`, `sichtbarkeit`, `hinweis`, `aktion`) als `RadioHint[]` |
+| `revealedGanovePosition(events, round)` | `nodeId` eines `sichtbarkeit`-Events nur in seiner Auslöserunde, sonst `null` |
+| `heatLevel(events, round)` | `{ level, score }` — `HEAT_WEIGHTS`-Summe (`hinweis` 1, `camera` 2, `aktion` 2, `sichtbarkeit` 3) über die letzten `HEAT_WINDOW` (3) Runden → `ruhig`/`aktiv`/`erhoeht`/`kritisch` |
 
 ### `useGameStore` (`src/state/gameStore.ts`) — State-Felder
 
@@ -141,15 +174,21 @@ detektivePositions }`; `MoveTarget` = `{ nodeId, edgeType }`.
 | `roundLimit` | `number \| null` | effektives Rundenlimit; `null` = unbegrenzt |
 | `escapeNodeIds` | `string[]` | Fluchtpunkte (Init: Kategorie `flucht`; Missions-Hook: `setEscapeNodeIds`) |
 | `ganoveCanAct` | `boolean` | Missionssystem-Hook: darf der Ganove diese Runde eine Aktion ausführen? |
+| `radioUsed` | `boolean` | Polizeifunk bereits abgehört (1×/Partie) |
+| `radioHintCount` | `number` | effektive Funk-Tiefe (aus `settings.radioHintCount` bzw. Option) |
+| `edgeBlockRounds` | `number` | effektive `umwelt`-Sperrdauer in Runden |
 
 ### `useGameStore` — Actions
 
 | Action | Wirkung |
 |--------|---------|
-| `startGame(map, seed, options?)` | setzt Map/Seed/`eventMode`, vergibt Startpositionen (explizite `detectivePositions`/`ganovePosition` werden gegen `SpawnSystem` validiert, fehlende per `createRng(seed)` ergänzt), löst `roundLimit` aus `options.roundLimit` bzw. `settings.roundLimit.suggested` auf (`null` nur bei `unlimited`), initialisiert `escapeNodeIds` aus der `flucht`-Kategorie, schreibt den `header`-Logeintrag und prüft die initiale Umzingelung |
+| `startGame(map, seed, options?)` | setzt Map/Seed/`eventMode`, vergibt Startpositionen (explizite `detectivePositions`/`ganovePosition` werden gegen `SpawnSystem` validiert, fehlende per `createRng(seed)` ergänzt), löst `roundLimit` aus `options.roundLimit` bzw. `settings.roundLimit.suggested` auf (`null` nur bei `unlimited`), löst `cameraCount`/`radioHintCount`/`edgeBlockRounds` gegen die Map-Korridore auf (`GameConfigError`), platziert die Kameras via `placeCameras` (`cameraProtectedNodes` bleiben frei), initialisiert `escapeNodeIds` aus der `flucht`-Kategorie, schreibt den `header`-Logeintrag (inkl. `cameras`) und prüft die initiale Umzingelung |
+| `useRadio()` | Polizeifunk: hängt ein `polizeifunk`-Event (`visibleTo: "ganove"`) mit den letzten `radioHintCount` Hinweisen (inkl. Kameratreffern) an; `MoveError "already_used"` beim zweiten Aufruf |
+| `deactivateCameras()` | setzt alle Kameras `active: false` (Sabotage-Hook) |
+| `getHeatLevel()` | `{ level, score }` des Hitze-Indikators (3-Runden-Fenster, gewichtet — ohne Hinweisinhalte) |
 | `resetGame()` | setzt den kompletten Daten-Zustand zurück |
 | `appendLog({ round, type, details? })` | hängt einen `LogEntry` mit auto-`seq` an |
-| `moveGanove(target)` | validierter Ganovenzug (`MoveError` bei Regelverstoß); Fluchtpunkt → `outcome "escaped"`, sonst Detektivphase |
+| `moveGanove(target)` | validierter Ganovenzug (`MoveError` bei Regelverstoß); Fluchtpunkt → `outcome "escaped"`, sonst Kameraprüfung + Ereignis-Roll, dann Detektivphase |
 | `moveDetective(target)` | Zug des aktiven Detektivs; Sofort-Fangprüfung (`outcome "caught"` mitten in der Phase); letzter Detektiv → Rundenende |
 | `ganoveAction()` | Aktionsrunde (Zugzwang-Ausnahme, erfordert `ganoveCanAct`); Ganove bleibt stehen und fangbar |
 | `abortAsDraw()` | beendet die laufende Partie als `outcome "draw"` |

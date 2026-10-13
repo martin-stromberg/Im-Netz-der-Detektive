@@ -91,7 +91,9 @@ describe("moveGanove", () => {
     expect(s.ganovePosition).toBe("c");
     expect(s.phase).toBe("detektive");
     expect(s.activeDetectiveIndex).toBe(0);
-    expect(s.log.at(-1)).toMatchObject({
+    // The info checks may append hint/event entries after the move —
+    // assert on the last "move" entry.
+    expect(s.log.filter((e) => e.type === "move").at(-1)).toMatchObject({
       type: "move",
       round: 1,
       details: { actor: "ganove", from: "d", to: "c", edgeType: "weg" },
@@ -106,7 +108,8 @@ describe("moveGanove", () => {
     store().moveDetective("b"); // D1 a -> b
     store().moveDetective("h"); // D2 i -> h
     store().moveGanove("f"); // g -> f (fahrt)
-    expect(store().log.at(-1)).toMatchObject({
+    // A camera on "f" may add a hint entry after the move entry.
+    expect(store().log.filter((e) => e.type === "move").at(-1)).toMatchObject({
       type: "move",
       details: { actor: "ganove", from: "g", to: "f", edgeType: "fahrt" },
     });

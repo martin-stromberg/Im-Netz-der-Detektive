@@ -25,16 +25,25 @@ Reihenfolge `activeDetectiveIndex` 0→n-1). Die Regel-Actions
 3. `ganovePosition` setzen, `move`-Logeintrag (`actor`, `from`, `to`,
    `edgeType`).
 4. Fluchtprüfung: `target ∈ escapeNodeIds` → `outcome "escaped"` +
-   `result`-Log.
-5. Sonst `phase = "detektive"`, `activeDetectiveIndex = 0`.
+   `result`-Log (danach keine Info-Checks mehr).
+5. **Kameraprüfung** (`runCameraCheck`): aktive Kamera auf dem
+   Zielknoten → `camera`-Event (`nodeId` + `round`,
+   `visibleTo: "detectives"`) + `hint`-Logeintrag.
+6. **Ereignis-Roll** (`runEventRoll`): siehe Abschnitt
+   „Informationschecks" unten.
+7. Sonst `phase = "detektive"`, `activeDetectiveIndex = 0`.
 
 Alternative `ganoveAction()` (einzige Zugzwang-Ausnahme): nur bei
 `ganoveCanAct === true` (Missionssystem-Hook); der Ganove bleibt stehen
-und fangbar, `action`-Log, danach Detektivphase.
+und fangbar, `action`-Log, danach läuft nur der Ereignis-Roll — keine
+Kameraprüfung, da kein Knoten betreten wird (Betreten ≠ Verharren).
 
 Beteiligte Komponenten:
 - `useGameStore.moveGanove` / `useGameStore.ganoveAction`
 - `Movement.validateGanoveMove` — Regelprüfung
+- `CameraSystem.triggeredCamera` — Kameraauslösung
+- `EreignisEngine.rollTrigger` / `drawEventType` — Ereigniskadenz und
+  Typzug
 
 ### 2. Detektivphase
 
@@ -66,6 +75,68 @@ Beteiligte Komponenten:
 
 `abortAsDraw()` bei laufender Partie → `outcome "draw"` + `result`-Log.
 
+## Informationschecks (in der Ganovenphase, Schritt 5/6)
+
+### Kameraplatzierung (bei `startGame`)
+
+`placeCameras(graph, rng, count, minGap, protectedIds)` in
+`CameraSystem.ts`: `rng.shuffle` über alle Knoten minus
+`cameraProtectedNodes`; ein Kandidat wird nur gesetzt, wenn seine
+BFS-Distanz zu jeder bereits gesetzten Kamera `>= cameraMinGap` ist —
+bestmögliche Platzierung, wenn die Karte `count` nicht hergibt. Der
+gleiche `createRng(seed)`-Strom liefert zuerst die Spawns, dann die
+Kameras → gleiche Seed = gleiche Aufstellung. Der Header-Log führt
+`cameras: [nodeIds]` für die Replay-Rekonstruktion.
+
+### Ereignis-Roll (`runEventRoll` in `gameStore.ts`)
+
+Pro Ganovenzug (Zug **oder** Aktionsrunde), RNG aus
+`createRng(mixSeed(seed, round))`:
+
+1. `rollTrigger(mode, round, tensionValue, defaults, rng)`:
+   `cycle` → `round % cycle === 0`; `chance` → `rng.next() < chance`;
+   `tension` → `tensionValue += perRound`, Auslösung bei
+   `>= threshold` und Reset auf 0 (Akkumulation nur im `tension`-Modus).
+2. Bei Auslösung `drawEventType(eventMix, rng)` (gewichtet
+   sichtbarkeit/hinweis/umwelt):
+   - `sichtbarkeit` → `GameEvent { kind, round, nodeId, visibleTo:
+     "detectives" }` — Live-Position, gültig nur diese Runde
+     (`revealedGanovePosition` liefert sie nur, wenn
+     `event.round === round`).
+   - `hinweis` → `zoneHint(position, map, graph, hintZoneRadius)`:
+     `zone` = Zone des Ganove-Knotens, `nodeIds` = BFS-Ball im Radius;
+     `visibleTo: "detectives"`.
+   - `umwelt` → `pickBlockableEdge(graph, edges, blockedEdges, round,
+     rng)`: erste RNG-Kandidatin, die nicht bereits gesperrt ist und
+     deren Entfernung den Restgraphen zusammenhängend lässt (BFS-
+     Konnektivitätscheck — deckt „nie letzte freie Kante" und „keine
+     Zerteilung" ab); `blockEdge(a, b, round + edgeBlockRounds - 1)` +
+     `GameEvent { visibleTo: "both" }`. Ohne Kandidatin kein Event.
+3. Jede Auslösung erzeugt einen `hint`- bzw. `event`-Logeintrag.
+
+### Polizeifunk (`useRadio`)
+
+Einmal pro Partie (`radioUsed`, sonst `MoveError "already_used"`):
+`radioHintSummary(events, radioHintCount)` liefert die letzten N
+hinweisgebenden Events (`HINT_EVENT_KINDS` = camera/sichtbarkeit/
+hinweis/aktion) mit Typ+Runde+Ort als `polizeifunk`-Event mit
+`visibleTo: "ganove"` + `radio`-Logeintrag.
+
+### Hitze-Indikator (`getHeatLevel`)
+
+`heatLevel(events, round)` in `InformationSystem.ts`: gewichtete Summe
+der Ereignisse der letzten `HEAT_WINDOW` (3) Runden — `hinweis` 1,
+`camera` 2, `aktion` 2, `sichtbarkeit` 3 — → Stufen 0 `ruhig`,
+1–2 `aktiv`, 3–4 `erhoeht`, ≥5 `kritisch`. Rückgabe nur
+`{ level, score }`, niemals Hinweisinhalte.
+
+### Asymmetrie-Sichten (`InformationSystem.ts`)
+
+`visibleEvents(events, side)` filtert `visibleTo ∈ {side, "both"}`;
+`visibleCameras(cameras, "ganove")` ist strukturell leer — die einzige
+Kamerainformation, die den Ganoven erreicht, sind ausgelöste Kameras
+als `RadioHint`-Daten im `polizeifunk`-Event.
+
 ```mermaid
 flowchart TD
     A[Ganovenphase] --> B{moveGanove legal?}
@@ -95,4 +166,5 @@ flowchart TD
 | Kante gesperrt | `blocked_edge` | `untilRound >= round` |
 | Ziel besetzt (Ganove) | `occupied` | Detektiv steht auf dem Ziel |
 | Keine Aktion | `no_action_available` | `ganoveAction` ohne `ganoveCanAct` |
-| Ungültige Konfiguration | `GameConfigError` | `roundLimit` außerhalb `min`/`max`, `null` ohne `unlimited`, unbekannte `escapeNodeIds` |
+| Schon verbraucht | `already_used` | `useRadio` nach bereits erfolgtem Abhören |
+| Ungültige Konfiguration | `GameConfigError` | `roundLimit` außerhalb `min`/`max`, `null` ohne `unlimited`, unbekannte `escapeNodeIds`, `cameraCount`/`radioHintCount`/`edgeBlockRounds` außerhalb des Map-Korridors, unbekannte `cameraProtectedNodes` |
