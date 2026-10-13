@@ -9,6 +9,15 @@
   border-radius: 8px;
 }
 
+/* Nothing inside the map may intercept pointer events except the
+   invisible hit areas of interactive nodes — decorations, labels,
+   markers and edges are display-only. This keeps every click inside a
+   node's hit radius routed to that node, no matter how dense the map
+   is or which glyph sits on top. */
+.map :where(g, path, circle, rect, line, text, title) {
+  pointer-events: none;
+}
+
 .edge {
   stroke: #4a5568;
   stroke-width: 2;
@@ -60,6 +69,7 @@
   fill: transparent;
   stroke: none;
   pointer-events: all;
+  cursor: pointer;
 }
 
 .nodeInteractive:focus-visible .nodeDot {
@@ -123,6 +133,61 @@
   fill: #3d5a80;
   stroke: #9db8d9;
   stroke-width: 1.4;
+}
+
+/* The detective currently on the move — brighter fill plus an amber
+   outline (form and colour both change). */
+.detectiveActive .detectiveShape {
+  fill: #5a7db0;
+  stroke: #f5d76e;
+  stroke-width: 2.2;
+}
+
+/* Zone halo behind the node dot — a soft fill ring per zone; the
+   legend names each zone so colour is not the only cue. */
+.zoneHalo {
+  fill-opacity: 0.16;
+  stroke: none;
+}
+
+/* Node-category badges reuse the mission glyph shapes — the same
+   symbol means the same category in both perspectives. */
+.categoryBadge {
+  fill: none;
+  stroke-width: 1.4;
+}
+
+/* Deduction overlay: solid diamond ring around nodes the ganove could
+   still occupy — distinct shape from the dashed legal-target circle. */
+.possibleRing {
+  fill: none;
+  stroke: #d4a94f;
+  stroke-width: 1.8;
+}
+
+/* Squad camera glyph — only rendered in the detective perspective.
+   Inactive cameras are shown struck through (form, not just colour). */
+.cameraBody {
+  fill: #243050;
+  stroke: #9db8d9;
+  stroke-width: 1.2;
+}
+
+.cameraLens {
+  fill: #9db8d9;
+}
+
+.cameraStrike {
+  stroke: #d98c8c;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+/* Player-set marker pin (detective deduction tool). */
+.markerPin path {
+  fill: #b48ad4;
+  stroke: #10141c;
+  stroke-width: 1;
 }
 
 .ganoveMarker .ganoveShape {

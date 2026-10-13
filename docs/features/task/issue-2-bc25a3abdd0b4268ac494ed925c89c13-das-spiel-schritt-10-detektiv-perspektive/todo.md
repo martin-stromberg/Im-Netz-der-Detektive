@@ -16,16 +16,16 @@ ausgeführt (dokumentierte Abweichung vom Orchestrierungsmodell).
 | [x] | 5 | Umsetzungsplanung (selbst ausgeführt) | `plan.md` |
 | [x] | 5a | Offene Punkte prüfen und ggf. Planung wiederholen | `plan.md` (keine offenen Punkte) |
 | [x] | 5b | Plan gegen Anforderung und Testbedarf prüfen (selbst ausgeführt) | `plan-check.md` |
-| [x] | 5c | Planungscommit | – |
-| [ ] | 6 | Implementierung (selbst ausgeführt) | Codeänderungen |
-| [ ] | 7 | Plan-Review (selbst ausgeführt) | `review.md` |
-| [ ] | 8 | Usability-Review (selbst ausgeführt) | `review-usability.md` |
-| [ ] | 9 | Code-Review (selbst ausgeführt) | `review-code.md` |
-| [ ] | 10 | Tests ausführen (selbst ausgeführt) | `test-results.md` |
-| [ ] | – | Iteration oder Abschluss entscheiden | – |
-| [ ] | 11 | Folgeaufgaben dokumentieren (bei Schleifenabbruch) | `continue.md` |
-| [ ] | 12 | Dokumentation erstellen (selbst ausgeführt) | `docs/help/` |
-| [ ] | 12b | README aktualisieren (selbst ausgeführt) | `README.md` |
-| [ ] | 12c | Release Notes aktualisieren (selbst ausgeführt) | `docs/RELEASE_NOTES.md` |
-| [ ] | – | Feature-Verzeichnis löschen | – |
-| [ ] | – | Commit durchführen | – |
+| [x] | 5c | Planungscommit | `5123449` |
+| [x] | 6 | Implementierung (selbst ausgeführt) | Codeänderungen |
+| [x] | 7 | Plan-Review (selbst ausgeführt) | `review.md` |
+| [x] | 8 | Usability-Review (selbst ausgeführt) | `review-usability.md` |
+| [x] | 9 | Code-Review (selbst ausgeführt) | `review-code.md` |
+| [x] | 10 | Tests ausführen (selbst ausgeführt) | `test-results.md` |
+| [x] | – | Iteration oder Abschluss entscheiden | – (1 Iteration, alle Befunde aufgelöst) |
+| [x] | 11 | Folgeaufgaben dokumentieren (bei Schleifenabbruch) | nicht erforderlich — kein `continue.md` |
+| [x] | 12 | Dokumentation erstellen (selbst ausgeführt) | `docs/help/` |
+| [x] | 12b | README aktualisieren (selbst ausgeführt) | `README.md` |
+| [x] | 12c | Release Notes aktualisieren (selbst ausgeführt) | `docs/RELEASE_NOTES.md`, `changes.log` |
+| [x] | – | Feature-Verzeichnis löschen | nicht anwendbar — Artefakte werden mit dem Feature-Commit versioniert (Konvention aus Schritt 9: Löschung erfolgt beim späteren Merge-Aufräumen) |
+| [x] | – | Commit durchführen | `4bc6cc8` |

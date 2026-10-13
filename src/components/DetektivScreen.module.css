@@ -1,0 +1,167 @@
+/* Detective-perspective additions to the shared noir theme — the base
+   classes (screen, panel, buttons, legend) come from
+   GanoveScreen.module.css and are imported as `shared`. */
+
+.steps {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8a94a6;
+  font-size: 0.9rem;
+}
+
+.stepMarker {
+  width: 1.2em;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.status_erledigt {
+  color: #7fd4a8;
+}
+
+.status_aktuell {
+  color: #f5d76e;
+  font-weight: 700;
+}
+
+.status_offen {
+  color: #8a94a6;
+}
+
+.pool {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: #8a94a6;
+  font-variant-numeric: tabular-nums;
+}
+
+.toolToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.toolToggle input {
+  accent-color: #e8b45a;
+  width: 16px;
+  height: 16px;
+}
+
+.markerList {
+  margin-top: 10px;
+  border-top: 1px solid #2a3240;
+  padding-top: 8px;
+}
+
+.markerHeading {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: #9db8d9;
+}
+
+.markers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.markerItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.markerName {
+  flex: 0 0 auto;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #c8d0dc;
+  font-size: 0.85rem;
+}
+
+.commentInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: #10141c;
+  border: 1px solid #2a3240;
+  border-radius: 4px;
+  color: #eaf0f8;
+  padding: 4px 6px;
+  font-size: 0.8rem;
+}
+
+.commentInput:focus-visible {
+  outline: 2px solid #f5d76e;
+  outline-offset: 1px;
+}
+
+.removeButton {
+  flex: 0 0 auto;
+  background: none;
+  border: 1px solid #3a3f4a;
+  border-radius: 4px;
+  color: #d98c8c;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 7px;
+}
+
+.removeButton:hover,
+.removeButton:focus-visible {
+  border-color: #d98c8c;
+  outline: none;
+}
+
+.roundBadge {
+  color: #e8b45a;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Legend swatches — the same glyph shapes MapGraph renders. */
+.legendCameraBody {
+  fill: #243050;
+  stroke: #9db8d9;
+  stroke-width: 1.2;
+}
+
+.legendCameraLens {
+  fill: #9db8d9;
+}
+
+.legendPin {
+  fill: #b48ad4;
+  stroke: #10141c;
+  stroke-width: 1;
+}
+
+.legendDiamond {
+  fill: none;
+  stroke: #d4a94f;
+  stroke-width: 1.8;
+}
+
+.legendCategory {
+  fill: none;
+  stroke: #e8b45a;
+  stroke-width: 1.6;
+}

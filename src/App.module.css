@@ -3,3 +3,23 @@
   min-height: 100vh;
   background: #0c0f16;
 }
+
+.modeGrid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.modeGrid button {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  max-width: 260px;
+}
+
+.modeHint {
+  font-weight: 400;
+  font-size: 0.8rem;
+  text-align: left;
+}

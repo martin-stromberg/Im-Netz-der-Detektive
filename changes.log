@@ -1,5 +1,37 @@
 # Änderungsprotokoll
 
+## 2026-10-14 — Detektiv-Perspektive / zweiter Spielmodus (Schritt 10)
+
+- Zweiter spielbarer Modus: `DetektivScreen` (`src/components/`) führt
+  durch Startansicht, Detektiv-Aufstellung (D1 → Dn aus legalen
+  Kandidaten; Ganove-Start verdeckt gezogen, nie angezeigt) und die
+  laufende Partie mit allen Endzuständen samt „Als Remis beenden".
+- Neuer store-gebundener `ganoveDriver` (`src/state/`): spielt die
+  komplette KI-Ganove-Phase synchron nach dem letzten Detektivzug —
+  Sabotage-Binärwahl, Polizeifunk und missionsgesteuerte Züge über
+  `buildGanoveView`/`chooseGanoveTurn` mit denselben Seed-
+  RNG-Konventionen wie `AiSimulation`.
+- `MapGraph` um detektivseitige Props erweitert: Kameras (aktiv/
+  sabotiert mit Streichung), Zonen-Flächen, Ortskategorien, aktiver
+  Detektiv, Spielermarker-Pins, „Mögliche Positionen"-Rauten —
+  formkodiert, nicht nur farblich. Pointer-Events der Karte laufen
+  ausschließlich über die vorgesehenen Trefferflächen der Knoten.
+- Detektiv-Werkzeuge: chronologische Hinweis-Chronik (Art, Ort/Zone,
+  Runde — nur `visibleEvents(…, "detectives")`), kommentierbare
+  Spielermarker (UI-Notizen, kein Eventlog), Overlay exakt aus
+  `deducePossiblePositions` mit Log-Header-Prior, Missionsstruktur mit
+  Poolgrößen ohne Ziel-IDs.
+- Vorläufige Moduswahl in `App.tsx`: Startauswahl bzw.
+  `?mode=ganove`/`?mode=detektiv` (endgültiges Menü in Schritt 11).
+- Strukturelle Asymmetrie: keine `ganovePosition`-/`mission.targets`-
+  Weitergabe an die Detektiv-Ansicht — E2E-verifiziert in jeder Runde
+  einer kompletten Partie; Kameras nur im Detektiv-Modus.
+- 26 neue Unit-/Komponententests (445 gesamt, Zeilenabdeckung 92,7 %)
+  und 7 neue Playwright-Szenarien (`e2e/detektiv.spec.ts`, 12 gesamt)
+  inklusive kompletter deterministischer Partie über echte
+  DOM-Interaktion, Overlay-vs.-Engine-Gleichheit und
+  Marker-Persistenz. Vollständige DE/EN-i18n-Parität.
+
 ## 2026-10-14 — Ganove-Perspektive / spielbarer Primärmodus (Schritt 9)
 
 - Der Primärmodus ist vollständig spielbar: `GanoveScreen`

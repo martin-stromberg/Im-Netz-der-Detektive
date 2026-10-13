@@ -146,7 +146,7 @@ function pickMove(state: Snapshot): string | null {
 }
 
 async function startGameViaUi(page: Page, query: string) {
-  await page.goto(`/?${query}`);
+  await page.goto(`/?mode=ganove&${query}`);
   await page.getByRole("button", { name: "Neue Partie" }).click();
   await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "pickSpawn");
   // Pick the first offered (legal) spawn.
@@ -156,7 +156,7 @@ async function startGameViaUi(page: Page, query: string) {
 
 test.describe("ganove perspective", () => {
   test("setup: detectives placed first, ganove picks from legal options only", async ({ page }) => {
-    await page.goto("/?map=teststadt&seed=42&mission=none");
+    await page.goto("/?mode=ganove&map=teststadt&seed=42&mission=none");
     await page.getByRole("button", { name: "Neue Partie" }).click();
 
     await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "pickSpawn");

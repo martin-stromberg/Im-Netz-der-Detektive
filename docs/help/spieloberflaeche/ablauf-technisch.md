@@ -2,6 +2,12 @@
 
 # Spieloberfläche — Technischer Ablauf
 
+Diese Seite dokumentiert beide Spielmodi. `App.tsx` wählt über
+`?mode=` bzw. die vorläufige Modusauswahl zwischen `GanoveScreen`
+und `DetektivScreen` — das endgültige Menü folgt in Schritt 11.
+
+# Ganove-Modus
+
 ## Übersicht
 
 `GanoveScreen` orchestriert drei Ansichten (idle → pickSpawn → playing
@@ -88,3 +94,93 @@ flowchart TD
   `notice`-Statuszeile angezeigt statt die Oberfläche zu brechen.
 - `MissionGenerationError` bei `mission: "random"` fällt automatisch
   auf `"auto"` zurück.
+
+---
+
+# Detektiv-Modus
+
+## Übersicht
+
+`DetektivScreen` orchestriert drei Ansichten (idle → pickSpawns →
+playing/outcome). `MapGraph` rendert dieselbe SVG-Karte wie im
+Ganove-Modus, aber mit den detektivseitigen Erweiterungen. Der
+store-gebundene `ganoveDriver` (`src/state/ganoveDriver.ts`) spielt
+die komplette KI-Ganove-Phase synchron und deterministisch —
+spiegelbildlich zum `detectiveDriver`.
+
+## Ablauf
+
+### 1. Moduswahl
+
+`App.tsx` liest `?mode=` einmalig beim Mount: `ganove` →
+`GanoveScreen`, `detektiv` → `DetektivScreen`; fehlt der Parameter,
+zeigt eine Schaltflächen-Auswahl (i18n `mode.*`).
+
+### 2. Setup (Detektiv-Aufstellung)
+
+`beginSetup` lädt Karte/Seed/Mission wie im Ganove-Modus
+(`?map=`/`?seed=`/`?mission=`, geteilte Helfer in
+`src/components/gameSetup.ts`). Bei `random`-Spawnregeln zieht
+`pickDetectiveSpawns` die Posten sofort; bei `choice`/`free` öffnet
+sich die `pickSpawns`-Ansicht: `detectiveSpawnChoices(map)` liefert
+die interaktiven Kandidaten, jeder Klick legt den nächsten Posten
+(D1 → Dn). Mit dem letzten Pick ruft `startGame` den Store —
+`ganovePosition` wird intern gezogen, **nie** an die Komponente
+gereicht.
+
+### 3. Detektivzüge und KI-Ganove
+
+1. `getLegalDetectiveMoves()` liefert die legalen Ziele des aktiven
+   Detektivs (`activeDetectiveIndex`, fester Reihenfolge D1 → Dn) —
+   nur diese sind interaktiv.
+2. `onNodeSelect` → `moveDetective(nodeId)`; der Store prüft sofort
+   den Fang und setzt nach dem letzten Detektiv `phase: "ganove"`.
+3. `installGanoveDriver` (Subscription, `useEffect`) sieht die
+   Transition und ruft `driveGanovePhase()`:
+   `chooseSabotagePath` für `pendingChoice`, `shouldUseRadio` +
+   `useRadio`, `chooseGanoveTurn` (mit `ganoveAction` am Missionsziel)
+   bzw. `moveGanove` — jeweils mit `aiRng(seed, round, 0)` wie
+   `AiSimulation`. Ende bei `phase: "detektive"` oder `outcome`.
+
+### 4. Detektiv-Werkzeuge
+
+- **Chronik:** `visibleEvents(events, "detectives")` — ein Datenfilter
+  auf Store-Ebene; `polizeifunk`-Einträge erreichen die Ansicht
+  strukturell nicht. Jeder Eintrag zeigt Runde, Art und Ort/Zone.
+- **Marker:** `useState<Record<nodeId, comment>>`; Marker-Modus macht
+  alle Knoten `markable`, ein Klick toggelt den Pin, Kommentare
+  editiert die Markerliste. Reine UI-Daten — kein Eventlog-Eintrag.
+- **Overlay:** `deducePossiblePositions({ map, detectiveStarts:
+  detectiveStartsFromLog(log), events: intel, cameras, round,
+  detectivePositions })` — wortgleich zur KI-Nutzung; die gerenderte
+  Menge ist exakt die Engine-Menge.
+- **Missionsstruktur:** `missionStructure(mission)` liefert Schritte +
+  Status ohne Ziel-IDs; die Poolgrößen kommen aus
+  `nodesByCategory(map, kind)`.
+- **Kameras:** `visibleCameras(cameras, "detectives")` — inklusive
+  `active`-Status für die Sabotage-Streichung.
+
+## Diagramm
+
+```mermaid
+flowchart TD
+    A[Moduswahl] --> B[Neue Partie]
+    B --> C[pickSpawns: D1 bis Dn wählen]
+    C --> D[startGame — Ganove-Start verdeckt]
+    D --> E[phase detektive]
+    E -->|Klick auf legales Ziel| F[moveDetective]
+    F -->|weitere Detektive| E
+    F -->|Fang| I[OutcomeView]
+    F -->|letzter Detektiv| G[driveGanovePhase: KI zieht]
+    G -->|Sabotage/Radio/Zug/Aktion| G
+    G -->|Ende| I
+    G --> E
+    E -->|abortAsDraw| I
+    I -->|resetGame| A
+```
+
+## Fehlerbehandlung
+
+Wie im Ganove-Modus: `runGuarded` fängt `MoveError`/`SpawnError`/
+`MissionGenerationError` als Statuszeile; `mission: "random"` fällt
+bei GenerationError auf `"auto"` zurück.
