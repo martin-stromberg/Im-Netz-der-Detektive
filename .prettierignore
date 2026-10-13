@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+test-results/
+package-lock.json
+docs/
+.agents/
+.githooks/
+src/data/maps/
+*.md

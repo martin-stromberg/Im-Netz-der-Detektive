@@ -1,0 +1,18 @@
+# Änderungsprotokoll
+
+## 2026-10-13 — Projekt-Scaffold und Qualitätsinfrastruktur (Schritt 1)
+
+- Vite + React 18 + TypeScript-Grundgerüst mit Feature-Slice-Struktur
+  (`src/components`, `src/logic`, `src/state`, `src/data`), minimaler
+  App-Shell, Zustand-Store, CSS-Modulen und i18n-Basis (`de`/`en`) aufgesetzt.
+- Qualitätswerkzeuge eingerichtet: ESLint (Flat Config), Prettier,
+  `tsc --noEmit`, Vitest mit erzwungener 70-%-Zeilenabdeckung und erstem
+  Testbestand.
+- Lokale Git-Hooks unter `.githooks/` adaptiert: Branch-Schutz für
+  `main`/`staging`, Stub-, i18n-, Komponenten-, Kartenpaket-Schema- und
+  `Math.random()`-Prüfungen; Install-Skripte setzen `core.hooksPath`.
+- Vollständige CI-Pipeline eingerichtet: sieben Workflows
+  (PR-Gates mit Coverage-Schwelle, RC-Prereleases auf `staging`,
+  Promotion-/Backmerge-PRs, Release mit Asset-Repair, wöchentlicher
+  Security-Scan) plus Composite Actions `build-and-package` und
+  `security-scan`; Release-Asset ist ein ZIP des statischen Builds.

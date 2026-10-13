@@ -1,0 +1,207 @@
+name: Pre-Release
+
+on:
+  push:
+    branches:
+      - staging
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: read
+
+jobs:
+  detect-backmerge:
+    runs-on: ubuntu-latest
+    outputs:
+      is_backmerge: ${{ steps.check.outputs.is_backmerge }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check whether this push is a pure back-merge from main
+        id: check
+        run: |
+          git fetch origin main:refs/remotes/origin/main --no-tags
+
+          main_sha="$(git rev-parse origin/main)"
+          is_main_merge_parent=false
+          for parent in $(git show -s --format=%P HEAD); do
+            if [[ "$parent" == "$main_sha" ]]; then
+              is_main_merge_parent=true
+              break
+            fi
+          done
+
+          if [[ "$is_main_merge_parent" == "true" ]]; then
+            echo "is_backmerge=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Back-merge from main detected - CI checks and pre-release will be skipped."
+          elif git diff --quiet origin/main HEAD; then
+            echo "is_backmerge=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Pure back-merge from main detected (tree identical) - CI checks and pre-release will be skipped."
+          else
+            echo "is_backmerge=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  static-checks:
+    name: static checks
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Security scan
+        uses: ./.github/actions/security-scan
+        with:
+          artifact-name: vulnerable-packages-staging
+
+      - name: Static analysis
+        run: |
+          npm run lint
+          npm run typecheck
+
+  build-and-test:
+    name: build & test
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test with coverage
+        # vitest enforces the 70% line-coverage threshold configured in
+        # vite.config.ts (coverage.thresholds.lines) and fails the step when
+        # the coverage drops below it.
+        run: npm run coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report-staging
+          path: coverage/
+          retention-days: 14
+
+  version:
+    name: version
+    needs: [detect-backmerge, static-checks, build-and-test]
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      changed: ${{ steps.semver.outputs.changed }}
+      version: ${{ steps.semver.outputs.version }}
+      rc_tag: ${{ steps.rc.outputs.rc_tag }}
+      rc_version: ${{ steps.rc.outputs.rc_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine next version
+        # release.config.js only lists "main" as a release branch (see that
+        # file's own comment) - staging is deliberately not a configured
+        # prerelease branch there. The --branches override below treats
+        # "staging" as a plain release branch for this one dry-run only, so
+        # the resulting X.Y.Z carries no prerelease identifier - the RC suffix
+        # is appended manually in the next step instead.
+        id: semver
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -o pipefail
+          output="$(npx semantic-release --dry-run --no-ci --branches staging 2>&1 | tee /dev/stderr)"
+
+          version=""
+          changed="false"
+          if [[ "$output" =~ The\ next\ release\ version\ is\ ([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?) ]]; then
+            version="${BASH_REMATCH[1]}"
+            changed="true"
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
+      - name: Determine RC number
+        if: steps.semver.outputs.changed == 'true'
+        id: rc
+        run: |
+          version="${{ steps.semver.outputs.version }}"
+          rc_number=$(( $(git tag --list "v${version}-rc.*" | wc -l) + 1 ))
+          echo "rc_number=$rc_number" >> "$GITHUB_OUTPUT"
+          echo "rc_tag=v${version}-rc.${rc_number}" >> "$GITHUB_OUTPUT"
+          # RC-suffixed version without the leading "v" (e.g. "1.2.3-rc.1"),
+          # distinct from rc_tag ("v1.2.3-rc.1"). This exact output - not the
+          # bare `version` above - must feed build-and-package's
+          # release-version input in the job below. See
+          # ci-workflows-instructions.md section 11.2.
+          echo "rc_version=${version}-rc.${rc_number}" >> "$GITHUB_OUTPUT"
+
+  prerelease:
+    name: prerelease
+    needs: [detect-backmerge, version]
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true' && needs.version.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build and package release candidate
+        uses: ./.github/actions/build-and-package
+        with:
+          release-version: ${{ needs.version.outputs.rc_version }}
+          release-tag: ${{ needs.version.outputs.rc_tag }}
+
+      - name: Create GitHub pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ needs.version.outputs.rc_tag }}"
+          gh release create "$tag" release.zip \
+            --target "$GITHUB_SHA" \
+            --title "$tag" \
+            --prerelease \
+            --generate-notes

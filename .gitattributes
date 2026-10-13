@@ -1,0 +1,30 @@
+# All text files are normalized to LF in the repository AND checked out
+# with LF, even on Windows clones with core.autocrlf=true. This is
+# required because Prettier (endOfLine: "lf") checks the working tree
+# and would fail on CRLF checkouts of *.ts/*.tsx/*.json/*.css/*.html etc.
+* text=auto eol=lf
+
+# Shell hooks and scripts must keep LF even on Windows checkouts
+# (core.autocrlf), otherwise Git Bash fails to execute them.
+# (Redundant with the global eol=lf above, kept as explicit safeguard.)
+.githooks/pre-commit text eol=lf
+.githooks/pre-push text eol=lf
+.githooks/*.sh text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.mjs text eol=lf
+
+# Explicit binary types must never be normalized/converted
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.zip binary
+*.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
