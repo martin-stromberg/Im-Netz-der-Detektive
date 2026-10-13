@@ -13,9 +13,9 @@ Projektverzeichnis: `docs/projects/task/issue-2-bc25a3abdd0b4268ac494ed925c89c13
 - [x] Bestandsaufnahme (`inventory.md` — Greenfield, Protection auf main/staging aktiv, Vorlagen .NET-spezifisch)
 - [x] Projektplan (`project-plan.md`, 14 Schritte)
 - [x] Offene Punkte geklärt (7 Entscheidungen: Asset-Strategie aufwändig via Pollinations/HF+SVG+WebAudio, 1 Schritt=1 Phase/RC, ZIP-Asset, 70 % Coverage, Hook-Umfang, Branch-Protection autorisiert, CI-Adaption bestätigt)
-- [ ] Planprüfung (`project-plan-check.md`, Status „vollständig")
-- [ ] Planungscommit
-- [ ] Entwicklungsschritte-Tracking (`steps.md` + `status.html`)
+- [x] Planprüfung (`project-plan-check.md`, Status „vollständig", 0 Lücken)
+- [x] Planungscommit (`plan: Im Netz der Detektive — asymmetrisches Browser-Verfolgungsspiel`)
+- [x] Entwicklungsschritte-Tracking (`steps.md` + `status.html` via `generate_status.py`)
 - [ ] Entwicklungsschleife (alle Schritte `Fertig`)
 - [ ] Aufräumen (Projektverzeichnis entfernt)
 - [ ] Abschlusscommit
