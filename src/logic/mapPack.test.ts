@@ -123,6 +123,64 @@ describe("validateMapPack", () => {
     expect(errorsOf(pack).join("\n")).toContain('mode "choice"');
   });
 
+  it("rejects a choice rule with an empty zones list", () => {
+    const pack = validPack();
+    pack.spawnRules = {
+      detectives: { mode: "choice", zones: [] },
+      ganove: { mode: "free" },
+      order: "detektive_first",
+    };
+    expect(errorsOf(pack).join("\n")).toContain("spawnRules.detectives.zones");
+  });
+
+  it("rejects a choice rule whose zones field is not an array", () => {
+    const pack = validPack();
+    pack.spawnRules = {
+      detectives: { mode: "choice", nodes: ["a"], zones: "z1" },
+      ganove: { mode: "free" },
+      order: "detektive_first",
+    };
+    const errors = errorsOf(pack).join("\n");
+    expect(errors).toContain("spawnRules.detectives.zones");
+    expect(errors).toContain("must be an array");
+  });
+
+  it("rejects a choice rule with a non-string zone entry", () => {
+    const pack = validPack();
+    pack.spawnRules = {
+      detectives: { mode: "choice", zones: [42] },
+      ganove: { mode: "free" },
+      order: "detektive_first",
+    };
+    const errors = errorsOf(pack).join("\n");
+    expect(errors).toContain("spawnRules.detectives.zones");
+    expect(errors).toContain("unknown zone");
+  });
+
+  it("rejects a choice rule referencing an unknown zone", () => {
+    const pack = validPack();
+    pack.spawnRules = {
+      detectives: { mode: "choice", zones: ["nirgendwo"] },
+      ganove: { mode: "choice", nodes: ["b"], zones: ["hinterm-mond"] },
+      order: "detektive_first",
+    };
+    const errors = errorsOf(pack);
+    expect(errors.join("\n")).toContain("spawnRules.detectives.zones: unknown zone");
+    expect(errors.join("\n")).toContain("spawnRules.ganove.zones: unknown zone");
+  });
+
+  it("accepts a valid package using zones in choice rules", () => {
+    const pack = validPack();
+    pack.spawnRules = {
+      detectives: { mode: "choice", zones: ["z1"] },
+      ganove: { mode: "choice", nodes: ["b"], zones: ["z2"] },
+      order: "detektive_first",
+    };
+    const validated = validateMapPack(pack);
+    expect(validated.spawnRules.detectives.zones).toEqual(["z1"]);
+    expect(validated.spawnRules.ganove.zones).toEqual(["z2"]);
+  });
+
   it("rejects a suggested value outside [min, max]", () => {
     const pack = validPack();
     (pack.settings as { detectiveCount: { suggested: number } }).detectiveCount.suggested = 99;

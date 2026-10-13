@@ -190,6 +190,7 @@ function checkRange(value: unknown, where: string, errors: string[]): void {
 function checkSpawnRule(
   rule: unknown,
   nodeIds: ReadonlySet<string>,
+  zoneNames: ReadonlySet<string>,
   where: string,
   errors: string[],
 ): void {
@@ -206,10 +207,15 @@ function checkSpawnRule(
   if (mode === "choice") {
     const nodes = rule.nodes;
     const zones = rule.zones;
-    if (!Array.isArray(nodes) && !Array.isArray(zones)) {
+    const nodesIsList = Array.isArray(nodes);
+    const zonesIsList = Array.isArray(zones);
+    if (!nodesIsList && !zonesIsList) {
       errors.push(`${where}: mode "choice" requires a "nodes" or "zones" list`);
     }
-    if (Array.isArray(nodes)) {
+    if ("nodes" in rule && !nodesIsList) {
+      errors.push(`${where}.nodes: must be an array of node ids`);
+    }
+    if (nodesIsList) {
       if (nodes.length === 0) {
         errors.push(`${where}.nodes: must not be empty`);
       }
@@ -219,13 +225,31 @@ function checkSpawnRule(
         }
       }
     }
+    if ("zones" in rule && !zonesIsList) {
+      errors.push(`${where}.zones: must be an array of zone names`);
+    }
+    if (zonesIsList) {
+      if (zones.length === 0) {
+        errors.push(`${where}.zones: must not be empty`);
+      }
+      for (const ref of zones) {
+        if (typeof ref !== "string" || !zoneNames.has(ref)) {
+          errors.push(`${where}.zones: unknown zone ${JSON.stringify(ref)}`);
+        }
+      }
+    }
   }
   if ("minDistanceToDetective" in rule && !isNumber(rule.minDistanceToDetective)) {
     errors.push(`${where}.minDistanceToDetective: must be a number`);
   }
 }
 
-function checkNodes(data: Record<string, unknown>, nodeIds: Set<string>, errors: string[]): void {
+function checkNodes(
+  data: Record<string, unknown>,
+  nodeIds: Set<string>,
+  zoneNames: Set<string>,
+  errors: string[],
+): void {
   const nodes = data.nodes;
   if (!Array.isArray(nodes) || nodes.length === 0) {
     errors.push("nodes: required non-empty array");
@@ -268,6 +292,8 @@ function checkNodes(data: Record<string, unknown>, nodeIds: Set<string>, errors:
     }
     if (!isNonEmptyString(node.zone)) {
       errors.push(`${where}.zone: required non-empty string`);
+    } else {
+      zoneNames.add(node.zone);
     }
   });
 }
@@ -305,7 +331,12 @@ function checkEdges(
   });
 }
 
-function checkSpawnRules(spawn: unknown, nodeIds: ReadonlySet<string>, errors: string[]): void {
+function checkSpawnRules(
+  spawn: unknown,
+  nodeIds: ReadonlySet<string>,
+  zoneNames: ReadonlySet<string>,
+  errors: string[],
+): void {
   if (!isRecord(spawn)) {
     errors.push("spawnRules: required object");
     return;
@@ -317,7 +348,7 @@ function checkSpawnRules(spawn: unknown, nodeIds: ReadonlySet<string>, errors: s
     if (!(side in spawn)) {
       errors.push(`spawnRules.${side}: required`);
     } else {
-      checkSpawnRule(spawn[side], nodeIds, `spawnRules.${side}`, errors);
+      checkSpawnRule(spawn[side], nodeIds, zoneNames, `spawnRules.${side}`, errors);
     }
   }
 }
@@ -402,9 +433,10 @@ export function validateMapPack(data: unknown): MapPack {
   }
 
   const nodeIds = new Set<string>();
-  checkNodes(data, nodeIds, errors);
+  const zoneNames = new Set<string>();
+  checkNodes(data, nodeIds, zoneNames, errors);
   checkEdges(data, nodeIds, errors);
-  checkSpawnRules(data.spawnRules, nodeIds, errors);
+  checkSpawnRules(data.spawnRules, nodeIds, zoneNames, errors);
   checkSettings(data.settings, errors);
 
   if (errors.length > 0) {
