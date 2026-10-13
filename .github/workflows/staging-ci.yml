@@ -159,7 +159,9 @@ jobs:
 
           version=""
           changed="false"
-          if [[ "$output" =~ The\ next\ release\ version\ is\ ([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?) ]]; then
+          # Matches both "The next release version is X.Y.Z" and the first-
+          # release phrasing "...the next release version is X.Y.Z".
+          if [[ "$output" =~ next\ release\ version\ is\ ([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?) ]]; then
             version="${BASH_REMATCH[1]}"
             changed="true"
           fi
