@@ -106,7 +106,7 @@ def check_range(path):
     return None
 
 
-def check_spawn_rule(rule, node_ids, where, errors):
+def check_spawn_rule(rule, node_ids, zone_names, where, errors):
     if not isinstance(rule, dict):
         errors.append(f'{where}: must be an object')
         return
@@ -116,14 +116,26 @@ def check_spawn_rule(rule, node_ids, where, errors):
     if mode == 'choice':
         nodes = rule.get('nodes')
         zones = rule.get('zones')
-        if not isinstance(nodes, list) and not isinstance(zones, list):
+        nodes_is_list = isinstance(nodes, list)
+        zones_is_list = isinstance(zones, list)
+        if not nodes_is_list and not zones_is_list:
             errors.append(f'{where}: mode "choice" requires "nodes" or "zones" list')
-        if isinstance(nodes, list):
+        if 'nodes' in rule and not nodes_is_list:
+            errors.append(f'{where}.nodes: must be an array of node ids')
+        if nodes_is_list:
             if not nodes:
                 errors.append(f'{where}.nodes: must not be empty')
             for ref in nodes:
-                if ref not in node_ids:
+                if not isinstance(ref, str) or ref not in node_ids:
                     errors.append(f'{where}.nodes: unknown node id {ref!r}')
+        if 'zones' in rule and not zones_is_list:
+            errors.append(f'{where}.zones: must be an array of zone names')
+        if zones_is_list:
+            if not zones:
+                errors.append(f'{where}.zones: must not be empty')
+            for ref in zones:
+                if not isinstance(ref, str) or ref not in zone_names:
+                    errors.append(f'{where}.zones: unknown zone {ref!r}')
     if 'minDistanceToDetective' in rule and not is_number(rule['minDistanceToDetective']):
         errors.append(f'{where}.minDistanceToDetective: must be a number')
 
@@ -135,6 +147,7 @@ def validate_map(data, errors):
 
     nodes = data.get('nodes')
     node_ids = set()
+    zone_names = set()
     if not isinstance(nodes, list) or not nodes:
         errors.append('nodes: required non-empty array')
         nodes = []
@@ -160,10 +173,12 @@ def validate_map(data, errors):
             errors.append(f'{where}.categories: required non-empty array')
         else:
             for cat in categories:
-                if cat not in CATEGORIES:
+                if not isinstance(cat, str) or cat not in CATEGORIES:
                     errors.append(f'{where}.categories: invalid category {cat!r} (allowed: {sorted(CATEGORIES)})')
         if not isinstance(node.get('zone'), str) or not node['zone'].strip():
             errors.append(f'{where}.zone: required non-empty string')
+        else:
+            zone_names.add(node['zone'])
 
     edges = data.get('edges')
     if not isinstance(edges, list) or not edges:
@@ -176,7 +191,7 @@ def validate_map(data, errors):
             continue
         for endpoint in ('a', 'b'):
             ref = edge.get(endpoint)
-            if ref not in node_ids:
+            if not isinstance(ref, str) or ref not in node_ids:
                 errors.append(f'{where}.{endpoint}: unknown node id {ref!r}')
         if edge.get('type') not in EDGE_TYPES:
             errors.append(f'{where}.type: must be one of {sorted(EDGE_TYPES)} (got {edge.get("type")!r})')
@@ -193,7 +208,7 @@ def validate_map(data, errors):
             if side not in spawn:
                 errors.append(f'spawnRules.{side}: required')
             else:
-                check_spawn_rule(spawn[side], node_ids, f'spawnRules.{side}', errors)
+                check_spawn_rule(spawn[side], node_ids, zone_names, f'spawnRules.{side}', errors)
 
     settings = data.get('settings')
     if not isinstance(settings, dict):
@@ -237,7 +252,7 @@ def validate_map(data, errors):
         errors.append('settings.sabotageEffects: required non-empty array')
     else:
         for effect in effects:
-            if effect not in SABOTAGE_EFFECTS:
+            if not isinstance(effect, str) or effect not in SABOTAGE_EFFECTS:
                 errors.append(f'settings.sabotageEffects: invalid effect {effect!r} (allowed: {sorted(SABOTAGE_EFFECTS)})')
 
 

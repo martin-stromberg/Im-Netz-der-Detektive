@@ -15,9 +15,12 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-Projekt-Scaffold (Entwicklungsschritt 1): Die Anwendungs- und
-Qualitätsinfrastruktur steht; Spiellogik und Oberflächen folgen in den
-nächsten Entwicklungsschritten.
+Engine-Grundgerüst (Entwicklungsschritt 2): Der headless-fähige
+Spielkern steht — Kartenpaket-Loader und -Validator, Graph-Grundfunktionen
+(BFS-Distanzen), deterministischer Seeded-RNG, Startaufstellungs-System
+(choice/free/random) und Zustand-Store. Rundenlogik,
+Informationssystem und Oberflächen folgen in den nächsten
+Entwicklungsschritten. Details: `docs/help/spiel-engine/`.
 
 ## Setup
 

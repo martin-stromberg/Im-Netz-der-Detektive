@@ -1,0 +1,52 @@
+{
+  "id": "teststadt",
+  "name": "Teststadt",
+  "tagline": "Kleine Fixture-Karte für Engine-Tests",
+  "viewBox": "0 0 100 100",
+  "nodes": [
+    { "id": "a", "name": "Alter Markt", "x": 10, "y": 10, "categories": ["diebstahl"], "zone": "altstadt" },
+    { "id": "b", "name": "Bahnhof", "x": 20, "y": 10, "categories": ["flucht"], "zone": "bahnhofsviertel" },
+    { "id": "c", "name": "Dom", "x": 30, "y": 10, "categories": ["diebstahl"], "zone": "altstadt" },
+    { "id": "d", "name": "Hafen", "x": 40, "y": 10, "categories": ["flucht", "kontakt"], "zone": "hafen" },
+    { "id": "e", "name": "Aasee", "x": 20, "y": 30, "categories": ["kontakt"], "zone": "sued" },
+    { "id": "f", "name": "Schloss", "x": 30, "y": 30, "categories": ["diebstahl"], "zone": "west" },
+    { "id": "g", "name": "Autobahn", "x": 40, "y": 30, "categories": ["flucht"], "zone": "nord" },
+    { "id": "h", "name": "Prinzipalmarkt", "x": 20, "y": 50, "categories": ["diebstahl"], "zone": "altstadt" },
+    { "id": "i", "name": "Polizei", "x": 30, "y": 50, "categories": ["kontakt"], "zone": "innenstadt" },
+    { "id": "j", "name": "Universitaet", "x": 10, "y": 30, "categories": ["kontakt"], "zone": "sued" }
+  ],
+  "edges": [
+    { "a": "a", "b": "b", "type": "weg" },
+    { "a": "b", "b": "c", "type": "weg" },
+    { "a": "c", "b": "d", "type": "weg" },
+    { "a": "b", "b": "e", "type": "weg" },
+    { "a": "e", "b": "f", "type": "weg" },
+    { "a": "c", "b": "f", "type": "weg" },
+    { "a": "f", "b": "g", "type": "fahrt" },
+    { "a": "d", "b": "g", "type": "weg" },
+    { "a": "g", "b": "h", "type": "weg" },
+    { "a": "e", "b": "h", "type": "weg" },
+    { "a": "h", "b": "i", "type": "weg" },
+    { "a": "i", "b": "j", "type": "weg" },
+    { "a": "e", "b": "j", "type": "weg" }
+  ],
+  "spawnRules": {
+    "detectives": { "mode": "choice", "nodes": ["a", "i", "j"] },
+    "ganove": { "mode": "free", "minDistanceToDetective": 3 },
+    "order": "detektive_first"
+  },
+  "settings": {
+    "detectiveCount": { "suggested": 4, "min": 2, "max": 6 },
+    "cameraCount": { "suggested": 8, "min": 0, "max": 15 },
+    "roundLimit": { "suggested": 30, "min": 15, "unlimited": true },
+    "radioHintCount": { "suggested": 5, "min": 3, "max": 10 },
+    "edgeBlockRounds": { "suggested": 3, "min": 1, "max": 6 },
+    "cameraMinGap": 2,
+    "hintZoneRadius": 2,
+    "eventMode": "tension",
+    "eventDefaults": { "cycle": 4, "chance": 0.25, "threshold": 40, "perRound": 10 },
+    "eventMix": { "sichtbarkeit": 0.25, "hinweis": 0.45, "umwelt": 0.3 },
+    "missionRules": { "minGap": 3, "maxGap": 8, "routeBudget": 18, "routeBudgetSabotage": 22, "sabotageDetour": 4 },
+    "sabotageEffects": ["kamera_aus", "funkstille", "falsche_spur"]
+  }
+}
