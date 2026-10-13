@@ -1,0 +1,1178 @@
+{
+  "id": "muenster",
+  "name": "Münster",
+  "tagline": "Jagd durch die Fahrradstadt",
+  "viewBox": "0 0 1000 800",
+  "nodes": [
+    {
+      "id": "domplatz",
+      "name": "Domplatz",
+      "x": 485,
+      "y": 388,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "prinzipalmarkt",
+      "name": "Prinzipalmarkt",
+      "x": 455,
+      "y": 368,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "lambertikirche",
+      "name": "St.-Lamberti-Kirche",
+      "x": 502,
+      "y": 352,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "rathaus",
+      "name": "Historisches Rathaus",
+      "x": 468,
+      "y": 400,
+      "categories": [
+        "diebstahl",
+        "sabotage"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "lwl_museum",
+      "name": "LWL-Museum für Kunst und Kultur",
+      "x": 445,
+      "y": 420,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "picasso_museum",
+      "name": "Kunstmuseum Pablo Picasso",
+      "x": 515,
+      "y": 375,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "stadtmuseum",
+      "name": "Stadtmuseum Münster",
+      "x": 497,
+      "y": 418,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "kuhviertel",
+      "name": "Kuhviertel",
+      "x": 525,
+      "y": 430,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "ueberwasserkirche",
+      "name": "Überwasserkirche",
+      "x": 425,
+      "y": 438,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "aegidiimarkt",
+      "name": "Aegidiimarkt",
+      "x": 437,
+      "y": 480,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "muenster_arkaden",
+      "name": "Münster Arkaden",
+      "x": 560,
+      "y": 445,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "ludgeriplatz",
+      "name": "Ludgeriplatz",
+      "x": 500,
+      "y": 298,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "buddenturm",
+      "name": "Buddenturm",
+      "x": 445,
+      "y": 285,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "innenstadt"
+    },
+    {
+      "id": "schloss",
+      "name": "Fürstbischöfliches Schloss",
+      "x": 252,
+      "y": 398,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "schlosspark"
+    },
+    {
+      "id": "schlossplatz",
+      "name": "Schlossplatz",
+      "x": 292,
+      "y": 398,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "schlosspark"
+    },
+    {
+      "id": "schlosspark",
+      "name": "Schlosspark",
+      "x": 230,
+      "y": 360,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "schlosspark"
+    },
+    {
+      "id": "botanischer_garten",
+      "name": "Botanischer Garten",
+      "x": 222,
+      "y": 435,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "schlosspark"
+    },
+    {
+      "id": "naturkundemuseum",
+      "name": "LWL-Naturkundemuseum",
+      "x": 305,
+      "y": 458,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "schlosspark"
+    },
+    {
+      "id": "wienburgpark",
+      "name": "Wienburgpark",
+      "x": 350,
+      "y": 432,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "schlosspark"
+    },
+    {
+      "id": "geistviertel",
+      "name": "Geistviertel",
+      "x": 352,
+      "y": 272,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "geist"
+    },
+    {
+      "id": "erloeserkirche",
+      "name": "Erlöserkirche",
+      "x": 318,
+      "y": 235,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "geist"
+    },
+    {
+      "id": "sentruper_strasse",
+      "name": "Sentruper Straße",
+      "x": 308,
+      "y": 330,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "geist"
+    },
+    {
+      "id": "zentrum_nord",
+      "name": "Zentrum Nord",
+      "x": 498,
+      "y": 148,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "nordstadt"
+    },
+    {
+      "id": "weseler_strasse",
+      "name": "Abfahrt Münster-Nord (A43)",
+      "x": 552,
+      "y": 78,
+      "categories": [
+        "flucht"
+      ],
+      "zone": "nordstadt"
+    },
+    {
+      "id": "kinderhaus",
+      "name": "Kinderhaus",
+      "x": 368,
+      "y": 92,
+      "categories": [
+        "flucht"
+      ],
+      "zone": "nordstadt"
+    },
+    {
+      "id": "coerde",
+      "name": "Coerde",
+      "x": 648,
+      "y": 118,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "nordstadt"
+    },
+    {
+      "id": "mensa_am_ring",
+      "name": "Mensa am Ring",
+      "x": 452,
+      "y": 108,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "nordstadt"
+    },
+    {
+      "id": "grevener_strasse",
+      "name": "Grevener Straße",
+      "x": 490,
+      "y": 215,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "nordstadt"
+    },
+    {
+      "id": "mauritztor",
+      "name": "Mauritztor",
+      "x": 578,
+      "y": 330,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "mauritzviertel"
+    },
+    {
+      "id": "st_mauritz_kirche",
+      "name": "St.-Mauritz-Kirche",
+      "x": 648,
+      "y": 315,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "mauritzviertel"
+    },
+    {
+      "id": "warendorfer_strasse",
+      "name": "Warendorfer Straße",
+      "x": 708,
+      "y": 350,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "mauritzviertel"
+    },
+    {
+      "id": "polizei",
+      "name": "Polizeipräsidium Münster",
+      "x": 665,
+      "y": 290,
+      "categories": [
+        "sabotage"
+      ],
+      "zone": "mauritzviertel"
+    },
+    {
+      "id": "wdr_studio",
+      "name": "WDR-Landesstudio Münster",
+      "x": 590,
+      "y": 368,
+      "categories": [
+        "sabotage"
+      ],
+      "zone": "mauritzviertel"
+    },
+    {
+      "id": "landgericht",
+      "name": "Landgericht Münster",
+      "x": 618,
+      "y": 392,
+      "categories": [
+        "sabotage"
+      ],
+      "zone": "mauritzviertel"
+    },
+    {
+      "id": "finanzamt",
+      "name": "Finanzamt Münster",
+      "x": 600,
+      "y": 415,
+      "categories": [
+        "sabotage"
+      ],
+      "zone": "mauritzviertel"
+    },
+    {
+      "id": "hbf",
+      "name": "Münster (Westf) Hauptbahnhof",
+      "x": 705,
+      "y": 505,
+      "categories": [
+        "flucht",
+        "kontakt"
+      ],
+      "zone": "bahnhofsviertel"
+    },
+    {
+      "id": "zob",
+      "name": "Fernbusbahnhof Hafenstraße",
+      "x": 738,
+      "y": 542,
+      "categories": [
+        "flucht"
+      ],
+      "zone": "bahnhofsviertel"
+    },
+    {
+      "id": "berliner_platz",
+      "name": "Berliner Platz",
+      "x": 715,
+      "y": 465,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "bahnhofsviertel"
+    },
+    {
+      "id": "bremer_platz",
+      "name": "Bremer Platz",
+      "x": 668,
+      "y": 498,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "bahnhofsviertel"
+    },
+    {
+      "id": "bahnhofstrasse",
+      "name": "Bahnhofstraße",
+      "x": 645,
+      "y": 462,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "bahnhofsviertel"
+    },
+    {
+      "id": "wolbecker_strasse",
+      "name": "Wolbecker Straße",
+      "x": 772,
+      "y": 578,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "bahnhofsviertel"
+    },
+    {
+      "id": "hafenplatz",
+      "name": "Hafenplatz",
+      "x": 560,
+      "y": 598,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "hafen"
+    },
+    {
+      "id": "speicherstadt",
+      "name": "Speicherstadt",
+      "x": 592,
+      "y": 618,
+      "categories": [
+        "kontakt",
+        "diebstahl"
+      ],
+      "zone": "hafen"
+    },
+    {
+      "id": "kreativkai",
+      "name": "Kreativkai",
+      "x": 622,
+      "y": 650,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "hafen"
+    },
+    {
+      "id": "hafenpier",
+      "name": "Hafenpier",
+      "x": 668,
+      "y": 690,
+      "categories": [
+        "flucht"
+      ],
+      "zone": "hafen"
+    },
+    {
+      "id": "stadtwerke",
+      "name": "Stadtwerke Münster",
+      "x": 525,
+      "y": 648,
+      "categories": [
+        "sabotage"
+      ],
+      "zone": "hafen"
+    },
+    {
+      "id": "hawerkamp",
+      "name": "Hawerkamp",
+      "x": 580,
+      "y": 655,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "hafen"
+    },
+    {
+      "id": "kreuztor",
+      "name": "Kreuztor",
+      "x": 470,
+      "y": 505,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "kreuzviertel"
+    },
+    {
+      "id": "heiligkreuzkirche",
+      "name": "Heilig-Kreuz-Kirche",
+      "x": 452,
+      "y": 558,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "kreuzviertel"
+    },
+    {
+      "id": "bispinghof",
+      "name": "Bispinghof",
+      "x": 428,
+      "y": 545,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "kreuzviertel"
+    },
+    {
+      "id": "hohenzollernring",
+      "name": "Hohenzollernring",
+      "x": 472,
+      "y": 592,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "kreuzviertel"
+    },
+    {
+      "id": "aasee_terrassen",
+      "name": "Aasee-Terrassen",
+      "x": 365,
+      "y": 545,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "aasee"
+    },
+    {
+      "id": "mensa_am_aasee",
+      "name": "Mensa am Aasee",
+      "x": 350,
+      "y": 500,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "aasee"
+    },
+    {
+      "id": "aasee_suedufer",
+      "name": "Aasee-Südufer",
+      "x": 298,
+      "y": 615,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "aasee"
+    },
+    {
+      "id": "muehlenhof",
+      "name": "Mühlenhof-Freilichtmuseum",
+      "x": 228,
+      "y": 640,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "aasee"
+    },
+    {
+      "id": "allwetterzoo",
+      "name": "Allwetterzoo",
+      "x": 255,
+      "y": 690,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "aasee"
+    },
+    {
+      "id": "uniklinik",
+      "name": "Universitätsklinikum",
+      "x": 210,
+      "y": 545,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "aasee"
+    },
+    {
+      "id": "hiltrup",
+      "name": "Abfahrt Münster-Hiltrup",
+      "x": 320,
+      "y": 762,
+      "categories": [
+        "flucht"
+      ],
+      "zone": "umland"
+    },
+    {
+      "id": "wolbeck",
+      "name": "Wolbeck",
+      "x": 905,
+      "y": 600,
+      "categories": [
+        "flucht"
+      ],
+      "zone": "umland"
+    }
+  ],
+  "edges": [
+    {
+      "a": "prinzipalmarkt",
+      "b": "domplatz",
+      "type": "weg"
+    },
+    {
+      "a": "prinzipalmarkt",
+      "b": "lambertikirche",
+      "type": "weg"
+    },
+    {
+      "a": "prinzipalmarkt",
+      "b": "rathaus",
+      "type": "weg"
+    },
+    {
+      "a": "domplatz",
+      "b": "rathaus",
+      "type": "weg"
+    },
+    {
+      "a": "domplatz",
+      "b": "lambertikirche",
+      "type": "weg"
+    },
+    {
+      "a": "domplatz",
+      "b": "lwl_museum",
+      "type": "weg"
+    },
+    {
+      "a": "domplatz",
+      "b": "stadtmuseum",
+      "type": "weg"
+    },
+    {
+      "a": "rathaus",
+      "b": "stadtmuseum",
+      "type": "weg"
+    },
+    {
+      "a": "lwl_museum",
+      "b": "stadtmuseum",
+      "type": "weg"
+    },
+    {
+      "a": "lwl_museum",
+      "b": "ueberwasserkirche",
+      "type": "weg"
+    },
+    {
+      "a": "stadtmuseum",
+      "b": "kuhviertel",
+      "type": "weg"
+    },
+    {
+      "a": "picasso_museum",
+      "b": "lambertikirche",
+      "type": "weg"
+    },
+    {
+      "a": "picasso_museum",
+      "b": "kuhviertel",
+      "type": "weg"
+    },
+    {
+      "a": "kuhviertel",
+      "b": "muenster_arkaden",
+      "type": "weg"
+    },
+    {
+      "a": "ueberwasserkirche",
+      "b": "aegidiimarkt",
+      "type": "weg"
+    },
+    {
+      "a": "ludgeriplatz",
+      "b": "lambertikirche",
+      "type": "weg"
+    },
+    {
+      "a": "ludgeriplatz",
+      "b": "buddenturm",
+      "type": "weg"
+    },
+    {
+      "a": "buddenturm",
+      "b": "prinzipalmarkt",
+      "type": "weg"
+    },
+    {
+      "a": "buddenturm",
+      "b": "geistviertel",
+      "type": "weg"
+    },
+    {
+      "a": "lambertikirche",
+      "b": "mauritztor",
+      "type": "weg"
+    },
+    {
+      "a": "picasso_museum",
+      "b": "mauritztor",
+      "type": "weg"
+    },
+    {
+      "a": "muenster_arkaden",
+      "b": "wdr_studio",
+      "type": "weg"
+    },
+    {
+      "a": "muenster_arkaden",
+      "b": "bahnhofstrasse",
+      "type": "weg"
+    },
+    {
+      "a": "aegidiimarkt",
+      "b": "kreuztor",
+      "type": "weg"
+    },
+    {
+      "a": "aegidiimarkt",
+      "b": "mensa_am_aasee",
+      "type": "weg"
+    },
+    {
+      "a": "ueberwasserkirche",
+      "b": "wienburgpark",
+      "type": "weg"
+    },
+    {
+      "a": "aegidiimarkt",
+      "b": "wienburgpark",
+      "type": "weg"
+    },
+    {
+      "a": "schloss",
+      "b": "schlossplatz",
+      "type": "weg"
+    },
+    {
+      "a": "schloss",
+      "b": "schlosspark",
+      "type": "weg"
+    },
+    {
+      "a": "schloss",
+      "b": "botanischer_garten",
+      "type": "weg"
+    },
+    {
+      "a": "schlossplatz",
+      "b": "naturkundemuseum",
+      "type": "weg"
+    },
+    {
+      "a": "schlossplatz",
+      "b": "schlosspark",
+      "type": "weg"
+    },
+    {
+      "a": "botanischer_garten",
+      "b": "naturkundemuseum",
+      "type": "weg"
+    },
+    {
+      "a": "naturkundemuseum",
+      "b": "wienburgpark",
+      "type": "weg"
+    },
+    {
+      "a": "schlossplatz",
+      "b": "sentruper_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "wienburgpark",
+      "b": "mensa_am_aasee",
+      "type": "weg"
+    },
+    {
+      "a": "geistviertel",
+      "b": "erloeserkirche",
+      "type": "weg"
+    },
+    {
+      "a": "geistviertel",
+      "b": "sentruper_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "erloeserkirche",
+      "b": "sentruper_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "erloeserkirche",
+      "b": "kinderhaus",
+      "type": "weg"
+    },
+    {
+      "a": "zentrum_nord",
+      "b": "weseler_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "zentrum_nord",
+      "b": "kinderhaus",
+      "type": "weg"
+    },
+    {
+      "a": "zentrum_nord",
+      "b": "coerde",
+      "type": "weg"
+    },
+    {
+      "a": "zentrum_nord",
+      "b": "grevener_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "mensa_am_ring",
+      "b": "kinderhaus",
+      "type": "weg"
+    },
+    {
+      "a": "mensa_am_ring",
+      "b": "grevener_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "coerde",
+      "b": "weseler_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "grevener_strasse",
+      "b": "ludgeriplatz",
+      "type": "weg"
+    },
+    {
+      "a": "grevener_strasse",
+      "b": "buddenturm",
+      "type": "weg"
+    },
+    {
+      "a": "mauritztor",
+      "b": "st_mauritz_kirche",
+      "type": "weg"
+    },
+    {
+      "a": "mauritztor",
+      "b": "wdr_studio",
+      "type": "weg"
+    },
+    {
+      "a": "mauritztor",
+      "b": "ludgeriplatz",
+      "type": "weg"
+    },
+    {
+      "a": "st_mauritz_kirche",
+      "b": "polizei",
+      "type": "weg"
+    },
+    {
+      "a": "st_mauritz_kirche",
+      "b": "warendorfer_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "polizei",
+      "b": "warendorfer_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "warendorfer_strasse",
+      "b": "berliner_platz",
+      "type": "weg"
+    },
+    {
+      "a": "wdr_studio",
+      "b": "landgericht",
+      "type": "weg"
+    },
+    {
+      "a": "landgericht",
+      "b": "finanzamt",
+      "type": "weg"
+    },
+    {
+      "a": "landgericht",
+      "b": "bahnhofstrasse",
+      "type": "weg"
+    },
+    {
+      "a": "finanzamt",
+      "b": "muenster_arkaden",
+      "type": "weg"
+    },
+    {
+      "a": "finanzamt",
+      "b": "bahnhofstrasse",
+      "type": "weg"
+    },
+    {
+      "a": "hbf",
+      "b": "zob",
+      "type": "weg"
+    },
+    {
+      "a": "hbf",
+      "b": "berliner_platz",
+      "type": "weg"
+    },
+    {
+      "a": "hbf",
+      "b": "bremer_platz",
+      "type": "weg"
+    },
+    {
+      "a": "berliner_platz",
+      "b": "bahnhofstrasse",
+      "type": "weg"
+    },
+    {
+      "a": "bremer_platz",
+      "b": "bahnhofstrasse",
+      "type": "weg"
+    },
+    {
+      "a": "hbf",
+      "b": "wolbecker_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "zob",
+      "b": "wolbecker_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "wolbecker_strasse",
+      "b": "wolbeck",
+      "type": "weg"
+    },
+    {
+      "a": "bremer_platz",
+      "b": "speicherstadt",
+      "type": "weg"
+    },
+    {
+      "a": "hafenplatz",
+      "b": "speicherstadt",
+      "type": "weg"
+    },
+    {
+      "a": "speicherstadt",
+      "b": "kreativkai",
+      "type": "weg"
+    },
+    {
+      "a": "kreativkai",
+      "b": "hafenpier",
+      "type": "weg"
+    },
+    {
+      "a": "hafenplatz",
+      "b": "stadtwerke",
+      "type": "weg"
+    },
+    {
+      "a": "stadtwerke",
+      "b": "hawerkamp",
+      "type": "weg"
+    },
+    {
+      "a": "hawerkamp",
+      "b": "kreativkai",
+      "type": "weg"
+    },
+    {
+      "a": "speicherstadt",
+      "b": "hawerkamp",
+      "type": "weg"
+    },
+    {
+      "a": "hafenpier",
+      "b": "wolbecker_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "kreuztor",
+      "b": "heiligkreuzkirche",
+      "type": "weg"
+    },
+    {
+      "a": "kreuztor",
+      "b": "bispinghof",
+      "type": "weg"
+    },
+    {
+      "a": "bispinghof",
+      "b": "hohenzollernring",
+      "type": "weg"
+    },
+    {
+      "a": "heiligkreuzkirche",
+      "b": "hohenzollernring",
+      "type": "weg"
+    },
+    {
+      "a": "hohenzollernring",
+      "b": "hafenplatz",
+      "type": "weg"
+    },
+    {
+      "a": "hohenzollernring",
+      "b": "stadtwerke",
+      "type": "weg"
+    },
+    {
+      "a": "bispinghof",
+      "b": "mensa_am_aasee",
+      "type": "weg"
+    },
+    {
+      "a": "aasee_terrassen",
+      "b": "mensa_am_aasee",
+      "type": "weg"
+    },
+    {
+      "a": "aasee_terrassen",
+      "b": "aasee_suedufer",
+      "type": "weg"
+    },
+    {
+      "a": "aasee_terrassen",
+      "b": "bispinghof",
+      "type": "weg"
+    },
+    {
+      "a": "aasee_suedufer",
+      "b": "uniklinik",
+      "type": "weg"
+    },
+    {
+      "a": "aasee_suedufer",
+      "b": "muehlenhof",
+      "type": "weg"
+    },
+    {
+      "a": "uniklinik",
+      "b": "muehlenhof",
+      "type": "weg"
+    },
+    {
+      "a": "uniklinik",
+      "b": "botanischer_garten",
+      "type": "weg"
+    },
+    {
+      "a": "muehlenhof",
+      "b": "allwetterzoo",
+      "type": "weg"
+    },
+    {
+      "a": "allwetterzoo",
+      "b": "hiltrup",
+      "type": "weg"
+    },
+    {
+      "a": "aasee_suedufer",
+      "b": "hiltrup",
+      "type": "weg"
+    },
+    {
+      "a": "hbf",
+      "b": "domplatz",
+      "type": "fahrt"
+    },
+    {
+      "a": "hbf",
+      "b": "hafenpier",
+      "type": "fahrt"
+    },
+    {
+      "a": "domplatz",
+      "b": "schlossplatz",
+      "type": "fahrt"
+    },
+    {
+      "a": "domplatz",
+      "b": "zentrum_nord",
+      "type": "fahrt"
+    },
+    {
+      "a": "hbf",
+      "b": "wolbeck",
+      "type": "fahrt"
+    },
+    {
+      "a": "aegidiimarkt",
+      "b": "allwetterzoo",
+      "type": "fahrt"
+    }
+  ],
+  "spawnRules": {
+    "detectives": {
+      "mode": "choice",
+      "nodes": [
+        "hbf",
+        "domplatz",
+        "aegidiimarkt",
+        "mauritztor",
+        "kreuztor"
+      ]
+    },
+    "ganove": {
+      "mode": "free",
+      "minDistanceToDetective": 3
+    },
+    "order": "detektive_first"
+  },
+  "settings": {
+    "detectiveCount": {
+      "suggested": 4,
+      "min": 2,
+      "max": 6
+    },
+    "cameraCount": {
+      "suggested": 8,
+      "min": 0,
+      "max": 15
+    },
+    "roundLimit": {
+      "suggested": 30,
+      "min": 15,
+      "unlimited": true
+    },
+    "radioHintCount": {
+      "suggested": 5,
+      "min": 3,
+      "max": 10
+    },
+    "edgeBlockRounds": {
+      "suggested": 3,
+      "min": 1,
+      "max": 6
+    },
+    "cameraMinGap": 2,
+    "hintZoneRadius": 2,
+    "eventMode": "tension",
+    "eventDefaults": {
+      "cycle": 4,
+      "chance": 0.25,
+      "threshold": 40,
+      "perRound": 10
+    },
+    "eventMix": {
+      "sichtbarkeit": 0.25,
+      "hinweis": 0.45,
+      "umwelt": 0.3
+    },
+    "missionRules": {
+      "minGap": 3,
+      "maxGap": 8,
+      "routeBudget": 18,
+      "routeBudgetSabotage": 22,
+      "sabotageDetour": 4
+    },
+    "sabotageEffects": [
+      "kamera_aus",
+      "funkstille",
+      "falsche_spur"
+    ]
+  }
+}
