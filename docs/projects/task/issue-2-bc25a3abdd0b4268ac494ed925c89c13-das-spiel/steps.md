@@ -10,7 +10,7 @@ Branch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 | 4 | Rundenablauf, Bewegung und Spielende | 2, 3 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-4-rundenablauf` | Fertig |
 | 5 | Informationssystem — Kameras, Ereignisse, Hinweise, Polizeifunk, Hitze | 4 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-5-informationssystem` | Fertig |
 | 6 | Missionssystem — Generierung, Aktionen, Sabotage und Fälle | 5 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-6-missionssystem` | Fertig |
-| 7 | Eventlog, Aufzeichnung und Export | 6 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-7-eventlog` | Offen |
+| 7 | Eventlog, Aufzeichnung und Export | 6 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-7-eventlog` | Fertig |
 | 8 | Deduktion und KI — Detektiv-KI, Ganove-KI, KI-vs.-KI-Modus | 7 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-8-deduktion-ki` | Offen |
 | 9 | Ganove-Perspektive (Primärmodus) | 8 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-9-ganove-perspektive` | Offen |
 | 10 | Detektiv-Perspektive mit Deduktions-Werkzeugen | 8, 9 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-10-detektiv-perspektive` | Offen |

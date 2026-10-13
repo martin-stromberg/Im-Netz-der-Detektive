@@ -1,5 +1,56 @@
 # Änderungsprotokoll
 
+## 2026-10-13 — Eventlog-Korrektur: Zustandsrekonstruktion (Schritt 7)
+
+- `startOptionsFromHeader` übergibt die im `header` aufgezeichneten
+  `mission`/`cameras` jetzt als neue `StartGameOptions`
+  `resolvedMission` (`RecordedMission | null`) bzw. `resolvedCameras`
+  (`string[]`): `startGame` übernimmt sie wörtlich statt Mission und
+  Kameras erneut aus dem RNG-Strom zu ziehen. Damit stimmt die
+  Rekonstruktion für jede Spawn-/Missionskombination exakt — zuvor
+  verschoben übersprungene Spawn-Züge (explizite `starts`) Mission
+  und Kameras im Strom (Abweichung in 29/30 Fällen im Seed-Sweep).
+- Der Header zeichnet `mission.story` neu mit auf (Fall-Storys), damit
+  auch vordefinierte „Fälle" verlustfrei rekonstruieren.
+- `resolveRecordedMission`/`resolveRecordedCameras` validieren die
+  aufgezeichneten Knoten-IDs gegen die Karte (`GameConfigError`);
+  Missionskriterien werden nicht erneut geprüft (galten bei
+  Aufzeichnung). `resolvedMission: null` steht für Partien ohne
+  Mission (`"none"` oder nicht generierbares `"auto"`).
+- 17 neue Tests: Seed-Sweeps (1–10) über teststadt/luebeck/muenster für
+  vollständig gezogene, teils-explizite (nur Detektive / nur Ganove)
+  und missionsvariante Starts (`auto`/`random`/`none`/Fall/`custom`,
+  inkl. `sabotageEffect`-Fall `kurier-am-hafen`); Rekonstruktion ==
+  Originalzustand und bitgleiche `header`-Zeile.
+
+## 2026-10-13 — Eventlog / Aufzeichnung (Schritt 7)
+
+- Neues Modul `src/logic/Recorder.ts`: JSONL-Serialisierung des
+  Partie-Logs (`serializeLog`/`serializeLogEntry`/`parseLog`,
+  `headerFromLog`, `startOptionsFromHeader` zur Zustandsrekonstruktion
+  aus Header + Seed), `localStorage`-FIFO der letzten
+  `MAX_STORED_LOGS` (10) Partien über den injizierbaren
+  `StorageLike`-Adapter und `exportGameLog` als Blob-Download hinter
+  der DOM-Grenze — beides no-op in headless Läufen.
+- `useGameStore.log` auf das Spec-§8-Format gehoben: flache Einträge
+  ohne `details`-Kapselung, `visibleTo` auf jedem Eintrag, Header mit
+  `gameId` (deterministisch `g-{seed}` oder `StartGameOptions.gameId`),
+  `config` (alle effektiven Startwerte inkl. Missionsoption),
+  `mission`, `cameras` und `starts`; Events mit `seq`/`round`/`type`.
+- Neue/protokollierte Vorgänge: `sabotage_offer` zweiteilig (Angebot
+  mit `offered`, Wahl mit `chosen` — ersetzt `mission_choice`),
+  `edge_unblock` beim Ablauf von Kantensperrungen; `result` trägt jetzt
+  `outcome` (inkl. `draw`) plus Balancing-Metriken `rounds`,
+  `hintsTotal`, `camerasTriggered`.
+- `finish()` persistiert das vollständige Log automatisch; die
+  Store-Action `exportGameLog()` liefert die „Partie exportieren"-
+  Datei (`Blob`, `application/x-ndjson`).
+- 32 neue Tests (`Recorder.test.ts`, `gameStore.log.test.ts`):
+  Spec-Format bitgenau, alle Event-Typen in einer vollständigen Partie,
+  `visibleTo`-Belegung je Typ, bitgleiches Log bei gleichem Seed,
+  Zustandsrekonstruktion aus dem Header, FIFO-Grenze und
+  korrupte Storage-Inhalte, Export-Blob und Auto-Persist.
+
 ## 2026-10-13 — Missionssystem (Schritt 6)
 
 - Zwei neue reine Logikmodule: `src/logic/MissionSystem.ts` (Typen

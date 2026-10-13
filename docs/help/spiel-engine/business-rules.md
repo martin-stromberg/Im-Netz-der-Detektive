@@ -412,3 +412,38 @@ Spielerdefinierte Missionen übergeben dieselben Ziel-IDs.
 
 **Umsetzung:** `missionStructure` in `MissionSystem.ts`,
 `getMissionStructure`/`emitInfoEvent` in `gameStore.ts`.
+
+## Eventlog — Determinismus und Sichtbarkeit
+
+**Beschreibung:** Jede Partie wird als JSONL-Eventlog aufgezeichnet
+(`02-technisches-konzept.md` §8): `header`, sequenzierte Events,
+abschließendes `result` mit Balancing-Metriken. Das Log ist die
+Grundlage für Replay, Statistiken und Balancing — deshalb gelten zwei
+harte Regeln.
+
+**Bedingungen:**
+- Gleicher `seed` + gleiche Eingaben müssen ein bitgleiches Log
+  erzeugen — `gameId` ist deshalb deterministisch (`g-{seed}` oder
+  explizit als Eingabe).
+- Jeder Eintrag trägt `visibleTo` (`detectives`/`ganove`/`both`) nach
+  der §1-Asymmetrie: Ganoven-`move` ist `ganove`-sichtbar,
+  Detektiv-`move` `both`; Hinweis-Einträge (`hint`) `detectives`;
+  Weltzustand (`umwelt`-`event`, `edge_unblock`) `both`;
+  Ganoven-Interna (`action`, `sabotage_offer`, `sabotage`, `radio`)
+  `ganove`; `header`/`result` `both`.
+
+**Verhalten:**
+- `result` zählt `rounds` (Runden bis Fang/Flucht/Ende), `hintsTotal`
+  (Hinweis-Events aus `HINT_EVENT_KINDS`), `camerasTriggered`.
+- `finish()` persistiert das Log automatisch (`localStorage`, letzte
+  N = `MAX_STORED_LOGS` Partien, FIFO) — headless ohne Storage: no-op.
+- `header` genügt zur Rekonstruktion des Anfangszustands:
+  `startOptionsFromHeader` bildet `config`/`starts` auf
+  `StartGameOptions` ab und übergibt die aufgezeichneten
+  `mission`/`cameras` als `resolvedMission`/`resolvedCameras` — die
+  aufgelösten Werte werden wörtlich übernommen, sodass die
+  Rekonstruktion unabhängig davon ist, wie viele Züge der
+  Originalstart dem gemeinsamen Seed-Strom entnommen hat.
+
+**Umsetzung:** `Recorder.ts` (Serialisierung, Export, FIFO-Persistenz)
+und die `appendLog`-Aufrufstellen in `useGameStore`.
