@@ -13,7 +13,12 @@
  * no-ops when `window`/`document`/`Blob` are missing, and both accept
  * injected implementations for tests and simulations.
  */
-import type { LogEntry, MissionOption, StartGameOptions } from "../state/gameStore";
+import type {
+  LogEntry,
+  MissionOption,
+  RecordedMission,
+  StartGameOptions,
+} from "../state/gameStore";
 
 /** `localStorage` key under which the last N game logs are kept. */
 export const LOG_STORAGE_KEY = "im-netz-der-detektive:game-logs";
@@ -93,6 +98,12 @@ export function headerFromLog(log: readonly LogEntry[]): LogEntry | undefined {
  * effective `StartGameOptions` (explicit starts, resolved limits and
  * the original mission option, so the mission's provenance — `random`,
  * `custom`, case id — survives reconstruction).
+ *
+ * The recorded `mission`/`cameras` travel through `resolvedMission`/
+ * `resolvedCameras` and are applied verbatim — no RNG draws at all.
+ * That keeps the reconstruction identical to the recorded start no
+ * matter how many draws the original spawn resolution consumed from
+ * the shared seed stream (fully drawn, mixed or fully explicit).
  */
 export function startOptionsFromHeader(header: LogEntry): ReconstructedStart {
   if (header.type !== "header") {
@@ -115,6 +126,8 @@ export function startOptionsFromHeader(header: LogEntry): ReconstructedStart {
       edgeBlockRounds: config.edgeBlockRounds as number | undefined,
       cameraProtectedNodes: config.cameraProtectedNodes as string[] | undefined,
       mission: config.mission as MissionOption | undefined,
+      resolvedMission: (header.mission ?? null) as RecordedMission | null,
+      resolvedCameras: (header.cameras ?? []) as string[],
     },
   };
 }

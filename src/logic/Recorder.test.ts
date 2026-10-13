@@ -150,7 +150,19 @@ describe("headerFromLog / startOptionsFromHeader", () => {
       edgeBlockRounds: 3,
       cameraProtectedNodes: [],
       mission: "auto",
+      // The recorded mission/cameras are applied verbatim — no redraws.
+      resolvedMission: {
+        id: "random",
+        targets: { diebstahl: "a", kontakt: "b", sabotage: null, flucht: "c" },
+      },
+      resolvedCameras: ["d", "e"],
     });
+  });
+
+  it("feeds a recorded `null` mission and missing cameras through verbatim", () => {
+    const reconstructed = startOptionsFromHeader({ ...header, mission: null, cameras: [] });
+    expect(reconstructed.options.resolvedMission).toBeNull();
+    expect(reconstructed.options.resolvedCameras).toEqual([]);
   });
 
   it("round-trips structured mission options (case/custom/none)", () => {

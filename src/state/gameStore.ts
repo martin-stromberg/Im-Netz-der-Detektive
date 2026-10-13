@@ -121,6 +121,21 @@ export type MissionOption =
       targets: { diebstahl: string; kontakt: string; flucht: string; sabotage?: string };
     };
 
+/**
+ * A mission fully resolved at record time — the shape the log `header`
+ * carries (`{id, name?, story?, targets}`). `startOptionsFromHeader`
+ * feeds it back through `StartGameOptions.resolvedMission` so the
+ * reconstruction applies the recorded mission verbatim instead of
+ * redrawing it from the RNG stream.
+ */
+export interface RecordedMission {
+  /** `"random"`, `"custom"` or the case id of a bundled "Fall". */
+  id: string;
+  name?: string;
+  story?: string;
+  targets: MissionTargets;
+}
+
 export type {
   Camera,
   GameEvent,
@@ -173,6 +188,24 @@ export interface StartGameOptions {
   edgeBlockRounds?: number;
   /** Mission to play; defaults to `"auto"` (see `MissionOption`). */
   mission?: MissionOption;
+  /**
+   * Fully resolved mission to apply verbatim — the log-reconstruction
+   * path (`startOptionsFromHeader`) feeds the recorded `header.mission`
+   * here; `null` means the recorded game ran without a mission. Takes
+   * precedence over `mission` for the game state and performs no RNG
+   * draws (the `mission` option still lands in the header `config` for
+   * provenance). Target node ids are checked against the map
+   * (`GameConfigError`); the generation criteria held at record time
+   * and are not re-checked.
+   */
+  resolvedMission?: RecordedMission | null;
+  /**
+   * Fully resolved camera nodes to apply verbatim — the reconstruction
+   * path feeds the recorded `header.cameras` here. Takes precedence
+   * over `placeCameras` (no RNG draws); every camera starts active.
+   * Unknown node ids raise `GameConfigError`.
+   */
+  resolvedCameras?: readonly string[];
   /**
    * Id recorded in the log header; defaults to `g-{seed}`. Must be
    * part of the inputs when bit-identical logs are required.
@@ -544,6 +577,46 @@ function newMissionState(
     offeredEffect: null,
     appliedEffect: null,
   };
+}
+
+/**
+ * Log-reconstruction path: applies the mission recorded in the `header`
+ * verbatim — `null` means the recorded game ran without a mission (the
+ * `mission` option `"none"`, or `"auto"` without a generatable draw).
+ * Every target node id must exist on the map (`GameConfigError`
+ * otherwise); the generation criteria held at record time and are not
+ * re-checked. A case-fixed `sabotageEffect` inside `targets` travels
+ * along untouched.
+ */
+function resolveRecordedMission(map: MapPack, recorded: RecordedMission | null): Mission | null {
+  if (recorded === null) {
+    return null;
+  }
+  const known = new Set(map.nodes.map((node) => node.id));
+  for (const id of missionTargetIds(recorded.targets)) {
+    if (!known.has(id)) {
+      throw new GameConfigError(
+        `resolvedMission: target node ${JSON.stringify(id)} does not exist on map ${JSON.stringify(map.id)}`,
+      );
+    }
+  }
+  return newMissionState(recorded.id, recorded.targets, recorded.name, recorded.story);
+}
+
+/**
+ * Log-reconstruction path: applies the camera node ids recorded in the
+ * `header` verbatim (all active). Unknown ids raise `GameConfigError`.
+ */
+function resolveRecordedCameras(map: MapPack, nodeIds: readonly string[]): Camera[] {
+  const known = new Set(map.nodes.map((node) => node.id));
+  for (const id of nodeIds) {
+    if (!known.has(id)) {
+      throw new GameConfigError(
+        `resolvedCameras: node ${JSON.stringify(id)} does not exist on map ${JSON.stringify(map.id)}`,
+      );
+    }
+  }
+  return nodeIds.map((nodeId) => ({ nodeId, active: true }));
 }
 
 function moveContext(state: {
@@ -934,21 +1007,24 @@ export const useGameStore = create<GameState>((set, get) => {
         "edgeBlockRounds",
       );
       const graph = buildGraph(map);
-      const mission = resolveMission(map, graph, ganovePosition, rng, options?.mission);
+      // Log-reconstruction path: a recorded mission/camera list is
+      // applied verbatim and performs no draws, so the reconstructed
+      // start is identical to the recorded one regardless of how many
+      // RNG draws the original spawn resolution consumed.
+      const mission =
+        options?.resolvedMission !== undefined
+          ? resolveRecordedMission(map, options.resolvedMission)
+          : resolveMission(map, graph, ganovePosition, rng, options?.mission);
       // Public rule (spec section 4.1): mission target nodes never
       // carry a camera — they join the caller's exclusion list.
       const cameraProtectedNodes = resolveCameraProtectedNodes(map, options?.cameraProtectedNodes);
-      const protectedNodes = [
-        ...cameraProtectedNodes,
-        ...(mission !== null ? missionTargetIds(mission.targets) : []),
-      ];
-      const cameras = placeCameras(
-        graph,
-        rng,
-        cameraCount,
-        map.settings.cameraMinGap,
-        protectedNodes,
-      );
+      const cameras =
+        options?.resolvedCameras !== undefined
+          ? resolveRecordedCameras(map, options.resolvedCameras)
+          : placeCameras(graph, rng, cameraCount, map.settings.cameraMinGap, [
+              ...cameraProtectedNodes,
+              ...(mission !== null ? missionTargetIds(mission.targets) : []),
+            ]);
       // The gameId is deterministic (`g-{seed}` default): same seed and
       // same inputs must produce a bit-identical log (spec section 8).
       const gameId = options?.gameId ?? `g-${seed}`;
@@ -986,7 +1062,12 @@ export const useGameStore = create<GameState>((set, get) => {
         },
         mission:
           mission !== null
-            ? { id: mission.id, name: mission.name, targets: mission.targets }
+            ? {
+                id: mission.id,
+                name: mission.name,
+                story: mission.story,
+                targets: mission.targets,
+              }
             : null,
         cameras: cameras.map((camera) => camera.nodeId),
         starts: { detectives: detectivePositions, ganove: ganovePosition },

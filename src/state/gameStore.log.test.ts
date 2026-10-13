@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HINT_EVENT_KINDS } from "../logic/InformationSystem";
 import { loadMap } from "../logic/MapLoader";
 import type { MapPack } from "../logic/mapPack";
+import { getMissionCase, loadMissionSet } from "../logic/MissionLoader";
+import { MissionGenerationError } from "../logic/MissionSystem";
 import {
   LOG_STORAGE_KEY,
   exportGameLog,
@@ -9,10 +11,17 @@ import {
   listGameLogs,
   parseLog,
   serializeLog,
+  serializeLogEntry,
   startOptionsFromHeader,
   type StorageLike,
 } from "../logic/Recorder";
-import { useGameStore } from "./gameStore";
+import { createRng } from "../logic/rng";
+import {
+  detectiveSpawnChoices,
+  ganoveSpawnChoices,
+  pickDetectiveSpawns,
+} from "../logic/SpawnSystem";
+import { useGameStore, type MissionOption, type StartGameOptions } from "./gameStore";
 
 function reset() {
   useGameStore.getState().resetGame();
@@ -302,6 +311,163 @@ describe("full game log (spec section 8)", () => {
       camerasTriggered: 0,
       visibleTo: "both",
     });
+  });
+});
+
+/**
+ * The acceptance criterion "Zustandsrekonstruktion aus Header + Seed
+ * stimmt mit dem Originalzustand überein" must hold for every spawn
+ * mode — fully drawn, mixed and fully explicit — and every mission
+ * option. The recorded `mission`/`cameras` are applied verbatim, so
+ * the reconstruction is independent of how many draws the original
+ * consumed from the shared seed stream.
+ */
+describe("state reconstruction from header + seed (real maps)", () => {
+  beforeEach(reset);
+
+  const REAL_MAPS = ["teststadt", "luebeck", "muenster"];
+  const SEEDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  /** The initial-state slice a replay must reproduce exactly. */
+  function snapshot() {
+    const s = store();
+    return {
+      detektivePositions: [...s.detektivePositions],
+      ganovePosition: s.ganovePosition,
+      mission: s.mission,
+      cameras: s.cameras,
+      escapeNodeIds: [...s.escapeNodeIds],
+      roundLimit: s.roundLimit,
+      radioHintCount: s.radioHintCount,
+      edgeBlockRounds: s.edgeBlockRounds,
+    };
+  }
+
+  /**
+   * Plays `startGame`, maps its `header` back via
+   * `startOptionsFromHeader`, starts a fresh game from the result and
+   * returns both state snapshots plus both serialized headers.
+   */
+  function reconstruct(map: MapPack, seed: number, options?: StartGameOptions) {
+    reset();
+    store().startGame(map, seed, options);
+    const original = snapshot();
+    const originalHeader = serializeLogEntry(headerFromLog(store().log)!);
+    const reconstructed = startOptionsFromHeader(headerFromLog(store().log)!);
+    reset();
+    store().startGame(map, reconstructed.seed, reconstructed.options);
+    return {
+      original,
+      reconstructed: snapshot(),
+      originalHeader,
+      reconstructedHeader: serializeLogEntry(headerFromLog(store().log)!),
+    };
+  }
+
+  it.each(REAL_MAPS)(
+    "reconstructs the fully drawn start (mission auto) on %s across seeds",
+    (mapId) => {
+      const map = loadMap(mapId);
+      for (const seed of SEEDS) {
+        const run = reconstruct(map, seed);
+        expect(run.reconstructed, `${mapId} seed ${seed}`).toEqual(run.original);
+        expect(run.reconstructedHeader, `${mapId} seed ${seed}`).toBe(run.originalHeader);
+      }
+    },
+  );
+
+  it.each(REAL_MAPS)(
+    "reconstructs explicit detectives + drawn ganove on %s across seeds",
+    (mapId) => {
+      const map = loadMap(mapId);
+      const detectivePositions = detectiveSpawnChoices(map).slice(
+        0,
+        map.settings.detectiveCount.min,
+      );
+      for (const seed of SEEDS) {
+        const run = reconstruct(map, seed, { detectivePositions });
+        expect(run.reconstructed, `${mapId} seed ${seed}`).toEqual(run.original);
+        expect(run.reconstructedHeader, `${mapId} seed ${seed}`).toBe(run.originalHeader);
+      }
+    },
+  );
+
+  it.each(REAL_MAPS)(
+    "reconstructs drawn detectives + explicit ganove on %s across seeds",
+    (mapId) => {
+      const map = loadMap(mapId);
+      for (const seed of SEEDS) {
+        // Mirror the engine's draw order: the seeded detectives first —
+        // the explicit ganove choice must satisfy their distance rule.
+        const rng = createRng(seed);
+        const drawn = pickDetectiveSpawns(map, rng, map.settings.detectiveCount.suggested);
+        const ganovePosition = ganoveSpawnChoices(map, drawn)[0];
+        const run = reconstruct(map, seed, { ganovePosition });
+        expect(run.reconstructed, `${mapId} seed ${seed}`).toEqual(run.original);
+        expect(run.reconstructedHeader, `${mapId} seed ${seed}`).toBe(run.originalHeader);
+      }
+    },
+  );
+
+  it.each(REAL_MAPS)('reconstructs mission "none" on %s across seeds', (mapId) => {
+    const map = loadMap(mapId);
+    for (const seed of SEEDS) {
+      const run = reconstruct(map, seed, { mission: "none" });
+      expect(run.reconstructed.mission, `${mapId} seed ${seed}`).toBeNull();
+      expect(run.reconstructed, `${mapId} seed ${seed}`).toEqual(run.original);
+    }
+  });
+
+  it.each(REAL_MAPS)(
+    'reconstructs mission "random" on %s wherever a mission was drawn',
+    (mapId) => {
+      const map = loadMap(mapId);
+      let drawn = 0;
+      for (const seed of SEEDS) {
+        // "random" rethrows MissionGenerationError — e.g. luebeck
+        // starts exist without any conforming mission. Those games
+        // never start, so there is no header to reconstruct.
+        try {
+          const run = reconstruct(map, seed, { mission: "random" });
+          expect(run.reconstructed, `${mapId} seed ${seed}`).toEqual(run.original);
+          expect(run.reconstructed.mission, `${mapId} seed ${seed}`).not.toBeNull();
+          drawn += 1;
+        } catch (error) {
+          expect(error).toBeInstanceOf(MissionGenerationError);
+        }
+      }
+      expect(drawn).toBeGreaterThan(0);
+    },
+  );
+
+  it("reconstructs case and custom missions on muenster (name, story, sabotageEffect)", () => {
+    const map = loadMap("muenster");
+    const set = loadMissionSet(map);
+    const kurier = getMissionCase(set, "kurier-am-hafen"); // case-fixed sabotageEffect
+    const missions: MissionOption[] = [
+      { type: "case", id: "diebstahlserie-altstadt" },
+      { type: "case", id: "kurier-am-hafen" },
+      {
+        type: "custom",
+        targets: {
+          diebstahl: kurier.diebstahl,
+          kontakt: kurier.kontakt,
+          flucht: kurier.flucht,
+          sabotage: kurier.sabotage,
+        },
+      },
+    ];
+    for (const mission of missions) {
+      for (const seed of SEEDS) {
+        const run = reconstruct(map, seed, { mission });
+        expect(run.reconstructed, `mission ${JSON.stringify(mission)} seed ${seed}`).toEqual(
+          run.original,
+        );
+        expect(run.reconstructedHeader, `mission ${JSON.stringify(mission)} seed ${seed}`).toBe(
+          run.originalHeader,
+        );
+      }
+    }
   });
 });
 

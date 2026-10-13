@@ -1,5 +1,28 @@
 # Änderungsprotokoll
 
+## 2026-10-13 — Eventlog-Korrektur: Zustandsrekonstruktion (Schritt 7)
+
+- `startOptionsFromHeader` übergibt die im `header` aufgezeichneten
+  `mission`/`cameras` jetzt als neue `StartGameOptions`
+  `resolvedMission` (`RecordedMission | null`) bzw. `resolvedCameras`
+  (`string[]`): `startGame` übernimmt sie wörtlich statt Mission und
+  Kameras erneut aus dem RNG-Strom zu ziehen. Damit stimmt die
+  Rekonstruktion für jede Spawn-/Missionskombination exakt — zuvor
+  verschoben übersprungene Spawn-Züge (explizite `starts`) Mission
+  und Kameras im Strom (Abweichung in 29/30 Fällen im Seed-Sweep).
+- Der Header zeichnet `mission.story` neu mit auf (Fall-Storys), damit
+  auch vordefinierte „Fälle" verlustfrei rekonstruieren.
+- `resolveRecordedMission`/`resolveRecordedCameras` validieren die
+  aufgezeichneten Knoten-IDs gegen die Karte (`GameConfigError`);
+  Missionskriterien werden nicht erneut geprüft (galten bei
+  Aufzeichnung). `resolvedMission: null` steht für Partien ohne
+  Mission (`"none"` oder nicht generierbares `"auto"`).
+- 17 neue Tests: Seed-Sweeps (1–10) über teststadt/luebeck/muenster für
+  vollständig gezogene, teils-explizite (nur Detektive / nur Ganove)
+  und missionsvariante Starts (`auto`/`random`/`none`/Fall/`custom`,
+  inkl. `sabotageEffect`-Fall `kurier-am-hafen`); Rekonstruktion ==
+  Originalzustand und bitgleiche `header`-Zeile.
+
 ## 2026-10-13 — Eventlog / Aufzeichnung (Schritt 7)
 
 - Neues Modul `src/logic/Recorder.ts`: JSONL-Serialisierung des

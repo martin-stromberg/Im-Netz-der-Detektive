@@ -437,10 +437,13 @@ harte Regeln.
   (Hinweis-Events aus `HINT_EVENT_KINDS`), `camerasTriggered`.
 - `finish()` persistiert das Log automatisch (`localStorage`, letzte
   N = `MAX_STORED_LOGS` Partien, FIFO) — headless ohne Storage: no-op.
-- `header` genügt zusammen mit `seed` zur Rekonstruktion des
-  Anfangszustands (`startOptionsFromHeader` bildet `config`/`starts`
-  auf `StartGameOptions` ab — inklusive der ursprünglichen
-  Missionsoption).
+- `header` genügt zur Rekonstruktion des Anfangszustands:
+  `startOptionsFromHeader` bildet `config`/`starts` auf
+  `StartGameOptions` ab und übergibt die aufgezeichneten
+  `mission`/`cameras` als `resolvedMission`/`resolvedCameras` — die
+  aufgelösten Werte werden wörtlich übernommen, sodass die
+  Rekonstruktion unabhängig davon ist, wie viele Züge der
+  Originalstart dem gemeinsamen Seed-Strom entnommen hat.
 
 **Umsetzung:** `Recorder.ts` (Serialisierung, Export, FIFO-Persistenz)
 und die `appendLog`-Aufrufstellen in `useGameStore`.
