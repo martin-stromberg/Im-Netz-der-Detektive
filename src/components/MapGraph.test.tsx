@@ -141,3 +141,82 @@ describe("MapGraph", () => {
     expect(container.textContent).not.toMatch(/Kamera|Hinweis|Sichtung/);
   });
 });
+
+describe("MapGraph — detective perspective props", () => {
+  it("renders camera glyphs with an active flag and a strike when inactive", () => {
+    const { container } = render(
+      <MapGraph
+        map={map}
+        cameras={[
+          { nodeId: "a", active: true },
+          { nodeId: "b", active: false },
+        ]}
+      />,
+    );
+    expect(container.querySelectorAll("[data-camera]")).toHaveLength(2);
+    expect(
+      container.querySelector('[data-node-id="a"] [data-camera-active="true"]'),
+    ).not.toBeNull();
+    const inactive = container.querySelector('[data-node-id="b"] [data-camera]');
+    expect(inactive).toHaveAttribute("data-camera-active", "false");
+    expect(inactive?.querySelector("line")).not.toBeNull();
+  });
+
+  it("renders category badges and zone halos on demand", () => {
+    const plain = render(<MapGraph map={map} />);
+    expect(plain.container.querySelectorAll("[data-category]")).toHaveLength(0);
+    expect(plain.container.querySelectorAll("[data-zone]")).toHaveLength(0);
+
+    const { container } = render(<MapGraph map={map} showCategories showZones />);
+    const expectedCategories = map.nodes.reduce((sum, node) => sum + node.categories.length, 0);
+    expect(container.querySelectorAll("[data-category]")).toHaveLength(expectedCategories);
+    expect(container.querySelectorAll("[data-zone]")).toHaveLength(map.nodes.length);
+    const zones = new Set(map.nodes.map((node) => node.zone));
+    for (const zone of zones) {
+      expect(container.querySelectorAll(`[data-zone="${zone}"]`)).not.toHaveLength(0);
+    }
+  });
+
+  it("highlights the active detective marker", () => {
+    const { container } = render(
+      <MapGraph map={map} detectivePositions={["a", "i"]} activeDetectiveIndex={1} />,
+    );
+    expect(container.querySelector('[data-detective="1"]')).toHaveAttribute(
+      "data-active-detective",
+      "true",
+    );
+    expect(
+      container.querySelector('[data-detective="0"]')?.getAttribute("data-active-detective"),
+    ).toBeNull();
+  });
+
+  it("renders marker pins and the deduction overlay ring", () => {
+    const { container } = render(
+      <MapGraph map={map} markedNodeIds={["a", "c"]} possibleNodeIds={["g", "h"]} />,
+    );
+    expect(container.querySelectorAll("[data-marker]")).toHaveLength(2);
+    expect(container.querySelectorAll("[data-possible]")).toHaveLength(2);
+    expect(container.querySelector('[data-node-id="g"] [data-possible]')).not.toBeNull();
+  });
+
+  it("offers markable nodes as keyboard-operable marker toggles", () => {
+    const onSelect = vi.fn();
+    const { container } = render(
+      <MapGraph
+        map={map}
+        markableNodeIds={map.nodes.map((node) => node.id)}
+        onNodeSelect={onSelect}
+      />,
+    );
+    expect(container.querySelectorAll("[data-markable]")).toHaveLength(map.nodes.length);
+    const node = container.querySelector('[data-node-id="e"]') as Element;
+    expect(node).toHaveAttribute("role", "button");
+    const nodeE = map.nodes.find((n) => n.id === "e");
+    expect(node).toHaveAttribute(
+      "aria-label",
+      de["node.mark"].replace("{name}", nodeE?.name ?? "?"),
+    );
+    fireEvent.keyDown(node, { key: "Enter" });
+    expect(onSelect).toHaveBeenCalledWith("e");
+  });
+});

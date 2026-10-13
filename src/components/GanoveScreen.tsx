@@ -30,6 +30,7 @@ import type { MapPack } from "../logic/mapPack";
 import { MapGraph } from "./MapGraph";
 import { HeatBadge } from "./HeatBadge";
 import { MissionPanel, currentMissionTarget } from "./MissionPanel";
+import { nextSeed, readParams, resolveMissionOption } from "./gameSetup";
 import styles from "./GanoveScreen.module.css";
 
 export interface GanoveScreenProps {
@@ -68,29 +69,6 @@ const HINT_KEY: Record<string, TranslationKey> = {
   hinweis: "hint.kind.hinweis",
   aktion: "hint.kind.aktion",
 };
-
-function readParams(): URLSearchParams {
-  return typeof window === "undefined"
-    ? new URLSearchParams()
-    : new URLSearchParams(window.location.search);
-}
-
-function resolveMissionOption(raw: string | null): MissionOption {
-  if (raw === null || raw === "random") {
-    return "random";
-  }
-  if (raw === "auto" || raw === "none") {
-    return raw;
-  }
-  if (raw.startsWith("case:")) {
-    return { type: "case", id: raw.slice("case:".length) };
-  }
-  return "random";
-}
-
-function nextSeed(): number {
-  return Date.now() % 0x80000000;
-}
 
 /** Compact symbol legend under the map — shapes/patterns, not colour. */
 function MapLegend() {
