@@ -15,12 +15,16 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-Engine-Grundgerüst (Entwicklungsschritt 2): Der headless-fähige
-Spielkern steht — Kartenpaket-Loader und -Validator, Graph-Grundfunktionen
-(BFS-Distanzen), deterministischer Seeded-RNG, Startaufstellungs-System
-(choice/free/random) und Zustand-Store. Rundenlogik,
+Kartenpakete (Entwicklungsschritt 3): Beide Prototyp-Städte liegen als
+spielbare Kartenpakete vor — die Hauptkarte **Münster** (59 echte Orte,
+101 Verbindungen auf angenäherter Topografie) und die bewusst
+unbalancierte **Lübeck-Altstadtinsel** (22 Orte) als Validierungskarte.
+Darunter steht das Engine-Grundgerüst: Kartenpaket-Loader und
+-Validator, Graph-Grundfunktionen (BFS-Distanzen), deterministischer
+Seeded-RNG, Startaufstellungs-System und Zustand-Store. Rundenlogik,
 Informationssystem und Oberflächen folgen in den nächsten
-Entwicklungsschritten. Details: `docs/help/spiel-engine/`.
+Entwicklungsschritten. Details: `docs/help/kartenpakete/`,
+`docs/help/spiel-engine/`.
 
 ## Setup
 

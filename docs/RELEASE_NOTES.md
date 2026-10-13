@@ -6,6 +6,8 @@
 
 ## What's New
 
+- Two real playable map packages: the main map **Münster** (59 real, recognisable places on an approximated topography, 101 edges with dense `weg` links plus a few `fahrt` bus/rail axes, Muenster balancing defaults and spawn rules) and the deliberately unbalanced **Lübeck Altstadt island** (22 places, 39 edges, bridge chokepoints, its own zones/settings/spawn rules) as the validation map. Both load via `loadMap(id)` with no hardcoding.
+- Automated map-quality suite (`mapData.test.ts`): structural metrics (node/edge corridors, average degree, connectivity, category coverage, edge types) and mission-generation feasibility (pairwise distances, route budgets 18/22, sabotage detour) are now asserted against the shipped graphs.
 - Headless game-engine core: map-package loader and full runtime validator (`loadMap(id)`), graph basics (neighbourhoods, BFS edge distances), central seeded RNG as the single source of randomness, and the spawn system (choice/free/random, detectives before the ganove, minimum distance rule).
 - Headless game-state store with the specified fields (round, phase, positions, mission, events, cameras, blocked edges, event mode, tension, seed, log) and imperative actions.
 - Valid `teststadt` fixture map package for engine tests.
@@ -20,6 +22,8 @@
 
 ## Neuerungen
 
+- Zwei echte, spielbare Kartenpakete: die Hauptkarte **Münster** (59 echte, wiedererkennbare Orte auf angenäherter Topografie, 101 Kanten mit dichtem `weg`-Netz plus weniger `fahrt`-Fernverbindungen, Münster-Balancing-Defaults und Spawn-Regeln) und die bewusst unbalancierte **Lübecker Altstadtinsel** (22 Orte, 39 Kanten, Brücken-Engpässe, eigene Zonen/Settings/Spawn-Regeln) als Validierungskarte. Beide laden ohne Hartcodierung über `loadMap(id)`.
+- Automatisierte Karten-Qualitätssuite (`mapData.test.ts`): Strukturmetriken (Knoten-/Kantenkorridor, Ø-Knotengrad, Zusammenhang, Kategorieabdeckung, Kantentypen) und Missionskriterien-Erfüllbarkeit (Paardistanzen, Routenbudgets 18/22, Sabotage-Umweg) werden gegen die ausgelieferten Graphen abgesichert.
 - Headless-Spielkern: Kartenpaket-Loader mit vollständiger Laufzeit-Validierung (`loadMap(id)`), Graph-Grundfunktionen (Nachbarschaften, BFS-Kantendistanzen), zentraler Seeded-RNG als einzige Zufallsquelle und Startaufstellungs-System (choice/free/random, Detektive vor Ganove, Mindestabstand-Regel).
 - Headless-fähiger Spielzustand-Store mit den spezifizierten Feldern (Runde, Phase, Positionen, Mission, Ereignisse, Kameras, gesperrte Kanten, Ereignismodus, Spannungswert, Seed, Log) und imperativen Actions.
 - Gültiges `teststadt`-Fixture-Kartenpaket für Engine-Tests.
