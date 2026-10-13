@@ -27,15 +27,14 @@ jobs:
           git fetch origin main:refs/remotes/origin/main --no-tags
 
           main_sha="$(git rev-parse origin/main)"
-          is_main_merge_parent=false
-          for parent in $(git show -s --format=%P HEAD); do
-            if [[ "$parent" == "$main_sha" ]]; then
-              is_main_merge_parent=true
-              break
-            fi
-          done
+          # A back-merge lands on staging as a merge commit whose SECOND parent
+          # is main's tip (first parent is the previous staging tip). Checking
+          # only the second parent avoids a false positive whenever staging
+          # and main happen to point at the same commit.
+          parents=($(git show -s --format=%P HEAD))
+          second_parent="${parents[1]:-}"
 
-          if [[ "$is_main_merge_parent" == "true" ]]; then
+          if [[ -n "$second_parent" && "$second_parent" == "$main_sha" ]]; then
             echo "is_backmerge=true" >> "$GITHUB_OUTPUT"
             echo "::notice::Back-merge from main detected - CI checks and pre-release will be skipped."
           elif git diff --quiet origin/main HEAD; then
