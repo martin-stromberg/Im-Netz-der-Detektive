@@ -15,6 +15,16 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
+**Spielbar!** Ganove-Perspektive (Entwicklungsschritt 9): `npm run dev`
+startet den Primärmodus — du spielst den Ganoven gegen die
+KI-Detektive. Nach „Neue Partie" beziehen die Detektive ihre Posten,
+du wählst deinen Startpunkt aus den legalen Optionen und jagst die
+Mission (Diebstahl → Kontakt → Sabotage-Wahl → Flucht) über die
+SVG-Karte von Münster: legale Züge markiert und per Klick/Tastatur
+wählbar, Hitze-Indikator (Icon + Text, 4 Stufen), einmaliger
+Polizeifunk, alle Endzustände inklusive Remis-Abbruch — vollständig
+lokalisiert (DE/EN) und durch Playwright-E2E abgedeckt.
+
 Deduktion & KI (Entwicklungsschritt 8): Das geteilte
 Deduktionsmodell (`Deduction.ts`) errechnet aus allen
 detektivsichtbaren Hinweisen die Menge konsistenter

@@ -1,0 +1,45 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #2a3240;
+  background: #161b26;
+  color: #c8d0dc;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.icon {
+  flex: none;
+}
+
+.barDim {
+  fill: #3a4152;
+}
+
+.barLit {
+  fill: currentcolor;
+}
+
+.level_ruhig {
+  color: #7fd4a8;
+}
+
+.level_aktiv {
+  color: #f5d76e;
+}
+
+.level_erhoeht {
+  color: #e8a05a;
+}
+
+.level_kritisch {
+  color: #d98c8c;
+  border-color: #d98c8c;
+}
+
+.text {
+  color: #c8d0dc;
+}
