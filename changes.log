@@ -1,5 +1,25 @@
 # Änderungsprotokoll
 
+## 2026-10-13 — Kartenpakete Münster und Lübeck (Schritt 3)
+
+- Hauptkarte `src/data/maps/muenster.json`: 59 echte, wiedererkennbare
+  Orte auf angenäherter Münster-Topografie (Innenstadt zentral,
+  Schlosspark westlich, Aasee südwestlich, Hafen südlich, Hauptbahnhof
+  südöstlich), 101 Kanten (95 `weg`, 6 `fahrt` auf Bus-/Bahn-Achsen),
+  Ø-Knotengrad 3,42, alle vier Missionskategorien mehrfach vertreten,
+  Münster-Balancing-Startwerte und Spawn-Regeln (`minDistanceToDetective`
+  3).
+- Validierungskarte `src/data/maps/luebeck.json`: 22 Knoten der
+  Lübecker Altstadtinsel (Holstentor, Marienkirche, Dom u. a.),
+  39 Kanten mit Brücken-Engpässen, bewusst unbalanciert (4 Fluchtpunkte,
+  `cameraMinGap` 1, `eventMode` `cycle`, `zones`-basierte
+  Detektiv-Spawns).
+- Beide Pakete laden ohne Hartcodierung über `loadMap(id)`; Graphen
+  zusammenhängend. Neue Testsuite `src/logic/mapData.test.ts` (17 Tests)
+  sichert Strukturmetriken, Settings-Format und die
+  Missionskriterien-Erfüllbarkeit (Tripel-Distanzen, Routenbudgets
+  18/22, Sabotage-Umweg) automatisiert ab.
+
 ## 2026-10-13 — Engine-Grundgerüst (Schritt 2)
 
 - Headless-fähiger Spielkern in `src/logic/`: Kartenpaket-Typen plus
