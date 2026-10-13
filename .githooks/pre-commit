@@ -38,3 +38,13 @@ python "$repo_root/.githooks/no-stub-check.py"
 # --- Component Usage Check (fixer Pfad, nur Warnung) ---
 echo "Running component usage check..."
 python "$repo_root/.githooks/component-usage-check.py"
+
+# --- Prettier Check auf gestagte Dateien (blockierend) ---
+staged_prettier_files="$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx|mjs|cjs|json|css|html|md|yml|yaml)$' | grep -v '^package-lock\.json$' || true)"
+if [ -n "$staged_prettier_files" ]; then
+  echo "Running prettier check on staged files..."
+  if ! (cd "$repo_root" && echo "$staged_prettier_files" | xargs npx prettier --check); then
+    echo "Prettier check failed. Run 'npm run format' and re-stage." >&2
+    exit 1
+  fi
+fi
