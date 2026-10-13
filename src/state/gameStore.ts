@@ -29,6 +29,24 @@ import {
   type MoveTarget,
 } from "../logic/Movement";
 import {
+  caseTargets,
+  drawSabotageEffect,
+  executableMissionAction,
+  generateMission,
+  MissionGenerationError,
+  missionCriteriaViolations,
+  missionTargetIds,
+  missionStructure,
+  sabotageDuration,
+  validateCustomTargets,
+  type MissionKind,
+  type MissionStage,
+  type MissionStructureStep,
+  type MissionTargets,
+} from "../logic/MissionSystem";
+import { getMissionCase, loadMissionSet } from "../logic/MissionLoader";
+import type { SabotageEffect } from "../logic/mapPack";
+import {
   detectiveSpawnChoices,
   ganoveSpawnChoices,
   pickDetectiveSpawns,
@@ -54,12 +72,51 @@ export class GameConfigError extends Error {
   }
 }
 
-/** Missionszustand (MissionEngine details arrive in a later step). */
+/**
+ * Running mission state (spec section 5). `targets` is ganove-side
+ * knowledge only — detective-facing views may expose the structure
+ * (`missionStructure`) and the `aktion` trace events, never the drawn
+ * target nodes.
+ */
 export interface Mission {
+  /** `"random"`, `"custom"` or the case id of a bundled "Fall". */
   id: string;
-  targetNodes: string[];
-  currentStepIndex: number;
+  /** Display name and mini story (predefined cases only). */
+  name?: string;
+  story?: string;
+  targets: MissionTargets;
+  stage: MissionStage;
+  /**
+   * Pending binary choice after the kontakt action: the offered
+   * sabotage node and the drawn effect. `null` in every other stage;
+   * while set, ganove moves are blocked until `chooseMissionPath`.
+   */
+  pendingChoice: { sabotageNode: string; effect: SabotageEffect } | null;
+  /** The effect the informant offered (kept after the choice, ganove-side info). */
+  offeredEffect: SabotageEffect | null;
+  /** Effect executed at the sabotage node (for the ganove's own info). */
+  appliedEffect: SabotageEffect | null;
 }
+
+/**
+ * How `startGame` resolves the mission:
+ * - `"auto"` (default): generate when the map's pools and the spawn
+ *   allow a conforming mission, otherwise play without one
+ * - `"random"`: generate; `MissionGenerationError` when impossible
+ * - `"none"`: no mission — every `flucht` node is an escape point
+ * - `{ type: "case", id }`: a predefined "Fall" from the map's mission set
+ * - `{ type: "custom", targets }`: player-defined targets, validated
+ *   against categories and the generation criteria
+ */
+export type MissionOption =
+  | "auto"
+  | "random"
+  | "none"
+  | { type: "case"; id: string }
+  | {
+      type: "custom";
+      targets: { diebstahl: string; kontakt: string; flucht: string; sabotage?: string };
+    };
 
 export type { Camera, GameEvent, GameEventKind, HeatLevel } from "../logic/InformationSystem";
 
@@ -90,6 +147,8 @@ export interface StartGameOptions {
   radioHintCount?: number;
   /** `umwelt` block duration override inside `edgeBlockRounds.[min,max]`. */
   edgeBlockRounds?: number;
+  /** Mission to play; defaults to `"auto"` (see `MissionOption`). */
+  mission?: MissionOption;
 }
 
 export interface GameState {
@@ -113,14 +172,17 @@ export interface GameState {
   roundLimit: number | null;
   /**
    * Nodes that end the game with an escape when the ganove reaches them.
-   * Initialised from the `flucht` node category; the mission system can
-   * override the list via `setEscapeNodeIds` (mission-bound escape).
+   * With a running mission this is exactly the drawn mission escape
+   * node (mission-bound escape — and only while `stage === "flucht"`);
+   * without a mission it is every `flucht`-category node. Overridable
+   * via `setEscapeNodeIds` (test hook).
    */
   escapeNodeIds: string[];
   /**
-   * Hook for the mission system: whether the ganove can execute an action
-   * this round (Aktionsrunde — the only legal exception to Zugzwang).
-   * Conservatively `false` until the mission engine fills it.
+   * Manual hook: whether the ganove may execute an action round this
+   * round (Aktionsrunde — the only legal exception to Zugzwang).
+   * The effective availability additionally covers the mission action
+   * at his position (see `getMissionAction`) — a mission needs no flag.
    */
   ganoveCanAct: boolean;
   /** Police radio has already been tapped (once per game). */
@@ -129,6 +191,10 @@ export interface GameState {
   radioHintCount: number;
   /** Effective `umwelt` block duration in rounds. */
   edgeBlockRounds: number;
+  /** `funkstille` sabotage: hint events suppressed up to this round (0 = off). */
+  hintSilenceUntilRound: number;
+  /** `falsche_spur` sabotage: `hinweis` events falsified up to this round (0 = off). */
+  falseTrailUntilRound: number;
 
   startGame: (map: MapPack, seed: number, options?: StartGameOptions) => void;
   resetGame: () => void;
@@ -139,9 +205,14 @@ export interface GameState {
   moveGanove: (target: string) => void;
   moveDetective: (target: string) => void;
   ganoveAction: () => void;
+  chooseMissionPath: (choice: "sabotage" | "flucht") => void;
   abortAsDraw: () => void;
   getLegalGanoveMoves: () => MoveTarget[];
   getLegalDetectiveMoves: () => MoveTarget[];
+  /** The mission action executable this round at the ganove's position. */
+  getMissionAction: () => MissionKind | null;
+  /** Detective-facing mission structure: steps + status, never node ids. */
+  getMissionStructure: () => MissionStructureStep[];
   setEscapeNodeIds: (nodeIds: string[]) => void;
   setGanoveCanAct: (canAct: boolean) => void;
   setMission: (mission: Mission | null) => void;
@@ -167,9 +238,12 @@ type GameData = Omit<
   | "moveGanove"
   | "moveDetective"
   | "ganoveAction"
+  | "chooseMissionPath"
   | "abortAsDraw"
   | "getLegalGanoveMoves"
   | "getLegalDetectiveMoves"
+  | "getMissionAction"
+  | "getMissionStructure"
   | "setEscapeNodeIds"
   | "setGanoveCanAct"
   | "setMission"
@@ -208,6 +282,8 @@ function initialData(): GameData {
     radioUsed: false,
     radioHintCount: 0,
     edgeBlockRounds: 0,
+    hintSilenceUntilRound: 0,
+    falseTrailUntilRound: 0,
   };
 }
 
@@ -323,6 +399,121 @@ function resolveCameraProtectedNodes(map: MapPack, option: string[] | undefined)
   return [...option];
 }
 
+/**
+ * Salt that separates mission runtime draws (sabotage effect, falsified
+ * trail zones) from the event-roll stream of the same round — both use
+ * `mixSeed(seed, round)` as their base, so the draws stay deterministic
+ * but uncorrelated.
+ */
+const MISSION_RNG_SALT = 0x5ab07a6e;
+
+function missionRng(seed: number, round: number): Rng {
+  return createRng(mixSeed(seed ^ MISSION_RNG_SALT, round));
+}
+
+/** Every node id that may carry a mission target — empty without pools. */
+function missionPoolsPresent(map: MapPack): boolean {
+  const categories = new Set(map.nodes.flatMap((node) => node.categories));
+  return categories.has("diebstahl") && categories.has("kontakt") && categories.has("flucht");
+}
+
+/**
+ * Resolves the mission for a new game (spec section 5.2). The RNG
+ * position is after the spawn draws and before camera placement, so a
+ * given seed always produces the same mission.
+ *
+ * - `"auto"` generates when the category pools exist and a conforming
+ *   mission can be drawn for the ganove's spawn — otherwise `null`.
+ * - `"random"` always tries to generate and rethrows
+ *   `MissionGenerationError` when impossible.
+ * - `{ type: "case" }` takes the targets of a bundled "Fall" and checks
+ *   them against the generation criteria for the actual spawn
+ *   (`GameConfigError` on violation).
+ * - `{ type: "custom" }` validates the chosen targets against
+ *   categories and criteria (`GameConfigError` listing the findings).
+ * - `"none"` disables the mission (all `flucht` nodes stay escape points).
+ */
+function resolveMission(
+  map: MapPack,
+  graph: ReturnType<typeof buildGraph>,
+  ganovePosition: string,
+  rng: Rng,
+  option: MissionOption | undefined,
+): Mission | null {
+  const choice = option ?? "auto";
+  if (choice === "none") {
+    return null;
+  }
+  if (typeof choice === "object" && choice.type === "case") {
+    const entry = getMissionCase(loadMissionSet(map), choice.id);
+    const targets = caseTargets(entry);
+    const violations = missionCriteriaViolations(
+      graph,
+      map.settings.missionRules,
+      targets,
+      ganovePosition,
+    );
+    if (violations.length > 0) {
+      throw new GameConfigError(
+        `mission case ${JSON.stringify(choice.id)} violates generation criteria ` +
+          `for start ${JSON.stringify(ganovePosition)}: ${violations.join(", ")}`,
+      );
+    }
+    return newMissionState(choice.id, targets, entry.name, entry.story);
+  }
+  if (typeof choice === "object" && choice.type === "custom") {
+    const targets: MissionTargets = {
+      diebstahl: choice.targets.diebstahl,
+      kontakt: choice.targets.kontakt,
+      flucht: choice.targets.flucht,
+      sabotage: choice.targets.sabotage ?? null,
+    };
+    const errors = validateCustomTargets(map, graph, targets, ganovePosition);
+    if (errors.length > 0) {
+      throw new GameConfigError(`custom mission rejected:\n- ${errors.join("\n- ")}`);
+    }
+    return newMissionState("custom", targets);
+  }
+  if (choice !== "auto" && choice !== "random") {
+    throw new GameConfigError(`unknown mission option ${JSON.stringify(choice)}`);
+  }
+  if (!missionPoolsPresent(map)) {
+    if (choice === "random") {
+      throw new MissionGenerationError(
+        `map ${JSON.stringify(map.id)} lacks a required mission category pool`,
+      );
+    }
+    return null;
+  }
+  try {
+    const targets = generateMission(map, graph, ganovePosition, rng);
+    return newMissionState("random", targets);
+  } catch (error) {
+    if (choice === "auto" && error instanceof MissionGenerationError) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+function newMissionState(
+  id: string,
+  targets: MissionTargets,
+  name?: string,
+  story?: string,
+): Mission {
+  return {
+    id,
+    name,
+    story,
+    targets,
+    stage: "diebstahl",
+    pendingChoice: null,
+    offeredEffect: null,
+    appliedEffect: null,
+  };
+}
+
 function moveContext(state: {
   map: MapPack | null;
   round: number;
@@ -360,6 +551,19 @@ export const useGameStore = create<GameState>((set, get) => {
   };
 
   /**
+   * Whether the ganove may spend this round on an action — either via
+   * the manual `ganoveCanAct` test hook or through an executable
+   * mission action at his position (spec sections 5.3 and 7: a ganove
+   * on the current target node is NOT surrounded).
+   */
+  const canGanoveAct = (): boolean => {
+    const state = get();
+    return (
+      state.ganoveCanAct || executableMissionAction(state.mission, state.ganovePosition) !== null
+    );
+  };
+
+  /**
    * Surrounded check — runs "at the start of the ganove's phase"
    * (spec section 7): no legal move AND no executable action ⇒ caught.
    */
@@ -371,7 +575,7 @@ export const useGameStore = create<GameState>((set, get) => {
       state.outcome === null &&
       state.phase === "ganove" &&
       legalGanoveMoves(moveContext(state)).length === 0 &&
-      !state.ganoveCanAct
+      !canGanoveAct()
     ) {
       finish("surrounded");
     }
@@ -455,6 +659,37 @@ export const useGameStore = create<GameState>((set, get) => {
     });
   };
 
+  /**
+   * `falsche_spur` sabotage: emits a zone hint that is formally valid
+   * but deliberately wrong — the mission RNG picks a different zone and
+   * a node inside it, and the `nodeIds` ball is computed around that
+   * decoy so the hint stays internally consistent.
+   */
+  const emitFalseTrailHint = (map: MapPack, position: string, round: number): void => {
+    const state = get();
+    const graph = buildGraph(map);
+    const trueZone = map.nodes.find((node) => node.id === position)?.zone;
+    const zones = [...new Set(map.nodes.map((node) => node.zone))].filter(
+      (zone) => zone !== trueZone,
+    );
+    if (zones.length === 0) {
+      return;
+    }
+    const rng = missionRng(state.seed, round);
+    const zone = rng.pick(zones);
+    const decoys = map.nodes.filter((node) => node.zone === zone).map((node) => node.id);
+    const hint = zoneHint(rng.pick(decoys), map, graph, map.settings.hintZoneRadius);
+    if (hint !== null) {
+      emitInfoEvent({
+        kind: "hinweis",
+        round,
+        zone: hint.zone,
+        nodeIds: hint.nodeIds,
+        visibleTo: "detectives",
+      });
+    }
+  };
+
   /** Produces the drawn event type for the current round. */
   const emitRoundEvent = (
     type: EventTypeKind,
@@ -463,11 +698,21 @@ export const useGameStore = create<GameState>((set, get) => {
     round: number,
     rng: Rng,
   ): void => {
+    const state = get();
+    // funkstille sabotage: hint-giving events are suppressed for the
+    // duration; umwelt is world state (visible to both) and stays.
+    if ((type === "sichtbarkeit" || type === "hinweis") && round <= state.hintSilenceUntilRound) {
+      return;
+    }
     if (type === "sichtbarkeit") {
       emitInfoEvent({ kind: "sichtbarkeit", round, nodeId: position, visibleTo: "detectives" });
       return;
     }
     if (type === "hinweis") {
+      if (round <= state.falseTrailUntilRound) {
+        emitFalseTrailHint(map, position, round);
+        return;
+      }
       const hint = zoneHint(position, map, buildGraph(map), map.settings.hintZoneRadius);
       if (hint !== null) {
         emitInfoEvent({
@@ -514,6 +759,87 @@ export const useGameStore = create<GameState>((set, get) => {
     emitRoundEvent(drawEventType(map.settings.eventMix, rng), map, position, state.round, rng);
   };
 
+  /**
+   * Applies the executed sabotage effect (spec section 5.4):
+   * `kamera_aus` kills every camera for the rest of the game,
+   * `funkstille` suppresses hint events for `sabotageDuration` rounds,
+   * `falsche_spur` falsifies zone hints for the same window. Both
+   * windows start the round after the action round.
+   */
+  const applySabotageEffect = (effect: SabotageEffect): void => {
+    const state = get();
+    const map = state.map as MapPack;
+    const untilRound = state.round + sabotageDuration(map);
+    if (effect === "kamera_aus") {
+      get().deactivateCameras();
+    } else if (effect === "funkstille") {
+      set({ hintSilenceUntilRound: untilRound });
+    } else {
+      set({ falseTrailUntilRound: untilRound });
+    }
+    get().appendLog({
+      round: state.round,
+      type: "sabotage",
+      details: { effect, untilRound: effect === "kamera_aus" ? null : untilRound },
+    });
+  };
+
+  /**
+   * Advances the mission stage after an executed action:
+   * diebstahl → kontakt → (sabotage offer | direct flucht) →
+   * sabotage → flucht. The kontakt action determines the offered effect
+   * in the same step (spec section 5.4): a case-fixed
+   * `targets.sabotageEffect` wins, otherwise `drawSabotageEffect` pulls
+   * from the map's pool. On maps without a sabotage pool there is no
+   * offer and the mission goes straight to "flucht".
+   */
+  const advanceMission = (action: MissionKind): void => {
+    const state = get();
+    const mission = state.mission;
+    const map = state.map;
+    if (mission === null || map === null) {
+      return;
+    }
+    if (action === "diebstahl") {
+      set({ mission: { ...mission, stage: "kontakt" } });
+      return;
+    }
+    if (action === "kontakt") {
+      if (mission.targets.sabotage === null) {
+        set({ mission: { ...mission, stage: "flucht" } });
+        return;
+      }
+      // A case-fixed sabotageEffect (predefined "Fälle") takes
+      // precedence over the seeded random draw.
+      const effect =
+        mission.targets.sabotageEffect ??
+        drawSabotageEffect(map, missionRng(state.seed, state.round));
+      set({
+        mission: {
+          ...mission,
+          stage: "wahl",
+          pendingChoice: { sabotageNode: mission.targets.sabotage, effect },
+          offeredEffect: effect,
+        },
+      });
+      get().appendLog({
+        round: state.round,
+        type: "sabotage_offer",
+        details: { sabotageNode: mission.targets.sabotage, effect },
+      });
+      return;
+    }
+    if (action === "sabotage") {
+      const effect = mission.offeredEffect;
+      if (effect !== null) {
+        applySabotageEffect(effect);
+      }
+      set({
+        mission: { ...mission, stage: "flucht", appliedEffect: effect },
+      });
+    }
+  };
+
   const requireRunningGame = (phase?: GamePhase): void => {
     const state = get();
     if (state.map === null) {
@@ -554,9 +880,16 @@ export const useGameStore = create<GameState>((set, get) => {
         options?.edgeBlockRounds,
         "edgeBlockRounds",
       );
-      const protectedNodes = resolveCameraProtectedNodes(map, options?.cameraProtectedNodes);
+      const graph = buildGraph(map);
+      const mission = resolveMission(map, graph, ganovePosition, rng, options?.mission);
+      // Public rule (spec section 4.1): mission target nodes never
+      // carry a camera — they join the caller's exclusion list.
+      const protectedNodes = [
+        ...resolveCameraProtectedNodes(map, options?.cameraProtectedNodes),
+        ...(mission !== null ? missionTargetIds(mission.targets) : []),
+      ];
       const cameras = placeCameras(
-        buildGraph(map),
+        graph,
         rng,
         cameraCount,
         map.settings.cameraMinGap,
@@ -570,7 +903,10 @@ export const useGameStore = create<GameState>((set, get) => {
         detektivePositions: detectivePositions,
         ganovePosition,
         roundLimit,
-        escapeNodeIds: mapEscapeNodeIds(map),
+        mission,
+        // Mission-bound escape: only the drawn mission escape node ends
+        // the game (without a mission every flucht node does).
+        escapeNodeIds: mission !== null ? [mission.targets.flucht] : mapEscapeNodeIds(map),
         cameras,
         radioHintCount,
         edgeBlockRounds,
@@ -584,6 +920,10 @@ export const useGameStore = create<GameState>((set, get) => {
           roundLimit,
           cameras: cameras.map((camera) => camera.nodeId),
           starts: { detectives: detectivePositions, ganove: ganovePosition },
+          mission:
+            mission !== null
+              ? { id: mission.id, name: mission.name, targets: mission.targets }
+              : null,
         },
       });
       // The game starts in the ganove phase — check surrounded immediately.
@@ -627,6 +967,12 @@ export const useGameStore = create<GameState>((set, get) => {
     moveGanove: (target) => {
       requireRunningGame("ganove");
       const state = get();
+      if (state.mission?.pendingChoice != null) {
+        throw new MoveError(
+          "mission_choice_pending",
+          "the informant's sabotage offer must be answered (chooseMissionPath) before moving",
+        );
+      }
       const move = validateGanoveMove(moveContext(state), target);
       const from = state.ganovePosition;
       set({ ganovePosition: target });
@@ -635,7 +981,13 @@ export const useGameStore = create<GameState>((set, get) => {
         type: "move",
         details: { actor: "ganove", from, to: target, edgeType: move.edgeType },
       });
-      if (state.escapeNodeIds.includes(target)) {
+      // Mission-bound escape: the drawn escape node only wins once the
+      // mission reached its "flucht" stage — earlier visits are plain
+      // moves. Without a mission every escape node wins on arrival.
+      if (
+        state.escapeNodeIds.includes(target) &&
+        (state.mission === null || state.mission.stage === "flucht")
+      ) {
         finish("escaped");
         return;
       }
@@ -687,13 +1039,23 @@ export const useGameStore = create<GameState>((set, get) => {
     /**
      * Action round of the ganove — the only legal exception to Zugzwang
      * (spec section 5.3): the ganove stays put and remains fully
-     * catchable. Requires `ganoveCanAct` (mission-system hook); the
-     * actual action effects arrive with the mission step.
+     * catchable. A mission action emits its exact trace hint before the
+     * detectives move (`aktion` event, weight +2 in the heat
+     * indicator), then advances the mission stage: the kontakt action
+     * produces the informant's sabotage offer (`pendingChoice`), the
+     * sabotage action applies its effect.
      */
     ganoveAction: () => {
       requireRunningGame("ganove");
       const state = get();
-      if (!state.ganoveCanAct) {
+      if (state.mission?.pendingChoice != null) {
+        throw new MoveError(
+          "mission_choice_pending",
+          "the informant's sabotage offer must be answered (chooseMissionPath) before acting",
+        );
+      }
+      const action = executableMissionAction(state.mission, state.ganovePosition);
+      if (action === null && !state.ganoveCanAct) {
         throw new MoveError(
           "no_action_available",
           "the ganove has no executable action this round",
@@ -702,12 +1064,47 @@ export const useGameStore = create<GameState>((set, get) => {
       get().appendLog({
         round: state.round,
         type: "action",
-        details: { actor: "ganove", nodeId: state.ganovePosition },
+        details: { actor: "ganove", nodeId: state.ganovePosition, missionAction: action },
       });
+      if (action !== null) {
+        // Exact trace hint, visible to the detectives before their
+        // moves of the same round — never carries the binary choice.
+        emitInfoEvent({
+          kind: "aktion",
+          round: state.round,
+          nodeId: state.ganovePosition ?? undefined,
+          visibleTo: "detectives",
+          details: { action },
+        });
+        advanceMission(action);
+      }
       // No camera check — the ganove stays on his node (Betreten ≠
       // Verharren); the event roll still runs for this round.
       runEventRoll();
       set({ phase: "detektive", activeDetectiveIndex: 0 });
+    },
+
+    /**
+     * The ganove's final binary choice after the kontakt action (spec
+     * section 5.4): accept the informant's sabotage offer or head
+     * straight for the escape point — no way back.
+     */
+    chooseMissionPath: (choice) => {
+      requireRunningGame();
+      const state = get();
+      const pending = state.mission?.pendingChoice;
+      if (state.mission === null || pending == null) {
+        throw new MoveError("no_mission_choice", "there is no pending sabotage offer to answer");
+      }
+      const stage: MissionStage = choice === "sabotage" ? "sabotage" : "flucht";
+      set({
+        mission: { ...state.mission, stage, pendingChoice: null },
+      });
+      get().appendLog({
+        round: state.round,
+        type: "mission_choice",
+        details: { choice, effect: choice === "sabotage" ? pending.effect : null },
+      });
     },
 
     /** Ends a running game as a draw (Remis, spec section 7). */
@@ -736,6 +1133,18 @@ export const useGameStore = create<GameState>((set, get) => {
       }
       return legalDetectiveMoves(moveContext(state), state.activeDetectiveIndex);
     },
+
+    /** Mission action executable right now at the ganove's position. */
+    getMissionAction: () => {
+      const state = get();
+      if (state.phase !== "ganove" || state.outcome !== null) {
+        return null;
+      }
+      return executableMissionAction(state.mission, state.ganovePosition);
+    },
+
+    /** Detective-facing mission structure (no target node ids). */
+    getMissionStructure: () => missionStructure(get().mission),
 
     /**
      * Overrides the escape-node list (mission-bound escape targets).

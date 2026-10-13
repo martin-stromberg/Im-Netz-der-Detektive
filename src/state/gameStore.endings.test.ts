@@ -215,7 +215,12 @@ describe("escaped (Flucht)", () => {
   beforeEach(reset);
 
   it("ends the game when the ganove reaches a free escape node (ganove's win)", () => {
-    store().startGame(map, 1, { detectivePositions: ["i", "j"], ganovePosition: "a" });
+    // mission "none": every flucht-category node is an escape point.
+    store().startGame(map, 1, {
+      detectivePositions: ["i", "j"],
+      ganovePosition: "a",
+      mission: "none",
+    });
     store().moveGanove("b"); // b carries the flucht category
     const s = store();
     expect(s.outcome).toBe("escaped");

@@ -1,5 +1,40 @@
 # Änderungsprotokoll
 
+## 2026-10-13 — Missionssystem (Schritt 6)
+
+- Zwei neue reine Logikmodule: `src/logic/MissionSystem.ts` (Typen
+  `MissionKind`/`MissionStage`/`MissionTargets`/`MissionCase`/
+  `MissionSet`, `missionCriteriaViolations` mit allen
+  BFS-Kriteriencodes, `generateMission` via Rejection-Sampling,
+  `validateCustomTargets`/`validateMissionSet`, Laufzeithelfer
+  `executableMissionAction`, `missionStructure`, `drawSabotageEffect`,
+  `sabotageDuration`) und `src/logic/MissionLoader.ts`
+  (`loadMissionSet`/`listMissionSetIds`/`hasMissionSet`/
+  `getMissionCase`, synchron via `import.meta.glob` aus
+  `src/data/missions/`).
+- Neues Missionsset `src/data/missions/muenster.json` mit zwei
+  benannten Fällen (`diebstahlserie-altstadt`, `kurier-am-hafen`) inkl.
+  Story; die Datenintegritätssuite `missionData.test.ts` verifiziert
+  jeden Fall gegen alle Kriterien für jeden möglichen Ganoven-Start.
+- `useGameStore` verdrahtet die Mission in den Rundenmotor:
+  `startGame` löst `options.mission` (`auto`/`random`/`none`/`case`/
+  `custom`) zwischen Spawn und Kameraplatzierung auf, bindet
+  `escapeNodeIds` an `targets.flucht` und schützt alle
+  Missionszielknoten vor Kameras; `ganoveAction` führt Missionsaktionen
+  am freigegebenen Zielknoten aus (stehen bleiben, fangbar, exaktes
+  `aktion`-Spur-Event vor der Detektivphase); `chooseMissionPath`
+  beantwortet das Sabotage-Angebot des Informanten endgültig;
+  `hintSilenceUntilRound`/`falseTrailUntilRound` tragen die Fenster
+  für `funkstille`/`falsche_spur` — die Ereignisengine unterdrückt
+  Hinweise bzw. liefert falsch-konsistente Zonen; `kamera_aus`
+  deaktiviert alle Kameras. Umzingelung zählt eine ausführbare
+  Missionsaktion als legalen Zug.
+- `MoveRejection` um `mission_choice_pending` und `no_mission_choice`
+  erweitert; `MoveError` deckt die neuen Ableitungen ab.
+- 63 neue Tests (`MissionSystem`, `MissionLoader`, `missionData`,
+  `gameStore.mission`) plus drei angepasste Bestandsdateien — insgesamt
+  272 Tests grün, Coverage 93,7 % Lines.
+
 ## 2026-10-13 — Informationssystem (Schritt 5)
 
 - Drei neue reine Logikmodule: `src/logic/CameraSystem.ts`
