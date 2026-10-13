@@ -18,7 +18,10 @@
  * and provides the runtime helpers the store needs: which action is
  * executable at a position/stage (`executableMissionAction`), the
  * detective-facing structure view without node ids (`missionStructure`)
- * and the sabotage offer (`drawSabotageEffect`, `sabotageDuration`).
+ * and the sabotage offer (`drawSabotageEffect`, `sabotageDuration`). A
+ * predefined "Fall" may pin the offered effect via `sabotageEffect` —
+ * carried into `MissionTargets` by `caseTargets` and preferred over the
+ * random draw at the kontakt action.
  * Everything is pure and deterministic — randomness only enters through
  * the injected `Rng`.
  */
@@ -46,6 +49,12 @@ export interface MissionTargets {
   /** `null` when the map has no `sabotage`-category nodes. */
   sabotage: string | null;
   flucht: string;
+  /**
+   * Case-fixed sabotage effect (predefined "Fälle" only): when set, the
+   * informant offers this effect at the kontakt action instead of a
+   * random draw from `settings.sabotageEffects`.
+   */
+  sabotageEffect?: SabotageEffect;
 }
 
 /** A predefined "Fall" (named scenario) of a mission set. */
@@ -57,6 +66,11 @@ export interface MissionCase {
   kontakt: string;
   flucht: string;
   sabotage?: string;
+  /**
+   * Designer-fixed sabotage effect: takes precedence over the random
+   * `drawSabotageEffect` at the kontakt action. Meaningless (and
+   * rejected by `validateMissionSet`) without a `sabotage` target.
+   */
   sabotageEffect?: SabotageEffect;
 }
 
@@ -375,6 +389,11 @@ export function validateMissionSet(data: unknown, map: MapPack): MissionSet {
             `${where}.sabotageEffect: ${JSON.stringify(effect)} is not in the map's sabotageEffects pool`,
           );
         }
+        // Without a sabotage node there is no offer — a fixed effect
+        // would be dead data, so the combination is rejected.
+        if (entry.sabotage === undefined) {
+          errors.push(`${where}.sabotageEffect: requires a "sabotage" target node`);
+        }
       }
     });
   }
@@ -384,13 +403,18 @@ export function validateMissionSet(data: unknown, map: MapPack): MissionSet {
   return data as unknown as MissionSet;
 }
 
-/** Converts a `MissionCase` into `MissionTargets` (missing sabotage slot → `null`). */
+/**
+ * Converts a `MissionCase` into `MissionTargets` (missing sabotage slot
+ * → `null`). A case-fixed `sabotageEffect` is carried along and takes
+ * precedence over the random draw when the kontakt action runs.
+ */
 export function caseTargets(entry: MissionCase): MissionTargets {
   return {
     diebstahl: entry.diebstahl,
     kontakt: entry.kontakt,
     flucht: entry.flucht,
     sabotage: entry.sabotage ?? null,
+    ...(entry.sabotageEffect !== undefined ? { sabotageEffect: entry.sabotageEffect } : {}),
   };
 }
 

@@ -328,10 +328,13 @@ in `gameStore.ts`; `executableMissionAction`, `missionStructure` in
 
 ## Sabotage-Effekte
 
-**Beschreibung:** Der Informant bietet ein Sabotageziel mit einem per
-Seed gezogenen Effekt aus `settings.sabotageEffects` an. Die Sabotage
-wird als eigene Missionsaktion am Sabotageziel ausgeführt; `wahl` und
-`flucht` haben keine Aktion.
+**Beschreibung:** Der Informant bietet ein Sabotageziel mit einem
+Effekt aus `settings.sabotageEffects` an. Standard ist der per Seed
+gezogene Zufallszug (`missionRng`) — ein Fall-Katalog darf den Effekt
+über `sabotageEffect` fest vorgeben; der fixierte Effekt hat dann
+Vorrang vor dem Zufallszug. Die Sabotage wird als eigene
+Missionsaktion am Sabotageziel ausgeführt; `wahl` und `flucht` haben
+keine Aktion.
 
 **Bedingungen:**
 - `kamera_aus`: alle Kameras `active: false` — sofort und bis
@@ -344,9 +347,10 @@ wird als eigene Missionsaktion am Sabotageziel ausgeführt; `wahl` und
   liefern eine garantiert andere Zone samt konsistentem Köder-Ball;
   formal ein normaler Zonen-Hinweis, nur falsch.
 - `sabotageDuration` = `settings.eventDefaults.cycle` der Karte.
-- `offeredEffect` ist Ganove-Wissen: ein Fall mit fixiertem
-  `sabotageEffect` wird beim Kontakt verwendet, sonst zieht
-  `missionRng(seed, round)` (eigener Salt `MISSION_RNG_SALT`).
+- `offeredEffect` ist Ganove-Wissen: beim Kontakt wird ein fixierter
+  `sabotageEffect` des Falls (`targets.sabotageEffect`) verwendet —
+  der Fall hat Vorrang; ohne Feld zieht `missionRng(seed, round)` aus
+  dem Pool der Karte (eigener Salt `MISSION_RNG_SALT`).
 
 **Umsetzung:** `applySabotageEffect`, `emitRoundEvent`,
 `emitFalseTrailHint` in `gameStore.ts`.
@@ -377,7 +381,9 @@ Spielerdefinierte Missionen übergeben dieselben Ziel-IDs.
 **Bedingungen:**
 - `mapId` muss zur Karte passen; Fall-IDs eindeutig; `id`, `name`,
   `story` nicht-leer; alle Ziel-IDs bekannte Knoten der passenden
-  Kategorie; `sabotageEffect` ∈ `settings.sabotageEffects`.
+  Kategorie; `sabotageEffect` ∈ `settings.sabotageEffects` (fixiertes
+  Sabotage-Angebot — Vorrang vor dem Zufallszug, erfordert ein
+  `sabotage`-Ziel im Fall).
 - Fall- und Custom-Ziele werden zusätzlich gegen die
   Generierungskriterien für den tatsächlichen Start geprüft.
 - Münster liefert mindestens zwei Fälle (`diebstahlserie-altstadt`,

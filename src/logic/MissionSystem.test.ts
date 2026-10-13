@@ -4,6 +4,7 @@ import { loadMap } from "./MapLoader";
 import type { MapPack } from "./mapPack";
 import {
   ACTION_ROUNDS,
+  caseTargets,
   drawSabotageEffect,
   executableMissionAction,
   generateMission,
@@ -17,6 +18,7 @@ import {
   sabotageDuration,
   validateCustomTargets,
   validateMissionSet,
+  type MissionCase,
   type MissionTargets,
 } from "./MissionSystem";
 import { createRng } from "./rng";
@@ -354,6 +356,74 @@ describe("validateMissionSet", () => {
       ],
     };
     expect(() => validateMissionSet(set, luebeck)).toThrow(MissionValidationError);
+  });
+
+  it("accepts a valid fixed sabotageEffect but requires a sabotage target for it", () => {
+    const withEffect = {
+      mapId: "muenster",
+      cases: [
+        {
+          ...validSet.cases[0],
+          sabotageEffect: "kamera_aus",
+        },
+      ],
+    };
+    expect(validateMissionSet(withEffect, muenster).cases[0].sabotageEffect).toBe("kamera_aus");
+
+    const withoutSabotage = {
+      mapId: "muenster",
+      cases: [
+        {
+          id: "f1",
+          name: "n",
+          story: "s",
+          diebstahl: "schloss",
+          kontakt: "wienburgpark",
+          flucht: "hafenpier",
+          sabotageEffect: "kamera_aus", // no sabotage node -> dead config
+        },
+      ],
+    };
+    const errors = (() => {
+      try {
+        validateMissionSet(withoutSabotage, muenster);
+      } catch (error) {
+        return (error as MissionValidationError).errors;
+      }
+      return [] as string[];
+    })();
+    expect(errors.some((entry) => entry.includes('requires a "sabotage" target'))).toBe(true);
+  });
+});
+
+describe("caseTargets", () => {
+  const entry: MissionCase = {
+    id: "fall-1",
+    name: "Fall Eins",
+    story: "Eine Geschichte.",
+    diebstahl: "schloss",
+    kontakt: "wienburgpark",
+    flucht: "hafenpier",
+    sabotage: "stadtwerke",
+    sabotageEffect: "funkstille",
+  };
+
+  it("carries the case-fixed sabotageEffect into the targets", () => {
+    expect(caseTargets(entry)).toEqual({
+      diebstahl: "schloss",
+      kontakt: "wienburgpark",
+      flucht: "hafenpier",
+      sabotage: "stadtwerke",
+      sabotageEffect: "funkstille",
+    });
+  });
+
+  it("leaves the effect unset for cases without the field", () => {
+    const noEffect: MissionCase = { ...entry };
+    delete noEffect.sabotageEffect;
+    const targets = caseTargets(noEffect);
+    expect(targets.sabotageEffect).toBeUndefined();
+    expect("sabotageEffect" in targets).toBe(false);
   });
 });
 

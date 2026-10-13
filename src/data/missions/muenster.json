@@ -17,7 +17,8 @@
       "diebstahl": "speicherstadt",
       "kontakt": "schlosspark",
       "flucht": "wolbeck",
-      "sabotage": "rathaus"
+      "sabotage": "rathaus",
+      "sabotageEffect": "funkstille"
     }
   ]
 }

@@ -240,6 +240,7 @@ describe("startGame mission resolution", () => {
       sabotage: "stadtwerke",
       flucht: "hafenpier",
     });
+    expect(mission.targets.sabotageEffect).toBeUndefined();
     expect(store().escapeNodeIds).toEqual(["hafenpier"]);
   });
 
@@ -507,6 +508,60 @@ describe("sabotage effects", () => {
         .events.filter((e) => e.kind === "hinweis")
         .at(-1)!.zone,
     ).toBe("east");
+  });
+});
+
+describe("case-fixed sabotageEffect", () => {
+  beforeEach(reset);
+
+  it("offers and applies the case-fixed effect instead of the random draw", () => {
+    // "kurier-am-hafen" fixes sabotageEffect "funkstille" — the offer
+    // must show it for every seed (a random pool draw landing on
+    // funkstille 5 times in a row has probability ~1/243).
+    for (const seed of [1, 2, 3, 4, 5]) {
+      reset();
+      store().startGame(muenster, seed, {
+        mission: { type: "case", id: "kurier-am-hafen" },
+      });
+      expect(store().mission!.targets.sabotageEffect).toBe("funkstille");
+      // Jump the mission to the pending kontakt action.
+      store().setMission({ ...store().mission!, stage: "kontakt" });
+      useGameStore.setState({ ganovePosition: "schlosspark" });
+      store().ganoveAction();
+      const offered = store().mission!;
+      expect(offered.stage).toBe("wahl");
+      expect(offered.pendingChoice).toEqual({ sabotageNode: "rathaus", effect: "funkstille" });
+      expect(offered.offeredEffect).toBe("funkstille");
+    }
+    // Continue the last game to the sabotage action — the fixed effect
+    // is what gets applied.
+    store().chooseMissionPath("sabotage");
+    store().endDetectivePhase();
+    useGameStore.setState({ ganovePosition: "rathaus" });
+    const actionRound = store().round;
+    store().ganoveAction();
+    const s = store();
+    expect(s.mission!.appliedEffect).toBe("funkstille");
+    expect(s.mission!.stage).toBe("flucht");
+    expect(s.hintSilenceUntilRound).toBe(actionRound + muenster.settings.eventDefaults.cycle);
+  });
+
+  it("draws the effect from the map's pool for a case without the field", () => {
+    // "diebstahlserie-altstadt" fixes no effect — the seeded draw applies.
+    for (const seed of [1, 2, 3]) {
+      reset();
+      store().startGame(muenster, seed, {
+        mission: { type: "case", id: "diebstahlserie-altstadt" },
+      });
+      expect(store().mission!.targets.sabotageEffect).toBeUndefined();
+      store().setMission({ ...store().mission!, stage: "kontakt" });
+      useGameStore.setState({ ganovePosition: "wienburgpark" });
+      store().ganoveAction();
+      const offered = store().mission!;
+      expect(offered.pendingChoice!.sabotageNode).toBe("stadtwerke");
+      expect(muenster.settings.sabotageEffects).toContain(offered.pendingChoice!.effect);
+      expect(offered.offeredEffect).toBe(offered.pendingChoice!.effect);
+    }
   });
 });
 

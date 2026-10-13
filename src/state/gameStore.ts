@@ -787,9 +787,11 @@ export const useGameStore = create<GameState>((set, get) => {
   /**
    * Advances the mission stage after an executed action:
    * diebstahl → kontakt → (sabotage offer | direct flucht) →
-   * sabotage → flucht. The kontakt action draws the offered effect in
-   * the same step (spec section 5.4); on maps without a sabotage pool
-   * there is no offer and the mission goes straight to "flucht".
+   * sabotage → flucht. The kontakt action determines the offered effect
+   * in the same step (spec section 5.4): a case-fixed
+   * `targets.sabotageEffect` wins, otherwise `drawSabotageEffect` pulls
+   * from the map's pool. On maps without a sabotage pool there is no
+   * offer and the mission goes straight to "flucht".
    */
   const advanceMission = (action: MissionKind): void => {
     const state = get();
@@ -807,7 +809,11 @@ export const useGameStore = create<GameState>((set, get) => {
         set({ mission: { ...mission, stage: "flucht" } });
         return;
       }
-      const effect = drawSabotageEffect(map, missionRng(state.seed, state.round));
+      // A case-fixed sabotageEffect (predefined "Fälle") takes
+      // precedence over the seeded random draw.
+      const effect =
+        mission.targets.sabotageEffect ??
+        drawSabotageEffect(map, missionRng(state.seed, state.round));
       set({
         mission: {
           ...mission,
