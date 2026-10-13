@@ -4,7 +4,7 @@ Branch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 
 | # | Titel | Abhängigkeiten | Branch | Status |
 |---|-------|----------------|--------|--------|
-| 1 | Projekt-Scaffold und Qualitätsinfrastruktur | Keine | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-1-scaffold-qualitaet` | Offen |
+| 1 | Projekt-Scaffold und Qualitätsinfrastruktur | Keine | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-1-scaffold-qualitaet` | In Arbeit |
 | 2 | Engine-Grundgerüst — Kartenpakete, Graph, Zufall, Startaufstellung | 1 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-2-engine-grundgeruest` | Offen |
 | 3 | Kartenpakete Münster und Lübeck | 2 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-3-kartenpakete` | Offen |
 | 4 | Rundenablauf, Bewegung und Spielende | 2, 3 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-4-rundenablauf` | Offen |
