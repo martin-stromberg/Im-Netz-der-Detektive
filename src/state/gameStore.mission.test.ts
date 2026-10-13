@@ -366,7 +366,11 @@ describe("mission order and action rounds", () => {
     expect(s.outcome).toBe("escaped");
     expect(s.log.at(-1)).toMatchObject({
       type: "result",
-      details: { outcome: "escaped", rounds: 12 },
+      outcome: "escaped",
+      rounds: 12,
+      hintsTotal: expect.any(Number),
+      camerasTriggered: expect.any(Number),
+      visibleTo: "both",
     });
   });
 });

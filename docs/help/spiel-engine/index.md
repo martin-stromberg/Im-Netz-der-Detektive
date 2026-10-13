@@ -15,7 +15,11 @@ Generierung der Ziele (Diebstahl → Kontakt → Binärwahl Sabotage/Flucht)
 mit per BFS prüfbaren Kriterien, Aktionsrunden mit Spur-Hinweisen, dem
 Sabotage-Angebot des Informanten mit drei wirksamen Effekten,
 missionsgebundener Flucht sowie vordefinierten benannten „Fällen" als
-JSON-Missionssets pro Karte.
+JSON-Missionssets pro Karte. Jede Partie wird vollständig als
+JSONL-Eventlog aufgezeichnet (`Recorder`) — über den Seed bitgleich
+rekonstruierbar, mit `visibleTo`-Sichtbarkeit je Eintrag,
+Balancing-Metriken im Abschluss-Eintrag, Datei-Export und automatischem
+Vorhalten der letzten Partien im Browser-Speicher (FIFO).
 
 ## Inhalt
 

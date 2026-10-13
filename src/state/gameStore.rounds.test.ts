@@ -110,7 +110,11 @@ describe("moveGanove", () => {
     expect(s.log.filter((e) => e.type === "move").at(-1)).toMatchObject({
       type: "move",
       round: 1,
-      details: { actor: "ganove", from: "d", to: "c", edgeType: "weg" },
+      actor: "ganove",
+      from: "d",
+      to: "c",
+      edgeType: "weg",
+      visibleTo: "ganove",
     });
   });
 
@@ -129,7 +133,11 @@ describe("moveGanove", () => {
         .at(-1),
     ).toMatchObject({
       type: "move",
-      details: { actor: "ganove", from: "g", to: "f", edgeType: "fahrt" },
+      actor: "ganove",
+      from: "g",
+      to: "f",
+      edgeType: "fahrt",
+      visibleTo: "ganove",
     });
   });
 
@@ -247,7 +255,9 @@ describe("ganoveAction (Zugzwang exception hook)", () => {
     expect(s.activeDetectiveIndex).toBe(0);
     expect(s.log.at(-1)).toMatchObject({
       type: "action",
-      details: { actor: "ganove", nodeId: "d" },
+      actor: "ganove",
+      node: "d",
+      visibleTo: "ganove",
     });
   });
 

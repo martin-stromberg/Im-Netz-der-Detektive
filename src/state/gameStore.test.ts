@@ -54,7 +54,14 @@ describe("startGame", () => {
     expect(s.round).toBe(1);
     expect(s.phase).toBe("ganove");
     expect(s.log).toHaveLength(1);
-    expect(s.log[0]).toMatchObject({ seq: 1, round: 1, type: "header" });
+    expect(s.log[0]).toMatchObject({
+      seq: 0,
+      type: "header",
+      gameId: "g-42",
+      mapId: "teststadt",
+      seed: 42,
+      visibleTo: "both",
+    });
   });
 
   it("produces identical starting positions for the same seed", () => {

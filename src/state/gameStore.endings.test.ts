@@ -108,7 +108,11 @@ describe("caught (Fang)", () => {
     expect(s.activeDetectiveIndex).toBe(2);
     expect(s.log.at(-1)).toMatchObject({
       type: "result",
-      details: { outcome: "caught", rounds: 2 },
+      outcome: "caught",
+      rounds: 2,
+      hintsTotal: expect.any(Number),
+      camerasTriggered: expect.any(Number),
+      visibleTo: "both",
     });
     // The game is over mid-phase: D4 cannot move anymore.
     expect(reasonOf(() => store().moveDetective("b"))).toBe("game_over");
@@ -165,7 +169,11 @@ describe("surrounded (Umzingelung)", () => {
     expect(s.outcome).toBe("surrounded");
     expect(s.log.at(-1)).toMatchObject({
       type: "result",
-      details: { outcome: "surrounded", rounds: 3 },
+      outcome: "surrounded",
+      rounds: 3,
+      hintsTotal: expect.any(Number),
+      camerasTriggered: expect.any(Number),
+      visibleTo: "both",
     });
   });
 
@@ -226,7 +234,11 @@ describe("escaped (Flucht)", () => {
     expect(s.outcome).toBe("escaped");
     expect(s.log.at(-1)).toMatchObject({
       type: "result",
-      details: { outcome: "escaped", rounds: 1 },
+      outcome: "escaped",
+      rounds: 1,
+      hintsTotal: expect.any(Number),
+      camerasTriggered: expect.any(Number),
+      visibleTo: "both",
     });
     expect(reasonOf(() => store().moveDetective("h"))).toBe("game_over");
   });
@@ -254,7 +266,11 @@ describe("timeout (Zeitlimit)", () => {
     expect(s.round).toBe(2);
     expect(s.log.at(-1)).toMatchObject({
       type: "result",
-      details: { outcome: "timeout", rounds: 2 },
+      outcome: "timeout",
+      rounds: 2,
+      hintsTotal: expect.any(Number),
+      camerasTriggered: expect.any(Number),
+      visibleTo: "both",
     });
   });
 
@@ -281,7 +297,11 @@ describe("draw (Remis)", () => {
     expect(s.outcome).toBe("draw");
     expect(s.log.at(-1)).toMatchObject({
       type: "result",
-      details: { outcome: "draw", rounds: 1 },
+      outcome: "draw",
+      rounds: 1,
+      hintsTotal: expect.any(Number),
+      camerasTriggered: expect.any(Number),
+      visibleTo: "both",
     });
     expect(reasonOf(() => store().abortAsDraw())).toBe("game_over");
   });

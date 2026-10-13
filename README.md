@@ -15,7 +15,21 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-Missionssystem (Entwicklungsschritt 6): Jede Partie trägt eine Mission
+Eventlog (Entwicklungsschritt 7): Jede Partie wird vollständig als
+JSONL-Eventlog aufgezeichnet — `header` (Spiel-ID, Karte, Seed,
+effektive Konfiguration, Mission, Kameras, Startaufstellung),
+sequenzierte Events mit `visibleTo`-Sichtbarkeit für alle
+Spielvorgänge (Züge inkl. Wegart, Kameraauslösungen, Ereignisse,
+Kantensperrungen samt Ablauf, Hinweise, Aktions-Spuren,
+Sabotage-Angebot und -Wahl, Polizeifunk) und ein `result`-Abschluss mit
+Balancing-Metriken (Runden, Hinweise gesamt, Kameratreffer). Gleicher
+Seed + gleiche Eingaben ergeben ein bitgleiches Log; aus Header + Seed
+ist der Anfangszustand rekonstruierbar. Export als JSONL-Datei und
+automatisches Vorhalten der letzten Partien im `localStorage` (FIFO)
+sind über `Recorder.ts` hinter injizierbaren Browser-Grenzen
+implementiert — die Engine bleibt headless.
+
+Darunter liegt das Missionssystem (Entwicklungsschritt 6): Jede Partie trägt eine Mission
 in fester Reihenfolge Diebstahl → Kontakt → Binärwahl
 (Sabotage/Flucht) — die Ziele werden per Seed aus den
 Kategorien-Pools gezogen und müssen BFS-prüfbare Kriterien erfüllen
