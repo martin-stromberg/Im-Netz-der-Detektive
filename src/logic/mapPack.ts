@@ -20,6 +20,56 @@ export type EventMode = (typeof EVENT_MODES)[number];
 export const SABOTAGE_EFFECTS = ["kamera_aus", "funkstille", "falsche_spur"] as const;
 export type SabotageEffect = (typeof SABOTAGE_EFFECTS)[number];
 
+/**
+ * Landmark glyph ids — the illustrated board feature on a node (e.g.
+ * the Dom twin towers at `domplatz`). Kept as a closed set so the
+ * schema can reject typos; the glyph renderer lives in
+ * `components/landmarks.tsx`.
+ */
+export const KNOWN_LANDMARKS = [
+  "dom",
+  "kirche",
+  "rathaus",
+  "schloss",
+  "bahnhof",
+  "buddenturm",
+  "tor",
+  "muehle",
+  "zoo",
+  "kran",
+  "terrassen",
+  "museum",
+  "speicher",
+  "holstentor",
+] as const;
+
+export type LandmarkId = (typeof KNOWN_LANDMARKS)[number];
+
+/**
+ * Decorative board layer styles — comic-style city geography drawn
+ * under the graph: water surfaces, parks, rail strips, street hints
+ * and building-block silhouettes. Presentation only — never leaks
+ * information and never intercepts input.
+ */
+export type BoardStyle = "water" | "park" | "rail" | "street" | "block";
+
+const KNOWN_BOARD_STYLES: readonly BoardStyle[] = ["water", "park", "rail", "street", "block"];
+
+/**
+ * One backdrop shape: SVG path data in viewBox coordinates. `kind`
+ * stays open for future non-path features (e.g. text plates).
+ */
+export interface BoardFeature {
+  kind: "shape";
+  style: BoardStyle;
+  /** SVG `d` attribute — hand-authored comic paths. */
+  d: string;
+}
+
+export interface MapBoard {
+  features: BoardFeature[];
+}
+
 export interface MapNode {
   id: string;
   name: string;
@@ -27,6 +77,8 @@ export interface MapNode {
   y: number;
   categories: NodeCategory[];
   zone: string;
+  /** Comic landmark glyph drawn at the node — see `KNOWN_LANDMARKS`. */
+  landmark?: LandmarkId;
 }
 
 export interface MapEdge {
@@ -112,6 +164,11 @@ export interface MapPack {
   edges: MapEdge[];
   spawnRules: SpawnRules;
   settings: MapSettings;
+  /**
+   * Optional comic board layer — decorative city geography rendered
+   * under the graph. Absent on test/minimal maps.
+   */
+  board?: MapBoard;
 }
 
 /**
@@ -301,6 +358,12 @@ function checkNodes(
     } else {
       zoneNames.add(node.zone);
     }
+    if (node.landmark !== undefined && !KNOWN_LANDMARKS.includes(node.landmark as LandmarkId)) {
+      errors.push(
+        `${where}.landmark: unknown landmark ${JSON.stringify(node.landmark)} ` +
+          `(allowed: ${KNOWN_LANDMARKS.join("|")})`,
+      );
+    }
   });
 }
 
@@ -357,6 +420,40 @@ function checkSpawnRules(
       checkSpawnRule(spawn[side], nodeIds, zoneNames, `spawnRules.${side}`, errors);
     }
   }
+}
+
+function checkBoard(board: unknown, errors: string[]): void {
+  if (board === undefined) {
+    return;
+  }
+  if (!isRecord(board)) {
+    errors.push("board: must be an object when present");
+    return;
+  }
+  const features = board.features;
+  if (!Array.isArray(features)) {
+    errors.push("board.features: required array");
+    return;
+  }
+  features.forEach((feature, i) => {
+    const where = `board.features[${i}]`;
+    if (!isRecord(feature)) {
+      errors.push(`${where}: must be an object`);
+      return;
+    }
+    if (feature.kind !== "shape") {
+      errors.push(`${where}.kind: must be "shape"`);
+    }
+    if (!KNOWN_BOARD_STYLES.includes(feature.style as BoardStyle)) {
+      errors.push(
+        `${where}.style: invalid style ${JSON.stringify(feature.style)} ` +
+          `(allowed: ${KNOWN_BOARD_STYLES.join("|")})`,
+      );
+    }
+    if (!isNonEmptyString(feature.d)) {
+      errors.push(`${where}.d: required non-empty SVG path string`);
+    }
+  });
 }
 
 function checkSettings(settings: unknown, errors: string[]): void {
@@ -447,6 +544,7 @@ export function validateMapPack(data: unknown): MapPack {
   checkEdges(data, nodeIds, errors);
   checkSpawnRules(data.spawnRules, nodeIds, zoneNames, errors);
   checkSettings(data.settings, errors);
+  checkBoard(data.board, errors);
 
   if (errors.length > 0) {
     throw new MapValidationError(errors);

@@ -64,6 +64,17 @@ anhand ihrer Hinweise einkreisen.
   Flucht, das Rundenlimit oder ein Remis (aktiv beendbar über „Als
   Remis beenden" mit Bestätigung).
 
+## Spielbrett
+
+Die Karte ist als Comic-Stadt gezeichnet: Auf Münster erkennst du den
+Aasee im Südwesten, den grünen Promenadenring um die Altstadt, den
+Schlosspark, das Hafenbecken und die Aa; auf Lübeck die Wasserlinie
+der Altstadtinsel. Wichtige Orte tragen kleine Wahrzeichen-Bilder —
+Dom, Lamberti, Rathaus, Schloss, Hauptbahnhof, Mühlenhof-Mühle oder
+das Holstentor — gezeichnet als flache Comic-Symbole mit dicken
+Konturen. Die Darstellung ist rein dekorativ: Sie verdeckt keine
+Spielinformationen und nimmt keine Eingaben entgegen.
+
 ## Beispiele
 
 - Du stehst auf dem Diebstahl-Zielort: Neben dem Weiterziehen erscheint

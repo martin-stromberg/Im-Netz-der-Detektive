@@ -13,7 +13,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "innenstadt"
+      "zone": "innenstadt",
+      "landmark": "dom"
     },
     {
       "id": "prinzipalmarkt",
@@ -33,7 +34,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "innenstadt"
+      "zone": "innenstadt",
+      "landmark": "kirche"
     },
     {
       "id": "rathaus",
@@ -44,7 +46,8 @@
         "diebstahl",
         "sabotage"
       ],
-      "zone": "innenstadt"
+      "zone": "innenstadt",
+      "landmark": "rathaus"
     },
     {
       "id": "lwl_museum",
@@ -54,7 +57,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "innenstadt"
+      "zone": "innenstadt",
+      "landmark": "museum"
     },
     {
       "id": "picasso_museum",
@@ -64,7 +68,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "innenstadt"
+      "zone": "innenstadt",
+      "landmark": "museum"
     },
     {
       "id": "stadtmuseum",
@@ -74,7 +79,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "innenstadt"
+      "zone": "innenstadt",
+      "landmark": "museum"
     },
     {
       "id": "kuhviertel",
@@ -94,7 +100,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "innenstadt"
+      "zone": "innenstadt",
+      "landmark": "kirche"
     },
     {
       "id": "aegidiimarkt",
@@ -134,7 +141,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "innenstadt"
+      "zone": "innenstadt",
+      "landmark": "buddenturm"
     },
     {
       "id": "schloss",
@@ -144,7 +152,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "schlosspark"
+      "zone": "schlosspark",
+      "landmark": "schloss"
     },
     {
       "id": "schlossplatz",
@@ -184,7 +193,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "schlosspark"
+      "zone": "schlosspark",
+      "landmark": "museum"
     },
     {
       "id": "wienburgpark",
@@ -214,7 +224,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "geist"
+      "zone": "geist",
+      "landmark": "kirche"
     },
     {
       "id": "sentruper_strasse",
@@ -304,7 +315,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "mauritzviertel"
+      "zone": "mauritzviertel",
+      "landmark": "kirche"
     },
     {
       "id": "warendorfer_strasse",
@@ -365,7 +377,8 @@
         "flucht",
         "kontakt"
       ],
-      "zone": "bahnhofsviertel"
+      "zone": "bahnhofsviertel",
+      "landmark": "bahnhof"
     },
     {
       "id": "zob",
@@ -436,7 +449,8 @@
         "kontakt",
         "diebstahl"
       ],
-      "zone": "hafen"
+      "zone": "hafen",
+      "landmark": "speicher"
     },
     {
       "id": "kreativkai",
@@ -456,7 +470,8 @@
       "categories": [
         "flucht"
       ],
-      "zone": "hafen"
+      "zone": "hafen",
+      "landmark": "kran"
     },
     {
       "id": "stadtwerke",
@@ -486,7 +501,8 @@
       "categories": [
         "kontakt"
       ],
-      "zone": "kreuzviertel"
+      "zone": "kreuzviertel",
+      "landmark": "tor"
     },
     {
       "id": "heiligkreuzkirche",
@@ -496,7 +512,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "kreuzviertel"
+      "zone": "kreuzviertel",
+      "landmark": "kirche"
     },
     {
       "id": "bispinghof",
@@ -526,7 +543,8 @@
       "categories": [
         "kontakt"
       ],
-      "zone": "aasee"
+      "zone": "aasee",
+      "landmark": "terrassen"
     },
     {
       "id": "mensa_am_aasee",
@@ -556,7 +574,8 @@
       "categories": [
         "diebstahl"
       ],
-      "zone": "aasee"
+      "zone": "aasee",
+      "landmark": "muehle"
     },
     {
       "id": "allwetterzoo",
@@ -566,7 +585,8 @@
       "categories": [
         "kontakt"
       ],
-      "zone": "aasee"
+      "zone": "aasee",
+      "landmark": "zoo"
     },
     {
       "id": "uniklinik",
@@ -1174,6 +1194,135 @@
       "kamera_aus",
       "funkstille",
       "falsche_spur"
+    ]
+  },
+  "board": {
+    "features": [
+      {
+        "kind": "shape",
+        "style": "water",
+        "d": "M 285 468 C 252 488 236 552 231 605 C 226 655 241 706 264 709 C 289 712 303 640 307 585 C 311 528 313 483 285 468 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "water",
+        "d": "M 258 709 L 272 709 L 288 800 L 268 800 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "water",
+        "d": "M 648 615 L 662 615 L 700 705 L 562 705 C 542 700 540 665 552 640 C 560 622 580 612 600 612 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "water",
+        "d": "M 646 615 L 660 615 L 706 468 L 692 466 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "water",
+        "d": "M 385 252 C 460 228 560 232 640 252 C 700 267 745 280 782 274 L 782 287 C 745 294 700 284 640 268 C 560 248 460 244 385 268 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "park",
+        "d": "M 490 268 C 565 268 625 328 625 405 C 625 482 565 542 490 542 C 415 542 355 482 355 405 C 355 328 415 268 490 268 Z M 490 293 C 550 293 598 345 598 405 C 598 465 550 517 490 517 C 430 517 382 465 382 405 C 382 345 430 293 490 293 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "park",
+        "d": "M 168 338 C 205 312 285 308 335 330 C 380 350 388 405 360 445 C 332 480 258 492 205 470 C 160 450 142 372 168 338 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "park",
+        "d": "M 308 468 C 345 468 374 495 380 532 C 385 565 375 592 358 606 L 350 588 C 362 560 356 520 330 498 C 316 486 308 478 308 468 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "rail",
+        "d": "M 590 475 L 850 475"
+      },
+      {
+        "kind": "shape",
+        "style": "rail",
+        "d": "M 600 500 L 860 500"
+      },
+      {
+        "kind": "shape",
+        "style": "rail",
+        "d": "M 615 528 L 870 528"
+      },
+      {
+        "kind": "shape",
+        "style": "street",
+        "d": "M 715 465 L 668 498 L 645 462 L 618 392 L 578 330"
+      },
+      {
+        "kind": "shape",
+        "style": "street",
+        "d": "M 560 445 L 525 430 L 497 418 L 468 400 L 455 368"
+      },
+      {
+        "kind": "shape",
+        "style": "street",
+        "d": "M 437 480 L 470 505 L 452 558 L 472 592"
+      },
+      {
+        "kind": "shape",
+        "style": "street",
+        "d": "M 350 500 L 365 545 L 298 615"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 450 385 L 465 383 L 466 396 L 451 398 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 505 395 L 520 393 L 521 406 L 506 408 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 478 425 L 492 423 L 493 436 L 479 438 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 540 415 L 555 413 L 556 426 L 541 428 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 600 350 L 615 348 L 616 362 L 601 364 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 650 420 L 665 418 L 666 432 L 651 434 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 430 545 L 445 543 L 446 556 L 431 558 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 560 565 L 575 563 L 576 577 L 561 579 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 395 305 L 410 303 L 411 316 L 396 318 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 575 480 L 590 478 L 591 492 L 576 494 Z"
+      }
     ]
   }
 }

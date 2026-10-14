@@ -8,7 +8,10 @@ docs/konzept/content/02-technisches-konzept.md section 4:
     spawnRules{}, settings{} (all required).
   - nodes[]: { id: str (unique), name: str, x: number, y: number,
     categories: non-empty list of diebstahl|kontakt|sabotage|flucht,
-    zone: str }.
+    zone: str, landmark: optional comic glyph id }.
+  - board (optional): { features: [{ kind: "shape",
+    style: water|park|rail|street|block, d: non-empty SVG path }] } —
+    the decorative comic city layer under the graph.
   - edges[]: { a, b: existing node ids, type: weg|fahrt,
     cost: number (optional, reserved) }.
   - spawnRules: { detectives: {mode}, ganove: {mode},
@@ -45,6 +48,9 @@ EDGE_TYPES = {'weg', 'fahrt'}
 SPAWN_MODES = {'choice', 'free', 'random'}
 EVENT_MODES = {'cycle', 'chance', 'tension'}
 SABOTAGE_EFFECTS = {'kamera_aus', 'funkstille', 'falsche_spur'}
+LANDMARKS = {'dom', 'kirche', 'rathaus', 'schloss', 'bahnhof', 'buddenturm', 'tor',
+             'muehle', 'zoo', 'kran', 'terrassen', 'museum', 'speicher', 'holstentor'}
+BOARD_STYLES = {'water', 'park', 'rail', 'street', 'block'}
 RANGE_SETTINGS = {'detectiveCount', 'cameraCount', 'radioHintCount', 'edgeBlockRounds'}
 SCALAR_SETTINGS = {'cameraMinGap', 'hintZoneRadius'}
 EVENT_DEFAULT_KEYS = {'cycle', 'chance', 'threshold', 'perRound'}
@@ -179,6 +185,9 @@ def validate_map(data, errors):
             errors.append(f'{where}.zone: required non-empty string')
         else:
             zone_names.add(node['zone'])
+        landmark = node.get('landmark')
+        if landmark is not None and (not isinstance(landmark, str) or landmark not in LANDMARKS):
+            errors.append(f'{where}.landmark: unknown landmark {landmark!r} (allowed: {sorted(LANDMARKS)})')
 
     edges = data.get('edges')
     if not isinstance(edges, list) or not edges:
@@ -254,6 +263,27 @@ def validate_map(data, errors):
         for effect in effects:
             if not isinstance(effect, str) or effect not in SABOTAGE_EFFECTS:
                 errors.append(f'settings.sabotageEffects: invalid effect {effect!r} (allowed: {sorted(SABOTAGE_EFFECTS)})')
+
+    board = data.get('board')
+    if board is not None:
+        if not isinstance(board, dict):
+            errors.append('board: must be an object when present')
+        else:
+            features = board.get('features')
+            if not isinstance(features, list):
+                errors.append('board.features: required array')
+            else:
+                for i, feature in enumerate(features):
+                    where = f'board.features[{i}]'
+                    if not isinstance(feature, dict):
+                        errors.append(f'{where}: must be an object')
+                        continue
+                    if feature.get('kind') != 'shape':
+                        errors.append(f'{where}.kind: must be "shape"')
+                    if feature.get('style') not in BOARD_STYLES:
+                        errors.append(f'{where}.style: invalid style {feature.get("style")!r} (allowed: {sorted(BOARD_STYLES)})')
+                    if not isinstance(feature.get('d'), str) or not feature['d'].strip():
+                        errors.append(f'{where}.d: required non-empty SVG path string')
 
 
 def parse_args():
