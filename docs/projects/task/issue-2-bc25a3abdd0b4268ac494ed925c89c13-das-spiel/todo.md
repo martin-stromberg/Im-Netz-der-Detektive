@@ -16,8 +16,7 @@ Projektverzeichnis: `docs/projects/task/issue-2-bc25a3abdd0b4268ac494ed925c89c13
 - [x] Planprüfung (`project-plan-check.md`, Status „vollständig", 0 Lücken)
 - [x] Planungscommit (`plan: Im Netz der Detektive — asymmetrisches Browser-Verfolgungsspiel`)
 - [x] Entwicklungsschritte-Tracking (`steps.md` + `status.html` via `generate_status.py`)
-- [ ] Entwicklungsschleife (alle Schritte `Fertig`)
-  - Schritt 1: Fertig — RC `v1.0.0-rc.1` auf staging (PR #3/#4/#5, 2 Pipeline-Fixes: Backmerge-Parent-Check, semantic-release-Parsing + RESOLVE_DRY_RUN). Pflicht-Kontexte `static checks`/`build & test`/`no pending backmerge` auf staging gesetzt. Cold-Start-Promotion-PR #6 (Draft) manuell angelegt.
+- [x] Entwicklungsschleife (alle 14 Schritte `Fertig`, jeweils Abnahme „Anforderung vollständig erfüllt" bzw. korrigiert, Merge auf Basisbranch, RC-Prerelease `v1.0.0-rc.1`–`rc.14` auf staging)
 - [ ] Aufräumen (Projektverzeichnis entfernt)
 - [ ] Abschlusscommit
 
