@@ -14,7 +14,7 @@ Branch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 | 8 | Deduktion und KI — Detektiv-KI, Ganove-KI, KI-vs.-KI-Modus | 7 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-8-deduktion-ki` | Fertig |
 | 9 | Ganove-Perspektive (Primärmodus) | 8 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-9-ganove-perspektive` | Fertig |
 | 10 | Detektiv-Perspektive mit Deduktions-Werkzeugen | 8, 9 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-10-detektiv-perspektive` | Fertig |
-| 11 | Menü, Einstellungen und Szenarien-Auswahl | 9, 10 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-11-menue-einstellungen` | In Arbeit |
+| 11 | Menü, Einstellungen und Szenarien-Auswahl | 9, 10 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-11-menue-einstellungen` | Fertig |
 | 12 | Persistenz — Save/Load, Replay-Player und Statistiken | 7, 11 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-12-persistenz-replay` | Offen |
 | 13 | Lokalisierung, Barrierefreiheit und Audio | 9, 10, 11, 12 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-13-i18n-a11y-audio` | Offen |
 | 14 | Endabnahme — E2E-Tests, Balancing-Kalibrierung und Polishing | 13 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-14-endabnahme-polishing` | Offen |
