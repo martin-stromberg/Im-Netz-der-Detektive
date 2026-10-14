@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import de from "./de.json";
 import en from "./en.json";
-import { getLanguage, hasTranslation, resolveText, t } from "./index";
+import { getLanguage, hasTranslation, resolveText, t, type TranslationKey } from "./index";
 import { useUiPrefs } from "../state/uiPrefs";
 
 describe("t()", () => {
