@@ -27,6 +27,8 @@ import {
 } from "../state/gameStore";
 import { installDetectiveDriver } from "../state/detectiveDriver";
 import { loadMap } from "../logic/MapLoader";
+import { buildResumeEntry } from "../logic/SaveGame";
+import { saveResumeEntry } from "../logic/GameIndex";
 import { resolveFixedTargets } from "../logic/MissionLoader";
 import { createRng } from "../logic/rng";
 import {
@@ -88,7 +90,7 @@ const HINT_KEY: Record<string, TranslationKey> = {
 };
 
 /** Compact symbol legend under the map — shapes/patterns, not colour. */
-function MapLegend() {
+export function MapLegend() {
   return (
     <div className={styles.legend} data-testid="map-legend">
       <span className={styles.legendTitle}>{t("legend.title")}:</span>
@@ -306,6 +308,8 @@ export function GanoveScreen({
       ...pending.options,
       ...positions,
       mission: pending.mission,
+      // The played side lands in the log header for the mode statistics.
+      playerMode: "ganove" as const,
     };
     try {
       useGameStore.getState().startGame(pending.map, pending.seed, startOptions);
@@ -348,6 +352,15 @@ export function GanoveScreen({
     setSetup(null);
     setAbortConfirm(false);
     setNotice(null);
+  };
+
+  /** "Partie speichern" — snapshot + log land under `RESUME_STORAGE_KEY`. */
+  const saveGame = () => {
+    const entry = buildResumeEntry(useGameStore.getState(), "ganove");
+    if (entry !== null) {
+      saveResumeEntry(entry);
+      setNotice(t("save.done"));
+    }
   };
 
   // ---- idle / start view ----
@@ -481,6 +494,14 @@ export function GanoveScreen({
                 onClick={() => runGuarded(() => useGameStore.getState().useRadio())}
               >
                 {radioUsed ? t("radio.used") : t("radio.button")}
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                data-testid="save-button"
+                onClick={saveGame}
+              >
+                {t("save.button")}
               </button>
               {abortConfirm ? (
                 <div className={styles.confirm} data-testid="abort-confirm">

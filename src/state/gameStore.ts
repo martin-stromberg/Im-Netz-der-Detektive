@@ -201,6 +201,13 @@ export interface StartGameOptions {
   /** Mission to play; defaults to `"auto"` (see `MissionOption`). */
   mission?: MissionOption;
   /**
+   * Which perspective a human player controls — purely informational:
+   * it lands in the log header `config.playerMode` so the aggregated
+   * statistics can split win rates by played mode (spec section 8.1).
+   * AI-vs-AI games leave it unset.
+   */
+  playerMode?: "ganove" | "detektiv";
+  /**
    * Fully resolved mission to apply verbatim — the log-reconstruction
    * path (`startOptionsFromHeader`) feeds the recorded `header.mission`
    * here; `null` means the recorded game ran without a mission. Takes
@@ -223,6 +230,15 @@ export interface StartGameOptions {
    * part of the inputs when bit-identical logs are required.
    */
   gameId?: string;
+  /**
+   * Internal switch for the auto-persist of the finished log
+   * (`finish` → `saveGameLog` into the `game-logs` FIFO). Defaults to
+   * `true`; the replay path (`replayTo`) passes `false` — re-running
+   * an already-recorded game must never write the identical log into
+   * the retained logs a second time. It is never part of the recorded
+   * header `config`, so replayed logs stay bit-identical.
+   */
+  autoPersist?: boolean;
 }
 
 export interface GameState {
@@ -274,6 +290,14 @@ export interface GameState {
 
   startGame: (map: MapPack, seed: number, options?: StartGameOptions) => void;
   resetGame: () => void;
+  /**
+   * "Partie fortsetzen" (spec section 8.1): restores a saved mid-game
+   * snapshot — `map` comes from `loadMap(entry.mapId)`, `snapshot`
+   * carries every data field except `map`/`log`, and `log` is the
+   * parsed JSONL of the resume entry. Missing fields fall back to the
+   * initial values (forward-compatible inside a schema version).
+   */
+  resumeGame: (map: MapPack, snapshot: GameStateSnapshot, log: LogEntry[]) => void;
   appendLog: (entry: LogInput) => void;
   /** "Partie exportieren": the log as a downloadable JSONL Blob. */
   exportGameLog: () => Blob | null;
@@ -305,10 +329,11 @@ export interface GameState {
   setEventMode: (mode: EventMode) => void;
 }
 
-type GameData = Omit<
+export type GameData = Omit<
   GameState,
   | "startGame"
   | "resetGame"
+  | "resumeGame"
   | "appendLog"
   | "exportGameLog"
   | "endGanovePhase"
@@ -336,6 +361,15 @@ type GameData = Omit<
   | "setTension"
   | "setEventMode"
 >;
+
+/**
+ * The serializable state snapshot of a save point (spec section 8.1):
+ * every data field except `map` (re-loaded via `loadMap(entry.mapId)`)
+ * and `log` (the `ResumeEntry` carries it separately as JSONL). All
+ * fields are plain JSON values — the RNG never lives in the state, it
+ * is re-derived from `seed`/`round` per turn.
+ */
+export type GameStateSnapshot = Omit<GameData, "map" | "log">;
 
 /** Fresh data state — new array instances on every call. */
 function initialData(): GameData {
@@ -716,6 +750,17 @@ function moveContext(state: {
  * via `outcome` (caught / surrounded / escaped / timeout / draw).
  */
 export const useGameStore = create<GameState>((set, get) => {
+  /**
+   * Whether `finish` auto-persists the completed log into the
+   * `game-logs` FIFO (Recorder.ts). Replays drive this same store but
+   * re-run an already-recorded game — persisting would append a
+   * duplicate and skew the statistics — so `startGame` honours
+   * `autoPersist: false` for the reconstruction path. The flag is
+   * per-game: `startGame`, `resetGame` and `resumeGame` restore the
+   * default, so replay suppression can never leak into a live game.
+   */
+  let persistFinishedLog = true;
+
   const finish = (outcome: GameOutcome): void => {
     const { round, events } = get();
     // Balancing metrics of the result line (spec section 8): hints the
@@ -733,8 +778,12 @@ export const useGameStore = create<GameState>((set, get) => {
       visibleTo: "both",
     });
     // Auto-persist the finished log — a no-op where localStorage is
-    // unavailable (headless runs, tests), so the store stays pure.
-    saveGameLog(get().log);
+    // unavailable (headless runs, tests), and suppressed for replays
+    // (`autoPersist: false` in `startGame`), so the store stays pure
+    // and a replayed game never lands in the FIFO as a duplicate.
+    if (persistFinishedLog) {
+      saveGameLog(get().log);
+    }
   };
 
   /**
@@ -1053,6 +1102,10 @@ export const useGameStore = create<GameState>((set, get) => {
     ...initialData(),
 
     startGame: (map, seed, options) => {
+      // Replays reconstruct a recorded game through this same action —
+      // `autoPersist: false` keeps `finish` from re-persisting the log
+      // into the `game-logs` FIFO. Default (and reset below): persist.
+      persistFinishedLog = options?.autoPersist !== false;
       // One RNG stream per game: spawns first (unchanged draw order),
       // then the camera placement — same seed, same game.
       const rng = createRng(seed);
@@ -1141,6 +1194,9 @@ export const useGameStore = create<GameState>((set, get) => {
           eventDefaults,
           mission: options?.mission ?? "auto",
           cameraProtectedNodes,
+          // Recorded only when a human plays a side — AI-vs-AI batches
+          // carry no `playerMode` and aggregate as "unbekannt".
+          ...(options?.playerMode !== undefined ? { playerMode: options.playerMode } : {}),
         },
         mission:
           mission !== null
@@ -1159,7 +1215,16 @@ export const useGameStore = create<GameState>((set, get) => {
       checkGanoveSurrounded();
     },
 
-    resetGame: () => set({ ...initialData() }),
+    resetGame: () => {
+      persistFinishedLog = true;
+      set({ ...initialData() });
+    },
+
+    resumeGame: (map, snapshot, log) => {
+      // A resumed game is a live game — `finish` persists its log.
+      persistFinishedLog = true;
+      set({ ...initialData(), ...snapshot, map, log: [...log] });
+    },
 
     appendLog: (entry) =>
       set((state) => ({

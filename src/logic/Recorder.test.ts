@@ -4,7 +4,9 @@ import {
   LOG_STORAGE_KEY,
   MAX_STORED_LOGS,
   clearGameLogs,
+  deleteGameLog,
   exportGameLog,
+  getGameLog,
   headerFromLog,
   listGameLogs,
   parseLog,
@@ -267,6 +269,34 @@ describe("localStorage FIFO", () => {
     clearGameLogs(storage);
     expect(listGameLogs(storage)).toEqual([]);
     expect(storage.data.has(LOG_STORAGE_KEY)).toBe(false);
+  });
+
+  it("getGameLog returns the log at its listGameLogs index", () => {
+    const storage = fakeStorage();
+    saveGameLog([{ ...header, gameId: "g-1" }], { storage });
+    saveGameLog([{ ...header, gameId: "g-2" }], { storage });
+    expect(getGameLog(0, storage)).toBe(listGameLogs(storage)[0]);
+    expect(getGameLog(1, storage)).toBe(listGameLogs(storage)[1]);
+    expect(getGameLog(5, storage)).toBeNull();
+    expect(getGameLog(-1, storage)).toBeNull();
+    expect(getGameLog(0, null)).toBeNull();
+  });
+
+  it("deleteGameLog removes one entry by index and keeps the rest", () => {
+    const storage = fakeStorage();
+    saveGameLog([{ ...header, gameId: "g-1" }], { storage });
+    saveGameLog([{ ...header, gameId: "g-2" }], { storage });
+    saveGameLog([{ ...header, gameId: "g-3" }], { storage });
+    deleteGameLog(1, storage);
+    const kept = listGameLogs(storage).map(
+      (jsonl) => headerFromLog(parseLog(jsonl) as LogEntry[])?.gameId,
+    );
+    expect(kept).toEqual(["g-1", "g-3"]);
+    // Out-of-range indexes are silent no-ops.
+    deleteGameLog(99, storage);
+    deleteGameLog(-1, storage);
+    expect(listGameLogs(storage)).toHaveLength(2);
+    expect(() => deleteGameLog(0, null)).not.toThrow();
   });
 });
 

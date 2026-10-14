@@ -82,7 +82,7 @@ describe("StatsScreen", () => {
   };
 
   it("shows the empty state without recorded games", () => {
-    render(<StatsScreen onBack={vi.fn()} />);
+    render(<StatsScreen onBack={vi.fn()} onReplay={vi.fn()} />);
     expect(screen.getByTestId("stats-empty")).toBeInTheDocument();
   });
 
@@ -90,13 +90,40 @@ describe("StatsScreen", () => {
     const jsonl1 = serializeLog([header("g-1"), resultEntry]);
     const jsonl2 = serializeLog([header("g-2"), { ...resultEntry, outcome: "caught" }]);
     window.localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify([jsonl1, jsonl2]));
-    render(<StatsScreen onBack={vi.fn()} />);
+    render(<StatsScreen onBack={vi.fn()} onReplay={vi.fn()} />);
     const table = screen.getByTestId("stats-table");
     expect(table).toHaveTextContent("g-2");
     expect(table).toHaveTextContent("g-1");
     const rows = table.querySelectorAll("tbody tr");
     expect(rows[0]).toHaveTextContent("g-2");
     expect(rows[0].querySelector("[data-outcome]")).toHaveAttribute("data-outcome", "caught");
+  });
+
+  it("shows aggregated stats and deletes a single log", () => {
+    const jsonl1 = serializeLog([header("g-1"), resultEntry]);
+    const jsonl2 = serializeLog([header("g-2"), { ...resultEntry, outcome: "caught", rounds: 5 }]);
+    window.localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify([jsonl1, jsonl2]));
+    render(<StatsScreen onBack={vi.fn()} onReplay={vi.fn()} />);
+    const total = screen.getByTestId("stats-total");
+    expect(total.querySelector('[data-field="games"]')).toHaveTextContent("2");
+    expect(total.querySelector('[data-field="winGanove"]')).toHaveTextContent("50 %");
+    expect(total.querySelector('[data-field="winDetectives"]')).toHaveTextContent("50 %");
+
+    fireEvent.click(screen.getByTestId("log-delete-1"));
+    const table = screen.getByTestId("stats-table");
+    expect(table.querySelectorAll("tbody tr")).toHaveLength(1);
+    expect(table).toHaveTextContent("g-1");
+  });
+
+  it("hands the selected log to onReplay and exports a Blob", () => {
+    const jsonl1 = serializeLog([header("g-1"), resultEntry]);
+    window.localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify([jsonl1]));
+    const onReplay = vi.fn();
+    render(<StatsScreen onBack={vi.fn()} onReplay={onReplay} />);
+    fireEvent.click(screen.getByTestId("log-replay-0"));
+    expect(onReplay).toHaveBeenCalledWith(jsonl1);
+    // Export is exercised e2e (download event); here it must not throw.
+    expect(() => fireEvent.click(screen.getByTestId("log-export-0"))).not.toThrow();
   });
 });
 

@@ -1,5 +1,46 @@
 # Änderungsprotokoll
 
+## 2026-10-14 — Persistenz, Replay-Player und Statistiken (Schritt 12)
+
+- Speicherbare Partien („Partie speichern" in beiden Spielmodi):
+  `SaveGame.ts` friert den laufenden Zustand als versionierten
+  `ResumeEntry` ein (`SAVE_SCHEMA_VERSION`, `GameStateSnapshot` =
+  alle `GameData`-Felder außer `map`/`log`, Log als JSONL);
+  `GameIndex.ts` verwaltet die Stände unter `RESUME_STORAGE_KEY`
+  (Upsert pro `gameId`, FIFO `MAX_RESUME_ENTRIES` = 10,
+  Schema-Filter mit klarer Ablehnung fremder Versionen,
+  Fremd-Einträge bleiben beim Schreiben erhalten);
+  `gameStore.resumeGame` stellt den Zustand bitidentisch wieder her —
+  inklusive `radioUsed`, `hintSilenceUntilRound`/`falseTrailUntilRound`,
+  Kameras, Sperrungen und `activeDetectiveIndex`. `ResumeScreen`
+  listet die Stände mit Klartext und löscht einzeln; `MainMenu`
+  aktiviert „Partie fortsetzen".
+- Deterministischer Replay-Player (`ReplayPlayer.ts` +
+  `ReplayScreen.tsx`): `openReplay` rekonstruiert den Start aus dem
+  Log-Header, `replayTo(n)` spielt die ersten n Aktoreinträge neu
+  (`resetGame` + `startGame` + Aktionen) — Schritt vor/zurück landet
+  bitgleich, „Abspielen" läuft bis zum aufgezeichneten Ende. Der
+  Perspektiv-Umschalter rendert Ganove- und Detektiv-Sicht nach
+  `visibleTo` wie im Live-Spiel (Detektiv-Sicht ohne
+  `ganovePosition`, nur Deduktions-Overlay); der Store wird beim
+  Verlassen zurückgesetzt. `startOptionsFromHeader` reicht
+  `config.playerMode` durch (Header-Rekonstruktion bleibt bitgleich).
+- Aggregierte Statistiken (`Statistics.ts` + erweiterter
+  `StatsScreen`): Siegquote je Seite und je gespieltem Modus
+  (`header.config.playerMode`, neu via `StartGameOptions.playerMode`),
+  Ø Runden, Ø Hinweise, Ø Kameratreffer — unfertige/beschädigte
+  Logs fallen heraus. Log-Verwaltung: Replay/Export/Löschen je
+  Eintrag (`Recorder.getGameLog`/`deleteGameLog` positionsbasiert)
+  und „Alle löschen" mit Rückfrage.
+- `chronicle.ts` als gemeinsames Modul für die Detektiv-Chronik
+  (Live-Screen und Replay) aus `DetektivScreen` extrahiert.
+- 45 neue Unit-/Komponententests (539 gesamt; darin die
+  Review-Nachzügler Schema-Erhalt beim Schreiben und
+  `playerMode`-Header-Roundtrip) und
+  5 neue Playwright-Szenarien in `e2e/persistenz.spec.ts`
+  (Speichern→Reload→Fortsetzen, Statistik+Löschaktionen, Export-
+  Download, Replay-Timeline/Perspektiven, Auto-Play) — alle grün.
+
 ## 2026-10-14 — Anwendungsrahmen: Menü, Einstellungen, Szenario-Auswahl (Schritt 11)
 
 - Vollständiges Hauptmenü mit zustandsbasiertem Fluss

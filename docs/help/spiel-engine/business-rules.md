@@ -448,6 +448,50 @@ harte Regeln.
 **Umsetzung:** `Recorder.ts` (Serialisierung, Export, FIFO-Persistenz)
 und die `appendLog`-Aufrufstellen in `useGameStore`.
 
+## Persistenz — Speicherstand, Replay und Statistiken
+
+**Beschreibung:** Laufende Partien lassen sich speichern und später
+bitidentisch fortsetzen; abgeschlossene Partien können als Replay
+erneut abgespielt und aggregiert ausgewertet werden
+(`02-technisches-konzept.md` §8.1).
+
+**Bedingungen:**
+- Ein Speicherstand ist `Snapshot + Log + Seed`: `snapshotGame`
+  kopiert den kompletten `GameData`-Bestand (inkl. `radioUsed`,
+  `hintSilenceUntilRound`, `falseTrailUntilRound`, Kamera- und
+  Sperrzustände, `activeDetectiveIndex`, `phase`, `tensionValue`,
+  `escapeNodeIds`, `ganoveCanAct`, `roundLimit`, `eventDefaults`) —
+  `map` wird über `loadMap(entry.mapId)` neu geladen, das Log reist
+  als JSONL im `ResumeEntry` mit. `resumeGame` setzt beides direkt;
+  der Zustand nach dem Fortsetzen ist dem gespeicherten gleich
+  (vollständiger Datenvergleich in `SaveGame.test.ts`).
+- Speichern ist nur bei laufender Partie erlaubt
+  (`map !== null && outcome === null`); das Format ist versioniert
+  (`SAVE_SCHEMA_VERSION`) — unbekannte Versionen werden beim Listen
+  klar abgelehnt statt geraten interpretiert. Beim Schreiben bleiben
+  Fremd-Schema-Einträge erhalten (Upsert/FIFO greifen nur auf
+  `gameId`-Ebene).
+- Replay ist reine Rekonstruktion: `header` + `seed` + die
+  Aktoreinträge (`move`, `action`, `sabotage_offer` mit `chosen`,
+  `radio`) reichen — Engine-Einträge entstehen beim Neuabspielen
+  identisch. `replayTo(n)` ist deterministisch; Schritt zurück =
+  Neuabspielen bis `n-1`. `startOptionsFromHeader` reicht auch
+  `config.playerMode` durch, damit das abgespielte Log bitgleich
+  bleibt.
+- Replay-Perspektiven respektieren `visibleTo`: die Detektiv-Sicht
+  enthält nie `ganove`-sichtbare Einträge und kein `ganovePosition`
+  (Positionsinformation nur über das Deduktions-Overlay).
+- Statistiken lesen ausschließlich `header`/`result`: Siegquote je
+  Seite und je gespieltem Modus (`config.playerMode`; ohne Feld:
+  „unbekannt"), Ø Runden, Ø Hinweise, Ø Kameratreffer. Logs ohne
+  `result` zählen nicht.
+
+**Umsetzung:** `SaveGame.ts` (Snapshot, `buildResumeEntry`,
+Validierung), `GameIndex.ts` (`RESUME_STORAGE_KEY`,
+Upsert+`MAX_RESUME_ENTRIES`-FIFO, `deleteResumeEntry`),
+`ReplayPlayer.ts` (`openReplay`, `replayTo`, `ReplayDriver`),
+`Statistics.ts` (`aggregateStatistics`), `gameStore.resumeGame`.
+
 ## Deduktion — konsistente Positionshistorien
 
 **Beschreibung:** Die Detektivseite errechnet aus allen bekannten
