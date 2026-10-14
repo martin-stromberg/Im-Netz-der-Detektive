@@ -16,5 +16,5 @@ Branch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 | 10 | Detektiv-Perspektive mit Deduktions-Werkzeugen | 8, 9 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-10-detektiv-perspektive` | Fertig |
 | 11 | Menü, Einstellungen und Szenarien-Auswahl | 9, 10 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-11-menue-einstellungen` | Fertig |
 | 12 | Persistenz — Save/Load, Replay-Player und Statistiken | 7, 11 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-12-persistenz-replay` | Fertig |
-| 13 | Lokalisierung, Barrierefreiheit und Audio | 9, 10, 11, 12 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-13-i18n-a11y-audio` | In Arbeit |
+| 13 | Lokalisierung, Barrierefreiheit und Audio | 9, 10, 11, 12 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-13-i18n-a11y-audio` | Fertig |
 | 14 | Endabnahme — E2E-Tests, Balancing-Kalibrierung und Polishing | 13 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-14-endabnahme-polishing` | Offen |
