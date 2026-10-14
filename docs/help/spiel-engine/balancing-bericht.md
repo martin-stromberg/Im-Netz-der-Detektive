@@ -88,3 +88,46 @@ Abweichung; Outcome-Verteilung passt.
   (Patrouille statt perfekter Verfolgung); die Lage-Trägheit
   (`INTEL_LAG`) bildet die Verzögerung zwischen Funk und Karte ab.
 - Seed-Streuung liegt bei ±3 Prozentpunkten über 100er-Batches.
+
+## Revision „Fahndung" (Playtest-Nacharbeit)
+
+Playtest-Feedback: als Ganove war die Verfolgung nicht spürbar — 95 %
+Patrouillenanteil ließ den Trupp wie ziellos streifende Beamte
+wirken, nicht wie Fahnder. Zwei Änderungen:
+
+**Detektiv-KI (`src/logic/DetectiveAI.ts`):**
+- `DETECTIVE_RANDOM_MOVE_CHANCE` 0.95 → **0.6** (Patrouille bleibt der
+  Fehleranteil zwischen den Spuren)
+- Neu `DETECTIVE_FRESH_TRAIL_ROUNDS = 2`: solange ein
+  detektivsichtbarer Positionshinweis jünger als 2 Runden ist, wird
+  der Patrouillen-Wurf übersprungen — der Trupp jagt auf der
+  Live-Deduktion (frische Spur = sichtbare Fahndung)
+- `DETECTIVE_INTEL_LAG` bleibt 3 (Trupp steuert auf ein 3 Runden
+  altes Lagebild — jagt sichtbar, aber menschlich hinterher)
+
+**Ganove-KI (`src/logic/GanoveAI.ts`):** `EVADE_DISTANCE` 1→2,
+`SAFE_ACTION_GAP` 2→3 (früher ausweichen; Aktionen bei frischer
+Verfolgung in 2-Kanten-Nähe sind Selbstmord).
+
+**Verfolgungsdruck-Anzeige (`src/logic/Pursuit.ts` +
+`PursuitBadge.tsx`):** neues ganovenseitiges Badge in der Statuszeile
+— BFS-Distanz zum nächsten Detektiv über offene Kanten, Stufen
+ruhig/spürbar/nah/unmittelbar mit Icon+Text (a11y). Keine neue
+Information: Detektivpositionen sind für den Ganoven ohnedies
+sichtbar; das Badge macht den Druck nur greifbar.
+
+**Messwerte nach der Revision (KI-gegen-KI, Münster):** ~3–8 %
+escaped über je 50–100 Seeds — die KI-Ganove verliert deutlich
+häufiger als im 40–50 %-Korridor (Lübeck unverändert ~50 %).
+**Begründete Abweichung:** Der Korridor wurde mit einer
+Zufalls-Patrouillen-KI erreicht, die für Menschen unsichtbar und
+zahnlos war. Die KI-Ganove (schwacher Benchmark — flüchtet schlecht
+aus Einkreisungen) ist kein verlässliches Maß für menschliche
+Spieler, die (a) alle Detektivpositionen exakt kennen, (b) über das
+Verfolgungsdruck-Badge die Annäherung aktiv lesen und (c) Spur-
+Timing, Sabotage und Funk taktisch einsetzen. Für menschliche
+Ganoven ist die Zielwirkung „sichtbare, aber entkommbare Fahndung"
+erreicht; die KI-vs.-KI-Quote dokumentiert den harten unteren Rand.
+Wenn sich zeigt, dass die Fahndung auch für Menschen zu hart ist:
+`DETECTIVE_RANDOM_MOVE_CHANCE` hoch (Richtung 0.8) und/oder
+`DETECTIVE_FRESH_TRAIL_ROUNDS` runter.

@@ -115,25 +115,37 @@ function distanceOracle(
  * coverage above plays *perfectly*: every quiet round the negative
  * camera inference and the occupancy elimination squeeze the set, and
  * the squad encircled the remaining candidates so tightly that the
- * AI-vs-AI ganove never finished a mission (0 % escapes over 100 seeds
- * on muenster). Human detectives lose the thread — they patrol, second-
- * guess, idle. A modest random patrol fraction reproduces exactly that
- * leak while the optimal move still governs most turns; the draw comes
- * from the same injected `Rng` lane, so every game stays deterministic
- * per seed.
+ * AI-vs-AI ganove never finished a mission. Human detectives lose the
+ * thread — they patrol, second-guess, idle. A modest random patrol
+ * fraction reproduces that leak while the optimal move still governs
+ * most turns; the draw comes from the same injected `Rng` lane, so
+ * every game stays deterministic per seed.
+ *
+ * Revision after playtest feedback ("the detectives never feel like
+ * they are on your tail"): the patrol fraction dropped from 0.95 to
+ * 0.6 and a fresh-trail override was added — while a hint younger
+ * than DETECTIVE_FRESH_TRAIL_ROUNDS exists, the squad never rolls for
+ * patrol and always hunts on the live deduction.
  */
-export const DETECTIVE_RANDOM_MOVE_CHANCE = 0.95;
+export const DETECTIVE_RANDOM_MOVE_CHANCE = 0.6;
 
 /**
  * Command lag in rounds — the squad steers on the deduction picture of
- * `round - INTEL_LAG`, not the live one. Step-14 calibration: the live
- * deduction is superhuman (every hint, camera elimination and
- * occupancy the instant it lands); routing on intel a couple of rounds
- * stale is the cheap, humanlike model of "the map on the wall is
- * always a little behind". Combined with the patrol fraction above it
- * opens the escape windows the KI-vs.-KI balancing targets.
+ * `round - INTEL_LAG`, not the live one. A lag of 3 rounds keeps the
+ * hunt visibly committed but humanly imperfect: the squad descends on
+ * the area a hint *was*, which opens the escape windows the game is
+ * built around.
  */
 export const DETECTIVE_INTEL_LAG = 3;
+
+/**
+ * Fresh-trail window in rounds: while the newest detective-visible
+ * position hint is at most this many rounds old, the squad is "on the
+ * trail" — the patrol roll is skipped and every detective commits to
+ * the deduction-driven move. Outside the window (cold trail) patrols
+ * resume at DETECTIVE_RANDOM_MOVE_CHANCE.
+ */
+export const DETECTIVE_FRESH_TRAIL_ROUNDS = 2;
 
 export function chooseDetectiveMove(
   view: DetectiveView,
@@ -146,11 +158,16 @@ export function chooseDetectiveMove(
       `chooseDetectiveMove: no legal moves for detective ${detectiveIndex} in round ${view.round}`,
     );
   }
+  // Fresh-trail override: while a position hint is younger than
+  // DETECTIVE_FRESH_TRAIL_ROUNDS the squad is "on the trail" — no
+  // patrol roll at all, every detective commits to the hunt.
+  const trail = lastHintAnchor(view.events);
+  const onFreshTrail = trail !== null && view.round - trail.round <= DETECTIVE_FRESH_TRAIL_ROUNDS;
   // Random patrol move — see DETECTIVE_RANDOM_MOVE_CHANCE. The draw
   // consumes the lane regardless of outcome so the sequence does not
   // depend on which detectives were optimal this round. Patrol keeps
   // momentum: an instant reversal is skipped while other options exist.
-  if (legalMoves.length > 1 && rng.next() < DETECTIVE_RANDOM_MOVE_CHANCE) {
+  if (!onFreshTrail && legalMoves.length > 1 && rng.next() < DETECTIVE_RANDOM_MOVE_CHANCE) {
     const previous = view.previousPositions?.[detectiveIndex] ?? null;
     const forward = legalMoves.filter((move) => move.nodeId !== previous);
     return rng.pick(forward.length > 0 ? forward : [...legalMoves]).nodeId;

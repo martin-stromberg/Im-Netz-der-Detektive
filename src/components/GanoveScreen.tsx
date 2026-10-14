@@ -43,6 +43,8 @@ import type { MapPack } from "../logic/mapPack";
 import { MapGraph } from "./MapGraph";
 import { HeatBadge } from "./HeatBadge";
 import { MissionPanel, currentMissionTarget } from "./MissionPanel";
+import { PursuitBadge } from "./PursuitBadge";
+import { pursuitStatus } from "../logic/Pursuit";
 import { nextSeed, readParams, resolveMissionOption } from "./gameSetup";
 import styles from "./GanoveScreen.module.css";
 
@@ -402,6 +404,10 @@ export function GanoveScreen({
   const missionAction = useGameStore.getState().getMissionAction();
   const pendingChoice = mission?.pendingChoice ?? null;
   const heat = useGameStore.getState().getHeatLevel();
+  const pursuit =
+    ganovePosition !== null && outcome === null
+      ? pursuitStatus(runningMap, blockedEdges, round, ganovePosition, detektivePositions)
+      : null;
   const intel = visibleEvents(events, "ganove");
   const radioHints = intel
     .filter((event) => event.kind === "polizeifunk")
@@ -432,6 +438,7 @@ export function GanoveScreen({
             {phase === "ganove" ? t("game.phase.ganove") : t("game.phase.detektive")}
           </span>
           <HeatBadge level={heat.level} score={heat.score} />
+          {pursuit !== null ? <PursuitBadge status={pursuit} /> : null}
         </div>
       </header>
       <div className={styles.layout}>

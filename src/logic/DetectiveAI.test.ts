@@ -83,9 +83,10 @@ describe("chooseDetectiveMove — Zugauswahl", () => {
     expect(move).toBe("e");
   });
 
-  it("patrols on a random draw below the calibrated chance (step-14 calibration)", () => {
-    // Seed 1 draws < DETECTIVE_RANDOM_MOVE_CHANCE on the first roll —
-    // the move is a legal patrol pick instead of the coverage optimum.
+  it("hunts on a fresh trail — the patrol roll is skipped outright", () => {
+    // Seed 7 draws < DETECTIVE_RANDOM_MOVE_CHANCE and would patrol on a
+    // cold trail; with a hint this fresh the squad commits to the
+    // coverage-optimal move (detective j → e, splitting over the belief).
     const view = makeView({
       detectiveStarts: ["a", "j"],
       detektivePositions: ["a", "j"],
@@ -99,8 +100,29 @@ describe("chooseDetectiveMove — Zugauswahl", () => {
         },
       ],
     });
+    expect(chooseDetectiveMove(view, 1, legalMovesFor(view, 1), createRng(7))).toBe("e");
+  });
+
+  it("patrols on a random draw below the calibrated chance on a cold trail", () => {
+    // Same squad/belief as above but round 10 — the round-1 hint is way
+    // past DETECTIVE_FRESH_TRAIL_ROUNDS, so the patrol roll happens;
+    // seed 7 draws below the chance → legal patrol pick.
+    const view = makeView({
+      round: 10,
+      detectiveStarts: ["a", "j"],
+      detektivePositions: ["a", "j"],
+      events: [
+        {
+          kind: "hinweis",
+          round: 1,
+          zone: "x",
+          nodeIds: ["d", "f", "g"],
+          visibleTo: "detectives",
+        },
+      ],
+    });
     const moves = legalMovesFor(view, 1);
-    const move = chooseDetectiveMove(view, 1, moves, createRng(1));
+    const move = chooseDetectiveMove(view, 1, moves, createRng(7));
     expect(moves.map((m) => m.nodeId)).toContain(move);
   });
 

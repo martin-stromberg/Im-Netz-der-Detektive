@@ -23,9 +23,11 @@ import type { Mission } from "../state/gameStore";
 /**
  * Minimum distance to the nearest detective required for a safe action
  * round — a detective one edge away catches a stationary ganove in the
- * same round.
+ * same round; two edges away is already suicide on a fresh trail (the
+ * action hint pins the node while the squad closes in). Raised to 3 in
+ * the pursuit revision.
  */
-export const SAFE_ACTION_GAP = 2;
+export const SAFE_ACTION_GAP = 3;
 /**
  * Heat score at which the police radio is tapped. Calibrated in step
  * 14: threshold 1 taps it right after the first hint activity — the
@@ -36,14 +38,12 @@ export const SAFE_ACTION_GAP = 2;
 export const RADIO_HEAT_THRESHOLD = 1;
 /**
  * Distance to the nearest detective at which the ganove switches from
- * mission progress to evasion (maximise distance first). Calibrated in
- * step 14 (see docs/help/spiel-engine/balancing-bericht.md): the earlier
- * value 2 — combined with the `kritisch` heat trigger — kept the ganove
- * circling instead of finishing the mission (0 % AI-vs-AI win rate on
- * muenster). Pure proximity now drives evasion: only an adjacent
- * detective forces the defensive profile.
+ * mission progress to evasion (maximise distance first). Raised back
+ * to 2 in the pursuit revision: against a squad that actually hunts on
+ * fresh trails, waiting for adjacency before evading means the net is
+ * already closed.
  */
-export const EVADE_DISTANCE = 1;
+export const EVADE_DISTANCE = 2;
 /**
  * Preferred minimum distance of a move target to the nearest detective
  * — kept whenever such a move exists. Calibrated in step 14: the
