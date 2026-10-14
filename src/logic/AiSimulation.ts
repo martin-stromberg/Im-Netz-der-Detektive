@@ -100,9 +100,27 @@ export function buildDetectiveView(
     | "events"
     | "cameras"
     | "getMissionStructure"
+    | "log"
   >,
   detectiveStarts: readonly string[],
 ): DetectiveView {
+  // Per-detective previous node — feeds the patrol momentum of the
+  // random-move branch in `chooseDetectiveMove` (step-14 calibration).
+  const previousPositions: (string | null)[] = state.detektivePositions.map(() => null);
+  for (let i = state.log.length - 1; i >= 0; i -= 1) {
+    const entry = state.log[i];
+    if (entry.type !== "move" || entry.actor !== "detective") {
+      continue;
+    }
+    const index = entry.detectiveIndex as number | undefined;
+    if (
+      index !== undefined &&
+      index < previousPositions.length &&
+      previousPositions[index] === null
+    ) {
+      previousPositions[index] = (entry.from as string | undefined) ?? null;
+    }
+  }
   return {
     map: state.map as MapPack,
     round: state.round,
@@ -112,6 +130,7 @@ export function buildDetectiveView(
     events: visibleEvents(state.events, "detectives"),
     cameras: visibleCameras(state.cameras, "detectives"),
     missionStructure: state.getMissionStructure(),
+    previousPositions,
   };
 }
 
@@ -136,9 +155,20 @@ export function buildGanoveView(
     | "getHeatLevel"
     | "getLegalGanoveMoves"
     | "getMissionAction"
+    | "log"
   >,
 ): GanoveView {
   const heat = state.getHeatLevel();
+  // The node the ganove left with his last move — the anti-oscillation
+  // input of `chooseGanoveTurn` (step-14 calibration).
+  let cameFromNodeId: string | null = null;
+  for (let i = state.log.length - 1; i >= 0; i -= 1) {
+    const entry = state.log[i];
+    if (entry.type === "move" && entry.actor === "ganove") {
+      cameFromNodeId = (entry.from as string | undefined) ?? null;
+      break;
+    }
+  }
   return {
     map: state.map as MapPack,
     round: state.round,
@@ -154,6 +184,7 @@ export function buildGanoveView(
     escapeNodeIds: state.escapeNodeIds,
     legalMoves: state.getLegalGanoveMoves(),
     missionAction: state.getMissionAction(),
+    cameFromNodeId,
   };
 }
 
@@ -210,12 +241,17 @@ export function runAiGame(map: MapPack, seed: number, options?: AiGameOptions): 
     turns += 1;
     if (state.mission?.pendingChoice != null) {
       state.chooseMissionPath(chooseSabotagePath(buildGanoveView(state)));
+      // Radio and choice turns produce real actor log entries too, so
+      // the observe hook must see them — otherwise the snapshot stream
+      // drifts one step behind the log (step-14 fix).
+      options?.observe?.(store.getState());
       continue;
     }
     if (state.phase === "ganove") {
       const view = buildGanoveView(state);
       if (shouldUseRadio(view)) {
         state.useRadio();
+        options?.observe?.(store.getState());
         continue;
       }
       const turn = chooseGanoveTurn(view, aiRng(seed, state.round, 0));
