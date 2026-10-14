@@ -28,6 +28,8 @@ export interface MapGraphProps {
   /** Current round — needed to evaluate `untilRound` of blocked edges. */
   round?: number;
   blockedEdges?: readonly BlockedEdge[];
+  /** Recently blocked edges flash briefly (`"a|b"` keys, ganove staging). */
+  flashEdges?: readonly string[];
   detectivePositions?: readonly string[];
   /** Ganove marker — only pass it in the ganove perspective. */
   ganovePosition?: string | null;
@@ -134,6 +136,7 @@ export function MapGraph({
   map,
   round = 1,
   blockedEdges = [],
+  flashEdges = [],
   detectivePositions = [],
   ganovePosition = null,
   legalTargets = [],
@@ -213,6 +216,9 @@ export function MapGraph({
             return null;
           }
           const blocked = isEdgeBlocked(edge.a, edge.b, blockedEdges, round);
+          const flashing =
+            flashEdges.includes(`${edge.a}|${edge.b}`) ||
+            flashEdges.includes(`${edge.b}|${edge.a}`);
           const midX = (a.x + b.x) / 2;
           const midY = (a.y + b.y) / 2;
           return (
@@ -222,7 +228,7 @@ export function MapGraph({
                 y1={a.y}
                 x2={b.x}
                 y2={b.y}
-                className={`${styles.edge} ${edge.type === "fahrt" ? styles.edgeFahrt : styles.edgeWeg} ${blocked ? styles.edgeBlocked : ""}`}
+                className={`${styles.edge} ${edge.type === "fahrt" ? styles.edgeFahrt : styles.edgeWeg} ${blocked ? styles.edgeBlocked : ""} ${flashing ? styles.edgeFlash : ""}`}
                 data-edge-type={edge.type}
                 data-blocked={blocked ? "true" : undefined}
               />
@@ -381,8 +387,8 @@ export function MapGraph({
           return (
             <g
               key={`detective-${index}`}
-              transform={`translate(${node.x}, ${node.y - NODE_RADIUS - 8})`}
-              className={`${styles.detectiveMarker} ${
+              style={{ transform: `translate(${node.x}px, ${node.y - NODE_RADIUS - 8}px)` }}
+              className={`${styles.detectiveMarker} ${styles.markerMove} ${
                 index === activeDetectiveIndex ? styles.detectiveActive : ""
               }`}
               data-detective={index}
@@ -398,8 +404,10 @@ export function MapGraph({
         })}
         {ganoveNode !== undefined ? (
           <g
-            transform={`translate(${ganoveNode.x}, ${ganoveNode.y - NODE_RADIUS - 8})`}
-            className={styles.ganoveMarker}
+            style={{
+              transform: `translate(${ganoveNode.x}px, ${ganoveNode.y - NODE_RADIUS - 8}px)`,
+            }}
+            className={`${styles.ganoveMarker} ${styles.markerMove}`}
             data-ganove="true"
             aria-label={t("marker.ganove")}
           >

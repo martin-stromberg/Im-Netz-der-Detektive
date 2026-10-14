@@ -1,0 +1,72 @@
+.stack {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  width: max-content;
+  max-width: 90%;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid #2a3240;
+  background: rgb(16 20 28 / 92%);
+  color: #c8d0dc;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 45%);
+  animation: banner-in 220ms ease-out;
+}
+
+@keyframes banner-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner {
+    animation: none;
+  }
+}
+
+.icon {
+  flex: none;
+  font-size: 0.75rem;
+}
+
+.tone_info .icon {
+  color: #7fb8d4;
+}
+
+.tone_warn .icon {
+  color: #f5d76e;
+}
+
+.tone_alarm {
+  border-color: #d98c8c;
+}
+
+.tone_alarm .icon {
+  color: #d98c8c;
+}
+
+.tone_good .icon {
+  color: #7fd4a8;
+}

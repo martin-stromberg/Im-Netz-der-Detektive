@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { loadMap } from "../logic/MapLoader";
 import { createRng } from "../logic/rng";
 import { ganoveSpawnChoices, pickDetectiveSpawns } from "../logic/SpawnSystem";
@@ -98,7 +98,7 @@ describe("GanoveScreen — playing", () => {
 
   it("moves the ganove and auto-runs the detective phase", () => {
     startPlaying({ detectivePositions: ["a", "i", "j"], ganovePosition: "d" });
-    const { container } = render(<GanoveScreen />);
+    const { container } = render(<GanoveScreen detectiveStepDelay={0} />);
     const before = [...useGameStore.getState().detektivePositions];
 
     fireEvent.click(nodeEl(container, "c"));
@@ -111,9 +111,25 @@ describe("GanoveScreen — playing", () => {
     expect(state.detektivePositions).not.toEqual(before);
   });
 
+  it("stages world events as a banner plus a flashing edge", () => {
+    startPlaying({ detectivePositions: ["a"], ganovePosition: "d" });
+    const { container } = render(<GanoveScreen detectiveStepDelay={0} />);
+    act(() => {
+      useGameStore.getState().addEvent({
+        kind: "umwelt",
+        round: 1,
+        edge: { a: "a", b: "b" },
+        untilRound: 6,
+        visibleTo: "both",
+      });
+    });
+    expect(screen.getByTestId("event-banner-stack").textContent).toContain("gesperrt");
+    expect(container.querySelector('[data-edge="a-b"] [class*="edgeFlash"]')).not.toBeNull();
+  });
+
   it("ends as escape when the ganove reaches a flucht node", () => {
     startPlaying({ ganovePosition: "f" });
-    const { container } = render(<GanoveScreen />);
+    const { container } = render(<GanoveScreen detectiveStepDelay={0} />);
 
     fireEvent.click(nodeEl(container, "g")); // flucht, one fahrt edge away
 
@@ -133,7 +149,7 @@ describe("GanoveScreen — playing", () => {
       offeredEffect: null,
       appliedEffect: null,
     });
-    render(<GanoveScreen />);
+    render(<GanoveScreen detectiveStepDelay={0} />);
 
     const actionButton = screen.getByTestId("mission-action");
     expect(actionButton.textContent).toBe(de["mission.action.diebstahl"]);
@@ -155,7 +171,7 @@ describe("GanoveScreen — playing", () => {
       appliedEffect: null,
     };
     useGameStore.getState().setMission(mission);
-    const { container } = render(<GanoveScreen />);
+    const { container } = render(<GanoveScreen detectiveStepDelay={0} />);
 
     // While the choice is pending, no moves are offered.
     expect(container.querySelectorAll("[data-legal-target]")).toHaveLength(0);
@@ -178,7 +194,7 @@ describe("GanoveScreen — playing", () => {
       offeredEffect: "kamera_aus",
       appliedEffect: null,
     });
-    render(<GanoveScreen />);
+    render(<GanoveScreen detectiveStepDelay={0} />);
 
     fireEvent.click(screen.getByRole("button", { name: /Flucht/ }));
     expect(useGameStore.getState().mission?.stage).toBe("flucht");
@@ -187,7 +203,7 @@ describe("GanoveScreen — playing", () => {
 
   it("taps the police radio exactly once and reports the hints", () => {
     startPlaying({ ganovePosition: "f", resolvedCameras: ["e"] });
-    const { container } = render(<GanoveScreen />);
+    const { container } = render(<GanoveScreen detectiveStepDelay={0} />);
 
     // Move onto the camera node to produce a hint the radio can report.
     fireEvent.click(nodeEl(container, "e"));
@@ -200,19 +216,21 @@ describe("GanoveScreen — playing", () => {
 
   it("ends the game as draw after confirmation", () => {
     startPlaying();
-    render(<GanoveScreen />);
+    render(<GanoveScreen detectiveStepDelay={0} />);
 
     fireEvent.click(screen.getByTestId("abort-button"));
     fireEvent.click(screen.getByTestId("abort-yes"));
 
     expect(useGameStore.getState().outcome).toBe("draw");
     expect(screen.getByTestId("outcome-panel")).toHaveAttribute("data-outcome", "draw");
-    expect(screen.getByText(de["outcome.draw"])).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("outcome-panel")).getByText(de["outcome.draw"]),
+    ).toBeInTheDocument();
   });
 
   it("keeps playing when the abort is declined", () => {
     startPlaying();
-    render(<GanoveScreen />);
+    render(<GanoveScreen detectiveStepDelay={0} />);
 
     fireEvent.click(screen.getByTestId("abort-button"));
     fireEvent.click(screen.getByRole("button", { name: de["abort.no"] }));
@@ -225,7 +243,7 @@ describe("GanoveScreen — playing", () => {
 describe("GanoveScreen — information asymmetry", () => {
   it("never renders cameras or detective-side hints on the DOM", () => {
     startPlaying({ ganovePosition: "f", resolvedCameras: ["e", "c"] });
-    const { container } = render(<GanoveScreen />);
+    const { container } = render(<GanoveScreen detectiveStepDelay={0} />);
     fireEvent.click(nodeEl(container, "e")); // triggers the camera on e
 
     const state = useGameStore.getState();
