@@ -14,10 +14,15 @@ Perspektiven gemeinsam), dann den **Ganove-Modus** und danach den
 ### 1. Hauptmenü
 
 - **Neue Partie** startet den Auswahlfluss.
-- **Partie fortsetzen** ist vorbereitet, aber deaktiviert, bis laufende
-  Partien gespeichert werden (folgt in einem späteren Schritt).
-- **Statistiken & Replays** listet die aufgezeichneten Partien
-  (Karte, Seed, Ausgang, Runden) — das Abspielen folgt später.
+- **Partie fortsetzen** öffnet die Liste der gespeicherten
+  Spielstände (siehe „Speichern & Fortsetzen"); ohne Spielstand ist
+  die Schaltfläche deaktiviert und erklärt das im Hinweistext.
+- **Statistiken & Replays** zeigt die Gesamtwertung über die
+  aufgezeichneten Partien (Siegquoten, Ø Runden, Ø Hinweise, Ø
+  Kameratreffer — gesamt und je gespieltem Modus) und darunter die
+  Liste der Aufzeichnungen mit Aktionen je Eintrag: **Replay**
+  (erneut abspielen), **Exportieren** (JSONL-Datei), **Löschen**;
+  „Alle Aufzeichnungen löschen" leert den Bestand nach Rückfrage.
 
 ### 2. Karte wählen
 
@@ -170,3 +175,34 @@ seine Missionsziele zu sehen.
 - Kameras, Zonen, Kategorien, Marker, Overlay und Sperrungen sind
   form- und/oder musterkodiert — nicht nur per Farbe (Legende unter
   der Karte).
+
+# Speichern, Fortsetzen & Replay
+
+## Partie speichern
+
+In beiden Spielmodi erscheint in der laufenden Partie die Schaltfläche
+**„Partie speichern"** (Seitenleiste, nur solange die Partie läuft).
+Der aktuelle Zustand — Positionen, Runde, Phase, verbrauchter
+Polizeifunk, aktive Sabotage-Fenster, Kameras, Mission — wird als
+Spielstand abgelegt; eine kurze Bestätigung erscheint. Es werden bis
+zu 10 Stände vorgehalten (älteste fallen zuerst heraus); erneutes
+Speichern derselben Partie ersetzt ihren bisherigen Stand.
+
+## Partie fortsetzen
+
+**„Partie fortsetzen"** im Hauptmenü listet die Spielstände mit
+Kartenname, gespielter Seite, Runde und Speicherzeitpunkt. Ein Klick
+stellt die Partie exakt wieder her und öffnet den passenden Modus;
+pro Eintrag lässt sich der Stand auch **löschen**. Beschädigte oder
+unbekannte Stände erscheinen nicht in der Liste.
+
+## Replay abspielen
+
+In **„Statistiken & Replays"** öffnet die Aktion **„Replay"** einer
+Aufzeichnung den Abspieler: „Schritt vor"/„Schritt zurück" tasten die
+Partie Zug für Zug ab (Schritt zurück stellt den exakten früheren
+Zustand wieder her), „Abspielen" läuft automatisch bis zum Ende. Der
+Umschalter **Ganove-Sicht / Detektiv-Sicht** zeigt dieselbe
+Informationslage wie im Live-Spiel — die Detektiv-Sicht zeigt nie die
+Ganovenposition (nur Chronik, Kameras und das Deduktions-Overlay),
+die Ganove-Sicht zeigt Position, Mission und Hitze.

@@ -49,6 +49,7 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
             data-testid="menu-resume"
             disabled={!resumable}
             title={t("menu.resumeHint")}
+            onClick={() => onNavigate("resume")}
           >
             {t("menu.resume")}
           </button>

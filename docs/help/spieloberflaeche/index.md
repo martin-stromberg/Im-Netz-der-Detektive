@@ -28,10 +28,14 @@ spielerdefinierte Mission mit Kategorie-Picks auf der Karte und
 Kriterienprüfung, oder freie Flucht ohne Mission). Danach folgt die
 Startaufstellung der gewählten Perspektive.
 
-„Partie fortsetzen" und „Statistiken & Replays" nutzen die
-persistenzfähige Eintragsstruktur: Die Statistikansicht listet bereits
-die aufgezeichneten Partien (neueste zuerst), Fortsetzen bleibt
-deaktiviert, bis laufende Partien gespeichert werden (Schritt 12).
+„Partie fortsetzen" und „Statistiken & Replays" sind vollständig
+verdrahtet: Laufende Partien lassen sich in beiden Modi über „Partie
+speichern" als versionierter Snapshot sichern und exakt wieder
+fortsetzen; die Statistikansicht zeigt aggregierte Kennzahlen
+(Siegquoten gesamt und je Modus, Ø Runden/Hinweise/Kameratreffer) und
+verwaltet die aufgezeichneten Partien (Replay-Abspieler mit Timeline
+und beiden `visibleTo`-Perspektiven, Export als JSONL, einzelnes und
+komplettes Löschen).
 `?mode=ganove`/`?mode=detektiv` bleiben als direkte Entwickler-Einstiege
 erhalten.
 

@@ -10,7 +10,7 @@ import type { StartGameOptions } from "../state/gameStore";
 
 /** Screens of the application frame. */
 export type MenuScreen =
-  "menu" | "map" | "mode" | "settings" | "mission" | "dev" | "stats" | "game";
+  "menu" | "map" | "mode" | "settings" | "mission" | "dev" | "stats" | "resume" | "replay" | "game";
 
 /** Human-playable modes; `"dev"` never produces a `PendingGameConfig`. */
 export type PlayerMode = "ganove" | "detektiv";

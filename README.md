@@ -15,6 +15,19 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
+**Persistenz, Replay und Statistiken** (Entwicklungsschritt 12):
+Laufende Partien lassen sich in beiden Modi über „Partie speichern"
+als versionierter Snapshot ablegen (bis zu 10 Stände, Upsert pro
+Partie) und über „Partie fortsetzen" bitidentisch weiterführen —
+inklusive verbrauchter Einmal-Fähigkeiten, Sabotage-Fenstern und dem
+exakten Zug-Stand. Abgeschlossene Partien (automatisch im
+localStorage-FIFO) öffnet „Statistiken & Replays": aggregierte
+Kennzahlen gesamt und je gespieltem Modus, ein deterministischer
+Replay-Abspieler mit Timeline (Schritt vor/zurück, Abspielen) und
+beiden `visibleTo`-Perspektiven — die Detektiv-Sicht zeigt nie die
+Ganovenposition — sowie Log-Verwaltung (Export als JSONL, einzelnes
+Löschen, „Alle löschen" mit Rückfrage).
+
 **Vollständiger Anwendungsrahmen — beide Perspektiven über das
 Hauptmenü spielbar** (Entwicklungsschritt 11): `npm run dev` öffnet
 das Hauptmenü — „Neue Partie" führt durch Kartenwahl (Münster und
@@ -27,12 +40,10 @@ Missionsauswahl (benannter Fall mit Mini-Story, Zufallsmission,
 spielerdefinierte Mission mit Kriterienprüfung auf der Karte, oder
 freie Flucht). Danach folgt die regelkonforme Startaufstellung —
 Detektive zuerst, Ganove zuletzt, mit missionsgefilterten
-Ganove-Kandidaten bei festen Zielen. „Partie fortsetzen" und
-„Statistiken & Replays" nutzen bereits die persistenzfähige
-Eintragsstruktur (`GameIndex`); die Statistikansicht listet die
-aufgezeichneten Partien. `?mode=ganove`/`?mode=detektiv` bleiben als
-direkte Entwickler-Einstiege erhalten. Titel- und Kartenbilder sind
-lokal eingebettete, KI-generierte Assets (`src/assets/ASSETS.md`).
+Ganove-Kandidaten bei festen Zielen. `?mode=ganove`/`?mode=detektiv`
+bleiben als direkte Entwickler-Einstiege erhalten. Titel- und
+Kartenbilder sind lokal eingebettete, KI-generierte Assets
+(`src/assets/ASSETS.md`).
 
 Detektiv-Perspektive
 (Entwicklungsschritt 10): Du führst den kompletten

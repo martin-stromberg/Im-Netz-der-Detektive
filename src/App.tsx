@@ -8,9 +8,14 @@ import { SettingsScreen } from "./components/SettingsScreen";
 import { MissionSelect } from "./components/MissionSelect";
 import { DevModeScreen } from "./components/DevModeScreen";
 import { StatsScreen } from "./components/StatsScreen";
+import { ResumeScreen } from "./components/ResumeScreen";
+import { ReplayScreen } from "./components/ReplayScreen";
 import { readParams } from "./components/gameSetup";
 import type { MenuScreen, PendingGameConfig, PlayerMode } from "./components/menuFlow";
 import type { MapPack } from "./logic/mapPack";
+import { loadMap } from "./logic/MapLoader";
+import { deleteResumeEntry, type ResumeEntry } from "./logic/GameIndex";
+import { resumeLogEntries } from "./logic/SaveGame";
 import type { MissionOption, StartGameOptions } from "./state/gameStore";
 import { useGameStore } from "./state/gameStore";
 import styles from "./App.module.css";
@@ -18,7 +23,8 @@ import styles from "./App.module.css";
 /**
  * Application frame (spec `02-technisches-konzept.md` section 6): a
  * state-driven flow — main menu → map → mode → settings → mission →
- * game — plus the dev mode (AI-vs-AI batch) and the stats view.
+ * game — plus the dev mode (AI-vs-AI batch), the stats view, the
+ * resume picker ("Partie fortsetzen") and the replay player.
  * No router package; the `?mode=ganove|detektiv` URL parameter remains
  * a dev/E2E deep link straight into the game screens' own setup.
  */
@@ -34,11 +40,38 @@ export default function App() {
   const [mode, setMode] = useState<PlayerMode>("ganove");
   const [settings, setSettings] = useState<StartGameOptions>({});
   const [config, setConfig] = useState<PendingGameConfig | null>(null);
+  const [replayLog, setReplayLog] = useState<string | null>(null);
+  // Bumped after a damaged resume entry is dropped — remounts the list.
+  const [resumeRefresh, setResumeRefresh] = useState(0);
 
   const exitToMenu = () => {
     useGameStore.getState().resetGame();
     setConfig(null);
     setScreen("menu");
+  };
+
+  /**
+   * "Partie fortsetzen": restores the snapshot into the store and hands
+   * the saved perspective to the matching game screen — the store's
+   * `map !== null` puts the screen straight into its playing view. A
+   * damaged entry (unknown map, corrupt JSONL) is dropped and the
+   * resume list is shown again.
+   */
+  const resumeSavedGame = (entry: ResumeEntry) => {
+    try {
+      const entryMap = loadMap(entry.mapId);
+      useGameStore.getState().resumeGame(entryMap, entry.snapshot, resumeLogEntries(entry));
+      setConfig({ mapId: entry.mapId, mode: entry.mode, options: entry.options });
+      setScreen("game");
+    } catch {
+      deleteResumeEntry(entry.gameId);
+      setResumeRefresh((count) => count + 1);
+    }
+  };
+
+  const openReplay = (jsonl: string) => {
+    setReplayLog(jsonl);
+    setScreen("replay");
   };
 
   // Dev/E2E deep link — unchanged behaviour: the screens run their own
@@ -122,7 +155,30 @@ export default function App() {
       content = <DevModeScreen mapId={map?.id ?? "muenster"} onBack={() => setScreen("mode")} />;
       break;
     case "stats":
-      content = <StatsScreen onBack={() => setScreen("menu")} />;
+      content = <StatsScreen onBack={() => setScreen("menu")} onReplay={openReplay} />;
+      break;
+    case "resume":
+      content = (
+        <ResumeScreen
+          key={resumeRefresh}
+          onBack={() => setScreen("menu")}
+          onResume={resumeSavedGame}
+        />
+      );
+      break;
+    case "replay":
+      content =
+        replayLog !== null ? (
+          <ReplayScreen
+            jsonl={replayLog}
+            onBack={() => {
+              setReplayLog(null);
+              setScreen("stats");
+            }}
+          />
+        ) : (
+          <StatsScreen onBack={() => setScreen("menu")} onReplay={openReplay} />
+        );
       break;
     case "game":
       if (config === null) {
@@ -133,7 +189,7 @@ export default function App() {
             mapId={config.mapId}
             seed={config.seed}
             options={config.options}
-            startImmediately
+            startImmediately={useGameStore.getState().map === null}
             onExit={exitToMenu}
           />
         );
@@ -143,7 +199,7 @@ export default function App() {
             mapId={config.mapId}
             seed={config.seed}
             options={config.options}
-            startImmediately
+            startImmediately={useGameStore.getState().map === null}
             onExit={exitToMenu}
           />
         );

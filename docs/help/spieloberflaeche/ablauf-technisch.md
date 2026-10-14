@@ -6,21 +6,43 @@ Diese Seite dokumentiert den Anwendungsrahmen und beide Spielmodi.
 `App.tsx` führt einen reinen Zustandsfluss (`MenuScreen`-Union aus
 `src/components/menuFlow.ts` — kein Router-Paket):
 `menu → map → mode → settings → mission → game` sowie die Seitenzweige
-`dev` und `stats`. `?mode=ganove|detektiv` bleibt als
-Deep-Link-Einstieg direkt in die Bildschirme erhalten.
+`dev`, `stats`, `resume` und `replay`. `?mode=ganove|detektiv` bleibt
+als Deep-Link-Einstieg direkt in die Bildschirme erhalten.
 
 ## Menüfluss (Komponenten)
 
 | Ansicht | Komponente | Aufgabe |
 |---|---|---|
-| `menu` | `MainMenu` | Neue Partie, Fortsetzen (deaktiviert bis Schritt 12), Statistiken |
+| `menu` | `MainMenu` | Neue Partie, Fortsetzen (aktiv sobald `listResumeEntries()` nicht leer), Statistiken |
 | `map` | `MapSelect` | `MENU_MAP_IDS` aktiv laden, `FORTHCOMING_MAP_IDS` disabled |
 | `mode` | `ModeSelect` | `ganove`/`detektiv` → `settings`, `dev` → `dev` |
 | `settings` | `SettingsScreen` | korridorgebundene `StartGameOptions` (inkl. `roundLimit: null` nur bei `unlimited`, `eventMode` + vereinheitlichte Kadenz via `cadenceToEventDefaults`) |
 | `mission` | `MissionSelect` | `case`/`random`/`custom`/`none`; `CustomMissionPicker` mit Kategorie-Picks + `validateCustomTargets` |
 | `dev` | `DevModeScreen` | `runAiBatch` + `summarizeBatch` (aufgezeichnet via `Recorder`) |
-| `stats` | `StatsScreen` | `listGameSummaries` über dem `localStorage`-FIFO |
-| `game` | `GanoveScreen`/`DetektivScreen` | mit `options` + `startImmediately` + `onExit` |
+| `stats` | `StatsScreen` | `aggregateStatistics(listGameLogs())` (Gesamt + je `playerMode`-Gruppe) plus Log-Verwaltung: `onReplay` → `replay`, `exportGameLog`, `deleteGameLog(index)`, `clearGameLogs` mit Rückfrage |
+| `resume` | `ResumeScreen` | `listResumeEntries` mit Klartext (Karte, Seite, Runde, Zeitpunkt); `onResume(entry)`, `deleteResumeEntry` |
+| `replay` | `ReplayScreen` | `openReplay` + `replayTo` über `useGameStore`; Timeline (vor/zurück/Abspielen), `visibleTo`-Perspektiven, Deduktions-Overlay; Unmount/`onBack` → `resetGame` |
+| `game` | `GanoveScreen`/`DetektivScreen` | mit `options` + `startImmediately` + `onExit`; beide bieten „Partie speichern" (`buildResumeEntry` → `saveResumeEntry`) und schreiben `playerMode` in den Log-Header |
+
+### Fortsetzen-Pfad
+
+`onResume` (in `App.tsx`) lädt `loadMap(entry.mapId)`, ruft
+`useGameStore.resumeGame(map, entry.snapshot, resumeLogEntries(entry))`
+und öffnet den `game`-Screen mit `mode = entry.mode`. `startImmediately`
+wird nur gesetzt, wenn der Store keine laufende Map enthält — der
+fortgesetzte Snapshot springt dadurch direkt in die „playing"-Ansicht;
+die KI-Treiber installieren sich wie immer per `useEffect`. Schlägt
+`loadMap`/das Parsen fehl, wird der Eintrag gelöscht und die Liste neu
+gerendert (`resumeRefresh`-Key).
+
+### Replay-Pfad
+
+Der Replay benutzt bewusst denselben Singleton-Store: `replayTo`
+fährt `resetGame` + `startGame` (Header-Rekonstruktion) + die ersten
+`n` Aktoreinträge. Der Screen ist exklusiv erreichbar (nur aus
+`stats`), installiert **keine** KI-Treiber und setzt den Store beim
+Verlassen per Cleanup/`resetGame` zurück — ein Live-Spiel kann nicht
+unbemerkt überschrieben bleiben.
 
 Die ausgewählte `MissionOption` plus Einstellungen wandern als
 `PendingGameConfig` in `startGame`; feste Ziele (`case`/`custom`/

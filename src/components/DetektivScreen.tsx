@@ -36,6 +36,8 @@ import {
 import { installGanoveDriver } from "../state/ganoveDriver";
 import { detectiveStartsFromLog } from "../state/detectiveDriver";
 import { loadMap } from "../logic/MapLoader";
+import { buildResumeEntry } from "../logic/SaveGame";
+import { saveResumeEntry } from "../logic/GameIndex";
 import { resolveFixedTargets } from "../logic/MissionLoader";
 import { createRng } from "../logic/rng";
 import {
@@ -51,9 +53,10 @@ import {
   type MissionStructureStep,
 } from "../logic/MissionSystem";
 import { deducePossiblePositions } from "../logic/Deduction";
-import { visibleCameras, visibleEvents, type GameEvent } from "../logic/InformationSystem";
+import { visibleCameras, visibleEvents } from "../logic/InformationSystem";
 import type { MapPack } from "../logic/mapPack";
 import { MapGraph } from "./MapGraph";
+import { chronicleText } from "./chronicle";
 import { nextSeed, readParams, resolveMissionOption } from "./gameSetup";
 import shared from "./GanoveScreen.module.css";
 import styles from "./DetektivScreen.module.css";
@@ -103,36 +106,8 @@ const STATUS_MARKER: Record<MissionStructureStep["status"], string> = {
   offen: "○",
 };
 
-/** Chronological one-line description of a detective-visible event. */
-function chronicleText(event: GameEvent, nodeName: (id: string) => string): string {
-  const params = {
-    round: event.round,
-    node: event.nodeId !== undefined ? nodeName(event.nodeId) : "?",
-    zone: event.zone ?? "?",
-  };
-  switch (event.kind) {
-    case "camera":
-      return t("hint.kind.camera", params);
-    case "sichtbarkeit":
-      return t("hint.kind.sichtbarkeit", params);
-    case "hinweis":
-      return t("hint.kind.hinweis", params);
-    case "aktion":
-      return t("hint.kind.aktion", params);
-    case "umwelt":
-      return t("intel.umwelt", {
-        a: event.edge !== undefined ? nodeName(event.edge.a) : "?",
-        b: event.edge !== undefined ? nodeName(event.edge.b) : "?",
-        untilRound: event.untilRound ?? "?",
-      });
-    case "polizeifunk":
-      // Detective-filtered views never contain this kind.
-      return "";
-  }
-}
-
 /** Compact symbol legend for the detective map — shapes carry meaning. */
-function MapLegend({ map }: { map: MapPack }) {
+export function DetectiveMapLegend({ map }: { map: MapPack }) {
   const zones = [...new Set(map.nodes.map((node) => node.zone))].sort();
   return (
     <div className={shared.legend} data-testid="map-legend">
@@ -235,7 +210,7 @@ function PickSpawnsView({
         showZones
         onNodeSelect={onPick}
       />
-      <MapLegend map={setup.map} />
+      <DetectiveMapLegend map={setup.map} />
       {notice !== null ? <p className={shared.notice}>{notice}</p> : null}
     </div>
   );
@@ -373,6 +348,8 @@ export function DetektivScreen({
       ...pending.options,
       detectivePositions: pending.picks,
       mission: pending.mission,
+      // The played side lands in the log header for the mode statistics.
+      playerMode: "detektiv",
       // Fixed-target missions (Fall/custom) need a criteria-conforming
       // ganove spawn — it is pre-drawn from the filtered candidate set;
       // without fixed targets the store draws it as before.
@@ -432,6 +409,15 @@ export function DetektivScreen({
     setMarkers({});
     setMarkerMode(false);
     setNotice(null);
+  };
+
+  /** "Partie speichern" — snapshot + log land under `RESUME_STORAGE_KEY`. */
+  const saveGame = () => {
+    const entry = buildResumeEntry(useGameStore.getState(), "detektiv");
+    if (entry !== null) {
+      saveResumeEntry(entry);
+      setNotice(t("save.done"));
+    }
   };
 
   // ---- idle / start view ----
@@ -518,7 +504,7 @@ export function DetektivScreen({
             showZones
             onNodeSelect={onNodeSelect}
           />
-          <MapLegend map={runningMap} />
+          <DetectiveMapLegend map={runningMap} />
         </div>
         <aside className={shared.sidebar}>
           {outcome !== null ? (
@@ -652,6 +638,16 @@ export function DetektivScreen({
               </ul>
             )}
           </section>
+          {outcome === null ? (
+            <button
+              type="button"
+              className={shared.secondaryButton}
+              data-testid="save-button"
+              onClick={saveGame}
+            >
+              {t("save.button")}
+            </button>
+          ) : null}
           {outcome === null ? (
             abortConfirm ? (
               <div className={shared.confirm} data-testid="abort-confirm">

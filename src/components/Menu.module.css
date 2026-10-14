@@ -142,3 +142,78 @@
   color: #e8b45a;
   font-weight: 600;
 }
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.statBox {
+  background: #161b26;
+  border: 1px solid #2a3240;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.statHeading {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  color: #e8b45a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statList {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 12px;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.statList dt {
+  color: #c8d0dc;
+}
+
+.statList dd {
+  margin: 0;
+  color: #eaf0f8;
+  text-align: right;
+}
+
+.replayControls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.replayPosition {
+  color: #9db8d9;
+  font-size: 0.85rem;
+}
+
+.perspectiveToggle {
+  display: inline-flex;
+  gap: 0;
+  border: 1px solid #2a3240;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.perspectiveToggle button {
+  background: #0c0f16;
+  color: #9db8d9;
+  border: none;
+  padding: 6px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.perspectiveToggle button[aria-pressed="true"] {
+  background: #e8b45a;
+  color: #0c0f16;
+}

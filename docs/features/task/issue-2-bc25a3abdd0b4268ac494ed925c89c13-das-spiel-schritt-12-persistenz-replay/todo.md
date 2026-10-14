@@ -14,21 +14,21 @@ diese Abweichung kurz im Ergebnis").
 | [x] | 1 | Branch-Name ermitteln | – |
 | [x] | 2 | Verzeichnisstruktur vorbereiten | `docs/features/…schritt-12-persistenz-replay/` |
 | [x] | – | Einstiegspunkt ermitteln (keine Artefakte → Schritt 3) | – |
-| [ ] | 3 | Anforderung übersetzen (selbst, kein Unteragent) | `requirement.md` |
-| [ ] | 4 | Bestandsaufnahme (selbst) | `inventory.md`, `inventory/` |
-| [ ] | 5 | Umsetzungsplanung (selbst) | `plan.md` |
-| [ ] | 5a | Offene Punkte prüfen | `plan.md` |
-| [ ] | 5b | Plan gegen Anforderung und Testbedarf prüfen | `plan-check.md` |
-| [ ] | 5c | Planungscommit | – |
-| [ ] | 6 | Implementierung (selbst) | Codeänderungen |
-| [ ] | 7 | Plan-Review (selbst) | `review.md` |
-| [ ] | 8 | Usability-Review (selbst, UI-Änderungen) | `review-usability.md` |
-| [ ] | 9 | Code-Review (selbst) | `review-code.md` |
-| [ ] | 10 | Tests ausführen (selbst) | `test-results.md` |
-| [ ] | – | Iteration oder Abschluss entscheiden | – |
-| [ ] | 11 | Folgeaufgaben dokumentieren (bei Schleifenabbruch) | `continue.md` |
-| [ ] | 12 | Dokumentation erstellen | `docs/help/` |
-| [ ] | 12b | README aktualisieren | `README.md` |
-| [ ] | 12c | Release Notes aktualisieren | `docs/RELEASE_NOTES.md` |
-| [ ] | – | Feature-Verzeichnis löschen | – |
-| [ ] | – | Commit durchführen | – |
+| [x] | 3 | Anforderung übersetzen (selbst, kein Unteragent) | `requirement.md` |
+| [x] | 4 | Bestandsaufnahme (selbst) | `inventory.md`, `inventory/` |
+| [x] | 5 | Umsetzungsplanung (selbst) | `plan.md` |
+| [x] | 5a | Offene Punkte prüfen | `plan.md` (keine offenen Punkte) |
+| [x] | 5b | Plan gegen Anforderung und Testbedarf prüfen | `plan-check.md` |
+| [x] | 5c | Planungscommit | `9eda259` |
+| [x] | 6 | Implementierung (selbst) | Codeänderungen (26 Dateien) |
+| [x] | 7 | Plan-Review (selbst) | `review.md` |
+| [x] | 8 | Usability-Review (selbst, UI-Änderungen) | `review-usability.md` |
+| [x] | 9 | Code-Review (selbst) | `review-code.md` (C1–C4 behoben) |
+| [x] | 10 | Tests ausführen (selbst) | `test-results.md` |
+| [x] | – | Iteration oder Abschluss entscheiden | Abschluss — alle Gates grün |
+| [x] | 11 | Folgeaufgaben dokumentieren (bei Schleifenabbruch) | n/a — keine Folgeaufgaben |
+| [x] | 12 | Dokumentation erstellen | `docs/help/` (api, business-rules, ablauf-anwender, ablauf-technisch, index) |
+| [x] | 12b | README aktualisieren | `README.md` |
+| [x] | 12c | Release Notes aktualisieren | `docs/RELEASE_NOTES.md` + `changes.log` |
+| [x] | – | Feature-Verzeichnis löschen | `git rm -r` (Artefakte bleiben in der Historie) |
+| [x] | – | Commit durchführen | `feat:`-Abschlusscommit |

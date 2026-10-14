@@ -199,6 +199,23 @@ describe("full game log (spec section 8)", () => {
     expect(result.rounds).toBe(s.round);
   });
 
+  it("records the played side in header config.playerMode only when set", () => {
+    store().startGame(missionMap, 1, {
+      detectivePositions: ["p"],
+      ganovePosition: "s",
+      playerMode: "detektiv",
+    });
+    expect(headerFromLog(store().log)!.config).toMatchObject({ playerMode: "detektiv" });
+    // The header round-trips: reconstruction hands the mode back into
+    // the start options so a replayed game rewrites the same header.
+    expect(startOptionsFromHeader(headerFromLog(store().log)!).options.playerMode).toBe("detektiv");
+
+    // AI-vs-AI games (no playerMode) leave the header untouched.
+    store().resetGame();
+    store().startGame(missionMap, 1, { detectivePositions: ["p"], ganovePosition: "s" });
+    expect(headerFromLog(store().log)!.config).not.toHaveProperty("playerMode");
+  });
+
   it("carries a correct visibleTo on every entry", () => {
     playFullGame();
     for (const entry of store().log) {

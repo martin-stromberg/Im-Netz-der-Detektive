@@ -127,6 +127,9 @@ export function startOptionsFromHeader(header: LogEntry): ReconstructedStart {
       eventMode: config.eventMode as StartGameOptions["eventMode"],
       eventDefaults: config.eventDefaults as StartGameOptions["eventDefaults"],
       cameraProtectedNodes: config.cameraProtectedNodes as string[] | undefined,
+      // Pass-through so a replayed/reconstructed start rewrites a
+      // bit-identical header (`config.playerMode` feeds the mode stats).
+      playerMode: config.playerMode as StartGameOptions["playerMode"],
       mission: config.mission as MissionOption | undefined,
       resolvedMission: (header.mission ?? null) as RecordedMission | null,
       resolvedCameras: (header.cameras ?? []) as string[],
@@ -196,6 +199,39 @@ export function saveGameLog(log: readonly LogEntry[], options?: PersistOptions):
     // Quota or denied storage: the game is already over — ignore.
   }
   return jsonl;
+}
+
+/**
+ * The JSONL string stored at `index` of the `listGameLogs` order
+ * (oldest → newest); `null` for out-of-range indexes or missing
+ * storage. Used by the stats view to hand a single log to the
+ * replay player.
+ */
+export function getGameLog(index: number, storage?: StorageLike | null): string | null {
+  const resolved = resolveStorage(storage);
+  if (resolved === null) {
+    return null;
+  }
+  return readLogStrings(resolved)[index] ?? null;
+}
+
+/**
+ * Removes the log at `index` of the `listGameLogs` order (oldest →
+ * newest). `gameId` is not unique (`g-{seed}` collides on repeated
+ * seeds), so deletion is positional. Out-of-range indexes and storage
+ * failures are silent no-ops.
+ */
+export function deleteGameLog(index: number, storage?: StorageLike | null): void {
+  const resolved = resolveStorage(storage);
+  if (resolved === null) {
+    return;
+  }
+  const kept = readLogStrings(resolved).filter((_, i) => i !== index);
+  try {
+    resolved.setItem(LOG_STORAGE_KEY, JSON.stringify(kept));
+  } catch {
+    // Storage failures degrade silently.
+  }
 }
 
 /** Removes all retained game logs. */
