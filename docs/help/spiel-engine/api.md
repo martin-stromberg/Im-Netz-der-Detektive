@@ -223,6 +223,7 @@ Typen: `GameEvent` (`kind`, `round`, `nodeId?`, `zone?`, `nodeIds?`,
 | `deactivateCameras()` | setzt alle Kameras `active: false` (Sabotage-Hook) |
 | `getHeatLevel()` | `{ level, score }` des Hitze-Indikators (3-Runden-Fenster, gewichtet — ohne Hinweisinhalte) |
 | `resetGame()` | setzt den kompletten Daten-Zustand zurück |
+| `resumeGame(map, snapshot, log)` | „Partie fortsetzen": stellt einen gespeicherten Spielstand wieder her — `map` aus `loadMap(entry.mapId)`, `snapshot` (`GameStateSnapshot` = alle Datenfelder außer `map`/`log`) und das geparste Log des `ResumeEntry`; fehlende Felder fallen auf `initialData()` zurück |
 | `appendLog(entry)` | hängt einen flachen `LogInput`-Eintrag (`{round, type, visibleTo, …}`) mit auto-`seq` an (`header` → `seq: 0`, sonst laufende Nummer der Ereignisse) |
 | `exportGameLog()` | „Partie exportieren": liefert das Log als `Blob` (`application/x-ndjson`) und löst — sofern ein DOM vorhanden ist — den Datei-Download aus (`Recorder.exportGameLog`) |
 | `moveGanove(target)` | validierter Ganovenzug (`MoveError` bei Regelverstoß; `mission_choice_pending` bei offener Binärwahl); Missions-Fluchtpunkt in `stage "flucht"` → `outcome "escaped"`, sonst Kameraprüfung + Ereignis-Roll, dann Detektivphase |
@@ -284,13 +285,86 @@ Implementierungen (`StorageLike`, `LogDownloader`).
 | `startOptionsFromHeader(header)` | `{mapId, seed, options}` — `startGame`-Eingaben für die Rekonstruktion des Anfangszustands; die aufgezeichneten `mission`/`cameras` werden als `resolvedMission`/`resolvedCameras` wörtlich übernommen (keine RNG-Neuziehung, identischer Zustand für alle Spawn-/Missionskombinationen); `TypeError` bei Nicht-Header |
 | `saveGameLog(log, {storage?, maxLogs?})` | hängt die serialisierte Partie an den `localStorage`-Bestand (FIFO, `MAX_STORED_LOGS` = 10); `null` ohne Storage; Schreibfehler werden geschluckt |
 | `listGameLogs(storage?)` | vorgehaltene JSONL-Logs, älteste → neueste |
+| `getGameLog(index, storage?)` | einzelnes JSONL an Position `index` der `listGameLogs`-Reihenfolge (Replay-Zugriff); `null` außerhalb des Bereichs |
+| `deleteGameLog(index, storage?)` | entfernt das Log an Position `index` (`gameId` ist nicht eindeutig, daher positionsbasiert); No-Op außerhalb des Bereichs |
 | `clearGameLogs(storage?)` | entfernt den Bestand (`LOG_STORAGE_KEY`) |
 | `exportGameLog(log, {filename?, download?})` | `Blob` (`application/x-ndjson`) + Download-Auslösung (Default: DOM-Anker); Dateiname `im-netz-der-detektive-{gameId}.jsonl` |
 | `LOG_STORAGE_KEY` | `"im-netz-der-detektive:game-logs"` |
 
 **Auto-Persist:** `finish()` (Partieende) ruft `saveGameLog` auf — die
 letzten N Partien bleiben sitzungsübergreifend verfügbar, ohne dass
-headless Läufe etwas schreiben.
+headless Läufe etwas schreiben. `startGame`-Option `autoPersist: false`
+unterdrückt den Schreibzugriff für diese eine Partie — der Replay-Pfad
+(`replayTo`) nutzt ihn, damit ein abgespieltes Log nicht als Duplikat
+erneut im FIFO landet; `startGame`/`resetGame`/`resumeGame` stellen den
+Normalzustand wieder her.
+
+### `SaveGame.ts` — Speicherstand (Snapshot + Log + Seed)
+
+**Beschreibung:** „Partie speichern/fortsetzen" (`02-technisches-
+konzept.md` §8.1): Ein `ResumeEntry` friert eine laufende Partie als
+versionierten Datensatz ein — `schema` (`SAVE_SCHEMA_VERSION`),
+`gameId`, `mapId`, `seed`, gespielte `mode`-Perspektive,
+`options` (aus dem Header rekonstruiert), `savedAt`, das Log als
+JSONL und den `GameStateSnapshot` (alle `GameData`-Felder außer `map`
+und `log`; `map` wird beim Fortsetzen via `loadMap` erneut geladen).
+
+| Methode / Konstante | Beschreibung |
+|---------------------|--------------|
+| `SAVE_SCHEMA_VERSION` | Formatversion des `ResumeEntry`; unbekannte Versionen werden beim Listen klar abgelehnt |
+| `snapshotGame(state)` | tiefe JSON-Kopie des Datenbestands ohne `map`/`log` — kein Aliasing mit dem Live-Zustand |
+| `gameIdOf(state)` | `gameId` aus dem Log-Header (`null` ohne Header) |
+| `buildResumeEntry(state, mode, savedAt?)` | kompletter `ResumeEntry` aus dem Live-State; `null` ohne laufende Partie (`map === null`) oder nach `outcome` |
+| `isValidResumeEntry(entry)` | strukturelle Validierung: Schema-Match plus Pflichtfelder des Snapshots (`round`, `phase`, `activeDetectiveIndex`, `detektivePositions`, `events`, `cameras`, `blockedEdges`, `seed`) |
+| `resumeLogEntries(entry)` | geparstes Log des Eintrags — Header-Zeile erhält die In-Memory-Defaults `seq: 0`/`round: 0` zurück (bitgleicher Zustand) |
+
+### `GameIndex.ts` — Log-Index und Resume-Verwaltung
+
+**Beschreibung:** Menü-Datenschicht über dem `Recorder`-FIFO
+(`listGameSummaries`, `summarizeLog`) plus die Speicherstand-
+Verwaltung unter `RESUME_STORAGE_KEY`.
+
+| Methode / Konstante | Beschreibung |
+|---------------------|--------------|
+| `listResumeEntries(storage?)` | gespeicherte Stände, neueste zuerst — nur Einträge der aktuellen `SAVE_SCHEMA_VERSION` mit gültigem Snapshot |
+| `saveResumeEntry(entry, storage?)` | Upsert per `gameId` (erneutes Speichern ersetzt den alten Stand), FIFO-Limit `MAX_RESUME_ENTRIES` = 10; Einträge fremder Schema-Versionen bleiben beim Schreiben erhalten |
+| `deleteResumeEntry(gameId, storage?)` | entfernt genau den Eintrag mit dieser `gameId`; Fremd-Schema-Einträge bleiben erhalten |
+| `clearResumeEntries(storage?)` | entfernt alle Speicherstände |
+| `RESUME_STORAGE_KEY` | `"im-netz-der-detektive:resume-entries"` |
+
+### `ReplayPlayer.ts` — deterministisches Abspielen (rein)
+
+**Beschreibung:** Spielt ein aufgezeichnetes JSONL-Log deterministisch
+durch die Engine erneut: `openReplay` rekonstruiert den Start aus dem
+Header (`mapId` + `seed` + aufgezeichnete `mission`/`cameras`/
+`config`), ein Replay-Schritt ist ein **Aktoreintrag** (`move`,
+`action`, `sabotage_offer` mit `chosen`, `radio`) — engine-seitige
+Einträge entstehen beim Neuabspielen identisch von selbst. Schritt
+zurück = Neuabspielen bis `n-1` (Determinismus statt Inversen).
+Der `ReplayDriver` ist ein Interface (`getState()` mit den
+Store-Aktionen) — `useGameStore` erfüllt es strukturell, das Modul
+bleibt headless.
+
+| Methode / Typ | Beschreibung |
+|---------------|--------------|
+| `openReplay(jsonl)` | `{entries, start, actions}` — `ReplayError` ohne verwertbaren Header |
+| `isReplayAction(entry)` / `replayActions(entries)` | Aktoreinträge in `seq`-Reihenfolge — ein Schritt je Eintrag |
+| `replayTo(driver, map, source, stepCount)` | `resetGame` + `startGame` aus der Header-Rekonstruktion (mit `autoPersist: false` — kein erneuter Log-Schreibzugriff) + die ersten `stepCount` Aktoreinträge (geklemmt auf `[0, actions.length]`; Stop bei `outcome`) |
+| `ReplayDriver` | Store-Oberfläche des Abspielers — `useGameStore` kompatibel |
+
+### `Statistics.ts` — aggregierte Statistiken (rein)
+
+**Beschreibung:** Balancing-Kennzahlen über den Log-Bestand —
+Siegquote je Seite und je gespieltem Modus
+(`header.config.playerMode`: `"ganove"`/`"detektiv"`; fehlende Werte
+laufen unter `"unbekannt"`), Ø Partienlänge, Ø Hinweise und Ø
+Kameratreffer. Unfertige (kein `result`) oder beschädigte Logs
+fallen heraus.
+
+| Methode / Typ | Beschreibung |
+|---------------|--------------|
+| `aggregateStatistics(jsonls)` | `{ total, byMode }` — `StatsBucket` je Gruppe (`games`, Siege/Remis, `winRate*`, `avgRounds`/`avgHints`/`avgCameras`; `null` bei leerer Gruppe) |
+| `logStats(jsonl)` | Einzelbeitrag eines Logs (`mode`, `outcome`, `rounds`, `hintsTotal`, `camerasTriggered`) oder `null` |
 
 ### `Deduction.ts` — mögliche Ganoven-Positionen (rein, deterministisch)
 

@@ -3,8 +3,8 @@
  * point of the application frame. "Neue Partie" starts the
  * map→mode→settings→mission flow; "Partie fortsetzen" and
  * "Statistiken/Replays" are wired to the `GameIndex` entry structures
- * — resume stays disabled until the persistence step writes entries,
- * stats lists the recorded games already kept by `Recorder`.
+ * — resume lists the saved mid-game entries, stats lists the recorded
+ * games kept by `Recorder`.
  */
 import { t } from "../i18n";
 import { listResumeEntries } from "../logic/GameIndex";
@@ -18,8 +18,8 @@ export interface MainMenuProps {
 }
 
 export function MainMenu({ onNavigate }: MainMenuProps) {
-  // Resume entries exist as a structure only — nothing writes them
-  // before the persistence step, so the button stays disabled.
+  // "Partie speichern" in the game screens writes resume entries —
+  // the button activates as soon as a valid save exists.
   const resumable = listResumeEntries().length > 0;
   return (
     <div className={shared.screen} data-testid="main-menu">
@@ -49,6 +49,7 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
             data-testid="menu-resume"
             disabled={!resumable}
             title={t("menu.resumeHint")}
+            onClick={() => onNavigate("resume")}
           >
             {t("menu.resume")}
           </button>

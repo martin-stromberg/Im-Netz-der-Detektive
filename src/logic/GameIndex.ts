@@ -1,21 +1,24 @@
 /**
- * Game index (menu layer of spec `02-technisches-konzept.md` section 6):
- * derives per-game summaries from the JSONL logs retained by
- * `Recorder.listGameLogs` — the data source for the menu's
- * "Statistiken/Replays" view.
+ * Game index (menu layer of spec `02-technisches-konzept.md` sections
+ * 6 and 8.1): derives per-game summaries from the JSONL logs retained
+ * by `Recorder.listGameLogs` and manages the resumable mid-game saves
+ * of "Partie fortsetzen".
  *
- * It also reserves the entry structure for "Partie fortsetzen": a
- * `ResumeEntry` describes a mid-game save (game id, map, seed, full
- * start config and the running log). Nothing writes resume entries yet
- * — that persistence layer is the next development step — but the menu
- * already consumes `listResumeEntries`, so the entry shape and storage
- * key are fixed now.
+ * A `ResumeEntry` carries a versioned snapshot of the store
+ * (`SaveGame.ts`), the JSONL log up to the save point and the played
+ * perspective, so the menu can restore the exact game state in the
+ * matching screen. Entries with an unknown `schema` are rejected on
+ * read — later format changes stay explicit instead of silent.
  */
-import type { GameOutcome, StartGameOptions } from "../state/gameStore";
+import type { GameOutcome, GameStateSnapshot, StartGameOptions } from "../state/gameStore";
 import { listGameLogs, parseLog, type StorageLike } from "./Recorder";
+import { isValidResumeEntry } from "./SaveGame";
 
-/** `localStorage` key reserved for resumable mid-game saves. */
+/** `localStorage` key holding the resumable mid-game saves. */
 export const RESUME_STORAGE_KEY = "im-netz-der-detektive:resume-entries";
+
+/** How many resume entries are retained (FIFO). */
+export const MAX_RESUME_ENTRIES = 10;
 
 /**
  * One finished game as listed in the menu — flattened from the log
@@ -32,20 +35,27 @@ export interface GameSummary {
 }
 
 /**
- * A resumable mid-game entry (structure fixed now, written by the
- * persistence step): everything needed to continue a running game —
- * the start inputs plus the so-far recorded log lines.
+ * A resumable mid-game entry: everything needed to continue a running
+ * game — the start inputs plus the state snapshot and the so-far
+ * recorded log lines (spec section 8.1: "Speicherstand =
+ * State-Snapshot + Log + Seed"). `schema` versions the format.
  */
 export interface ResumeEntry {
+  /** Format version — `SAVE_SCHEMA_VERSION`; others are rejected on read. */
+  schema: number;
   gameId: string;
   mapId: string;
   seed: number;
+  /** The perspective the saving player controls. */
+  mode: "ganove" | "detektiv";
   /** `StartGameOptions` as chosen in the menu/settings flow. */
   options: StartGameOptions;
   /** ISO-8601 timestamp of the save. */
   savedAt: string;
   /** JSONL event log lines up to the save point (without `result`). */
   log: string;
+  /** State snapshot — every `GameData` field except `map` and `log`. */
+  snapshot: GameStateSnapshot;
 }
 
 const OUTCOMES: readonly GameOutcome[] = ["caught", "surrounded", "escaped", "timeout", "draw"];
@@ -104,37 +114,95 @@ function defaultStorage(): StorageLike | null {
   }
 }
 
-/**
- * Stored resume entries, newest first. Nothing writes them yet (the
- * mid-game persistence is scheduled for the next step), so this
- * currently always returns an empty list — the structure and storage
- * key are what the menu already relies on.
- */
-export function listResumeEntries(storage?: StorageLike | null): ResumeEntry[] {
-  const resolved = storage === undefined ? defaultStorage() : storage;
-  if (resolved === null) {
-    return [];
-  }
+function resolveStorage(storage: StorageLike | null | undefined): StorageLike | null {
+  return storage === undefined ? defaultStorage() : storage;
+}
+
+/** Raw stored array (any schema, possibly malformed), newest first. */
+function readRawResumeEntries(storage: StorageLike): unknown[] {
   try {
-    const raw = resolved.getItem(RESUME_STORAGE_KEY);
+    const raw = storage.getItem(RESUME_STORAGE_KEY);
     if (raw === null) {
       return [];
     }
     const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.filter(
-      (item): item is ResumeEntry =>
-        typeof item === "object" &&
-        item !== null &&
-        typeof (item as ResumeEntry).gameId === "string" &&
-        typeof (item as ResumeEntry).mapId === "string" &&
-        typeof (item as ResumeEntry).seed === "number" &&
-        typeof (item as ResumeEntry).savedAt === "string" &&
-        typeof (item as ResumeEntry).log === "string",
-    );
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
+}
+
+/** The `gameId` of a raw stored entry — `undefined` when malformed. */
+function rawGameId(item: unknown): string | undefined {
+  return typeof item === "object" &&
+    item !== null &&
+    typeof (item as ResumeEntry).gameId === "string"
+    ? (item as ResumeEntry).gameId
+    : undefined;
+}
+
+/** Stored entries of the current schema (valid snapshots only), newest first. */
+function readResumeEntries(storage: StorageLike): ResumeEntry[] {
+  // Entries of an unknown schema version or with a damaged snapshot
+  // are filtered out — a later format is never guessed at.
+  return readRawResumeEntries(storage).filter((item): item is ResumeEntry =>
+    isValidResumeEntry(item),
+  );
+}
+
+/**
+ * Stored resume entries, newest first. Only entries of the current
+ * `SAVE_SCHEMA_VERSION` with a structurally valid snapshot are listed.
+ */
+export function listResumeEntries(storage?: StorageLike | null): ResumeEntry[] {
+  const resolved = resolveStorage(storage);
+  return resolved === null ? [] : readResumeEntries(resolved);
+}
+
+/**
+ * Persists a resume entry: an existing entry of the same `gameId` is
+ * replaced (saving again overwrites the earlier save point), and the
+ * list stays within `MAX_RESUME_ENTRIES` (FIFO). Newest entries sort
+ * first. Entries of a foreign schema version are preserved on write —
+ * only same-`gameId` duplicates and the FIFO overflow are dropped.
+ * Storage write failures degrade silently — saving is best-effort and
+ * must never break a running game.
+ */
+export function saveResumeEntry(entry: ResumeEntry, storage?: StorageLike | null): void {
+  const resolved = resolveStorage(storage);
+  if (resolved === null) {
+    return;
+  }
+  const kept = [
+    entry,
+    ...readRawResumeEntries(resolved).filter((item) => rawGameId(item) !== entry.gameId),
+  ].slice(0, MAX_RESUME_ENTRIES);
+  try {
+    resolved.setItem(RESUME_STORAGE_KEY, JSON.stringify(kept));
+  } catch {
+    // Quota or denied storage: ignore — the running game stays playable.
+  }
+}
+
+/**
+ * Removes the resume entry of `gameId`; unknown ids are a no-op.
+ * Entries of a foreign schema version are kept — deletion is strictly
+ * scoped to the matching `gameId`.
+ */
+export function deleteResumeEntry(gameId: string, storage?: StorageLike | null): void {
+  const resolved = resolveStorage(storage);
+  if (resolved === null) {
+    return;
+  }
+  const kept = readRawResumeEntries(resolved).filter((item) => rawGameId(item) !== gameId);
+  try {
+    resolved.setItem(RESUME_STORAGE_KEY, JSON.stringify(kept));
+  } catch {
+    // Storage failures degrade silently.
+  }
+}
+
+/** Removes all resume entries. */
+export function clearResumeEntries(storage?: StorageLike | null): void {
+  resolveStorage(storage)?.removeItem(RESUME_STORAGE_KEY);
 }
