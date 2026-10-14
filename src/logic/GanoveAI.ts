@@ -1,9 +1,9 @@
 /**
  * Ganove AI (01-spielkonzept.md sections 5 and 6): pursues the mission
- * — routes toward the current target, times action rounds (never while
- * the heat is critical or a detective is adjacent), taps the police
- * radio once under pressure and weighs the informant's sabotage offer
- * against its detour.
+ * — routes toward the current target, times action rounds (a detective
+ * within `SAFE_ACTION_GAP` postpones them), taps the police radio once
+ * under pressure and weighs the informant's sabotage offer against its
+ * detour.
  *
  * The AI sees exactly what a ganove player sees (`GanoveView`): own
  * position and full mission targets, all detective positions, the
@@ -26,18 +26,32 @@ import type { Mission } from "../state/gameStore";
  * same round.
  */
 export const SAFE_ACTION_GAP = 2;
-/** Heat score at which the police radio is tapped (`erhoeht` and up). */
-export const RADIO_HEAT_THRESHOLD = 3;
+/**
+ * Heat score at which the police radio is tapped. Calibrated in step
+ * 14: threshold 1 taps it right after the first hint activity — the
+ * revealed trail lists the cameras already triggered, so the ganove
+ * stops re-entering the very nodes that exposed him (the double camera
+ * hit on one node was a recurring early-catch pattern).
+ */
+export const RADIO_HEAT_THRESHOLD = 1;
 /**
  * Distance to the nearest detective at which the ganove switches from
- * mission progress to evasion (maximise distance first).
+ * mission progress to evasion (maximise distance first). Calibrated in
+ * step 14 (see docs/help/spiel-engine/balancing-bericht.md): the earlier
+ * value 2 — combined with the `kritisch` heat trigger — kept the ganove
+ * circling instead of finishing the mission (0 % AI-vs-AI win rate on
+ * muenster). Pure proximity now drives evasion: only an adjacent
+ * detective forces the defensive profile.
  */
-export const EVADE_DISTANCE = 2;
+export const EVADE_DISTANCE = 1;
 /**
  * Preferred minimum distance of a move target to the nearest detective
- * — kept whenever such a move exists (landing closer invites the net).
+ * — kept whenever such a move exists. Calibrated in step 14: the
+ * earlier value 3 filtered out direct routes so often that the ganove
+ * detoured around the squad while the zone closed in. 2 matches the
+ * hard survival floor (adjacent = caught this round).
  */
-export const MOVE_SAFE_GAP = 3;
+export const MOVE_SAFE_GAP = 2;
 
 /** Everything the ganove AI may know — its own side's view. */
 export interface GanoveView {
@@ -60,6 +74,13 @@ export interface GanoveView {
   legalMoves: readonly MoveTarget[];
   /** Mission action executable at the current position, if any. */
   missionAction: string | null;
+  /**
+   * Node the ganove came from with his last move (`null` before his
+   * first move). Feeds the anti-oscillation tie-break added in step 14:
+   * without it the greedy scorer ping-ponged between two nodes whenever
+   * the direct route sat inside the detectives' coverage.
+   */
+  cameFromNodeId: string | null;
 }
 
 /** The AI's decision for the ganove phase. */
@@ -131,33 +152,6 @@ function currentTarget(
   return best;
 }
 
-/** Remaining route + action rounds needed to finish the mission. */
-function remainingWork(view: GanoveView, distFrom: (from: string) => Map<string, number>): number {
-  const mission = view.mission;
-  if (mission === null) {
-    const target = currentTarget(view, distFrom);
-    return target === null ? 0 : (distFrom(view.ganovePosition).get(target) ?? Infinity);
-  }
-  const d = (a: string, b: string | null): number =>
-    b === null ? Infinity : (distFrom(a).get(b) ?? Infinity);
-  const t = mission.targets;
-  const pos = view.ganovePosition;
-  switch (mission.stage) {
-    case "diebstahl":
-      return d(pos, t.diebstahl) + d(t.diebstahl, t.kontakt) + d(t.kontakt, t.flucht) + 2;
-    case "kontakt":
-      return d(pos, t.kontakt) + d(t.kontakt, t.flucht) + 1;
-    case "wahl":
-      return d(pos, t.flucht);
-    case "sabotage":
-      return t.sabotage === null
-        ? d(pos, t.flucht)
-        : d(pos, t.sabotage) + d(t.sabotage, t.flucht) + 1;
-    case "flucht":
-      return d(pos, t.flucht);
-  }
-}
-
 /** Camera nodes the police radio revealed as already triggered. */
 function knownCameraNodes(view: GanoveView): Set<string> {
   const known = new Set<string>();
@@ -184,10 +178,22 @@ function knownCameraNodes(view: GanoveView): Set<string> {
 }
 
 /**
+ * Maximum detour (in edges over the direct kontakt→flucht leg) the AI
+ * still judges worth the sabotage effect — step-14 calibration. The
+ * generation budget `missionRules.sabotageDetour` draws offers up to
+ * detour 8; accepting only cheap detours (≤ 3) makes the binary choice
+ * a genuine weigh-off — measured offer distribution on muenster puts
+ * the acceptance rate near 50 %, the corridor the balancing targets —
+ * instead of rubber-stamping every offer.
+ */
+export const SABOTAGE_ACCEPT_DETOUR = 3;
+
+/**
  * Decides the informant's binary offer (spec section 5.4): accept the
- * sabotage when its detour stays within the map's `sabotageDetour`
- * budget and the heat is below `kritisch` — otherwise head for the
- * escape point.
+ * sabotage when its detour stays within `SABOTAGE_ACCEPT_DETOUR` —
+ * otherwise head for the escape point. Step-14 calibration dropped the
+ * heat clause: the sabotage cover is worth most exactly when the trail
+ * is hot, and vetoing at `kritisch` only suppressed the escape window.
  */
 export function chooseSabotagePath(view: GanoveView): "sabotage" | "flucht" {
   const mission = view.mission;
@@ -201,8 +207,7 @@ export function chooseSabotagePath(view: GanoveView): "sabotage" | "flucht" {
     (distFrom(t.kontakt).get(sabotage) ?? Infinity) +
     (distFrom(sabotage).get(t.flucht) ?? Infinity) -
     (distFrom(t.kontakt).get(t.flucht) ?? Infinity);
-  const worthIt = detour <= view.map.settings.missionRules.sabotageDetour;
-  return worthIt && view.heatLevel !== "kritisch" ? "sabotage" : "flucht";
+  return detour <= SABOTAGE_ACCEPT_DETOUR ? "sabotage" : "flucht";
 }
 
 /**
@@ -216,9 +221,9 @@ export function shouldUseRadio(view: GanoveView): boolean {
 
 /**
  * Chooses the ganove's turn: an action round at the current target
- * (only when safe — no detective within `SAFE_ACTION_GAP` and heat
- * below `kritisch`, unless the remaining round budget forces it) or a
- * move toward the current mission target. Moves that land within one
+ * (only when no detective sits within `SAFE_ACTION_GAP` edges — the
+ * reveal makes an adjacent catch certain) or a move toward the current
+ * mission target. Moves that land within one
  * edge of a detective are avoided whenever an alternative exists
  * (a detective there catches him in the same round); among the rest the
  * AI prefers shorter target distance, more distance to detectives and
@@ -235,15 +240,13 @@ export function chooseGanoveTurn(view: GanoveView, rng: Rng): GanoveTurn {
   if (view.missionAction !== null) {
     // Action rounds leave the ganove standing and fully catchable — a
     // detective within one edge catches him this very round, so the
-    // hard floor is `SAFE_ACTION_GAP`. Heat only vetoes the action when
-    // the mission is not yet on the deadline: every action emits an
-    // exact trace, so acting while `kritisch` invites the swarm — but
-    // stalling loses to the round limit anyway.
+    // hard floor is `SAFE_ACTION_GAP`. Step-14 calibration: both the
+    // former heat veto and a stricter "post-action exit" gate were
+    // tested and dropped — skipping an available action window stalls
+    // the mission while the trail only gets hotter; grabbing the
+    // action whenever the floor holds was strictly better in batch.
     const safe = dangerAt(view.ganovePosition) >= SAFE_ACTION_GAP;
-    const work = remainingWork(view, distFrom);
-    const deadline =
-      view.roundLimit !== null && Number.isFinite(work) && view.roundLimit - view.round <= work;
-    if (safe && (view.heatLevel !== "kritisch" || deadline)) {
+    if (safe) {
       return { type: "action" };
     }
   }
@@ -260,30 +263,58 @@ export function chooseGanoveTurn(view: GanoveView, rng: Rng): GanoveTurn {
 
   const target = currentTarget(view, distFrom);
   const knownCameras = knownCameraNodes(view);
-  // Move targets are filtered to the widest safe gap available:
-  // landing within one edge of a detective is suicide this round
-  // (distance ≥2 is the hard floor), within two it invites the net next
-  // round — so the AI keeps `MOVE_SAFE_GAP` whenever an alternative
-  // exists.
-  const comfortable = view.legalMoves.filter((move) => dangerAt(move.nodeId) >= MOVE_SAFE_GAP);
-  const safeMoves = view.legalMoves.filter((move) => dangerAt(move.nodeId) >= 2);
-  const pool =
-    comfortable.length > 0 ? comfortable : safeMoves.length > 0 ? safeMoves : view.legalMoves;
+  // Plain shortest distance to the current target — step-14 finding:
+  // risk-priced routing (tested and discarded) made the ganove orbit
+  // the whole squad in 15-round odysseys while hints piled up. Direct
+  // dashes with the landing floor plus the anti-oscillation tie-break
+  // below proved strictly better.
+  const route = target === null ? null : distFrom(target);
+  // Infinity leaks NaN into the lexicographic comparison below
+  // (Infinity − Infinity = NaN never satisfies `< 0` or `=== 0`), so
+  // unreachable entries are clamped to a large finite rank instead.
+  const rank = (value: number): number => (Number.isFinite(value) ? value : 1_000_000);
+  const routeDist = (nodeId: string): number =>
+    route === null ? 0 : rank(route.get(nodeId) ?? Infinity);
+  const currentRouteDist = routeDist(view.ganovePosition);
 
   // On the final leg (sabotage/flucht) the ganove commits: reaching the
   // node ends or finishes the mission — pure evasion would only stall
   // into a timeout loss. Early stages balance progress against safety.
   const finalLeg =
     view.mission !== null && (view.mission.stage === "sabotage" || view.mission.stage === "flucht");
-  // Evade mode: once a detective is within `EVADE_DISTANCE` edges or the
-  // heat is `kritisch` (the trail is hot — they likely know where he
-  // is), the priority flips from mission progress to opening distance.
+
+  // Move pool, step-14 calibrated. Landing within one edge of a
+  // detective is *not* automatic suicide — the catch only lands when a
+  // detective actually steps onto the node, and the squad AI does not
+  // see the ganove's position. The real rule from the batch logs:
+  // prefer moves that strictly reduce the target distance ("progress
+  // moves") at danger ≥ 2; when no safe progress exists, accept a
+  // riskier progress move rather than circling (circling feeds the
+  // deduction engine one more round of elimination); only when no
+  // progress move exists at all fall back to the safest sidestep. On
+  // the final leg any progress beats waiting — distance-1 landings
+  // stay in the pool there as desperation dashes.
+  const progressMoves = view.legalMoves.filter((move) => routeDist(move.nodeId) < currentRouteDist);
+  const safeProgress = progressMoves.filter((move) => dangerAt(move.nodeId) >= MOVE_SAFE_GAP);
+  const safeMoves = view.legalMoves.filter((move) => dangerAt(move.nodeId) >= 2);
+  const pool =
+    safeProgress.length > 0
+      ? safeProgress
+      : progressMoves.length > 0
+        ? progressMoves
+        : safeMoves.length > 0
+          ? safeMoves
+          : view.legalMoves;
+  // Evade mode: once a detective is within `EVADE_DISTANCE` edges the
+  // priority flips from mission progress to opening distance. Heat no
+  // longer triggers evasion on its own (step-14 calibration): a hot
+  // trail without a nearby detective must not stall the mission — the
+  // heat only ever described recent hint activity, not proximity.
   // The escape score maximises first the distance to the nearest
   // detective, then the exits the node keeps, then the summed distance
   // to the whole squad (avoids running into a corner surrounded on all
   // sides).
-  const evading =
-    !finalLeg && (dangerAt(view.ganovePosition) <= EVADE_DISTANCE || view.heatLevel === "kritisch");
+  const evading = !finalLeg && dangerAt(view.ganovePosition) <= EVADE_DISTANCE;
   /**
    * "Future exits": neighbours of `node` that would still be survivable
    * next round — not occupied and at least two edges from every current
@@ -297,25 +328,50 @@ export function chooseGanoveTurn(view: GanoveView, rng: Rng): GanoveTurn {
         !isEdgeBlocked(node, edge.nodeId, view.blockedEdges, view.round + 1) &&
         dangerAt(edge.nodeId) >= 2,
     ).length;
-  const score = (move: MoveTarget): [number, number, number, number, number] => {
-    const targetDist = target === null ? 0 : (distFrom(move.nodeId).get(target) ?? Infinity);
-    const squadDist = view.detektivePositions.reduce(
-      (sum, d) => sum + (distFrom(d).get(move.nodeId) ?? 0),
-      0,
+  const score = (move: MoveTarget): [number, number, number, number, number, number] => {
+    const targetDist = routeDist(move.nodeId);
+    const squadDist = rank(
+      view.detektivePositions.reduce((sum, d) => sum + (distFrom(d).get(move.nodeId) ?? 0), 0),
     );
     const cameraPenalty = knownCameras.has(move.nodeId) ? 1 : 0;
+    // Anti-oscillation: stepping straight back onto the node he just
+    // left is scored worse than any equally attractive alternative —
+    // a 2-cycle never progresses the mission (step-14 calibration).
+    const backtrack = move.nodeId === view.cameFromNodeId ? 1 : 0;
     return evading
-      ? [-dangerAt(move.nodeId), cameraPenalty, -futureExits(move.nodeId), -squadDist, targetDist]
-      : [targetDist, -dangerAt(move.nodeId), cameraPenalty, -futureExits(move.nodeId), -squadDist];
+      ? [
+          -dangerAt(move.nodeId),
+          cameraPenalty,
+          backtrack,
+          -futureExits(move.nodeId),
+          -squadDist,
+          targetDist,
+        ]
+      : // Camera rank sits right behind route progress: a known camera
+        // node is an exact position report — worth an extra edge of
+        // detour, but never worth skipping a closer safe approach.
+        [
+          targetDist,
+          cameraPenalty,
+          -dangerAt(move.nodeId),
+          backtrack,
+          -futureExits(move.nodeId),
+          -squadDist,
+        ];
   };
 
-  let bestScore: readonly number[] = [Infinity, Infinity, Infinity, Infinity, Infinity];
+  let bestScore: readonly number[] = [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity];
   let best: MoveTarget[] = [];
   for (const move of pool) {
     const value = score(move);
     let cmp = 0;
     for (let i = 0; i < value.length && cmp === 0; i += 1) {
-      cmp = value[i] - (bestScore[i] ?? Infinity);
+      // Infinity − Infinity = NaN must never reach the comparison —
+      // `rank` already clamped every score component to a finite value,
+      // and the initial bestScore entries compare as "worse than anything
+      // finite" because cmp stays > 0 only via value − Infinity = −Inf.
+      const reference = bestScore[i];
+      cmp = reference === Infinity ? (value[i] === Infinity ? 0 : -1) : value[i] - reference;
     }
     if (cmp < 0) {
       bestScore = value;

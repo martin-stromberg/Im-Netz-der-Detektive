@@ -77,8 +77,31 @@ describe("chooseDetectiveMove — Zugauswahl", () => {
         },
       ],
     });
-    const move = chooseDetectiveMove(view, 1, legalMovesFor(view, 1), createRng(1));
+    // Seed 43 draws ≥ DETECTIVE_RANDOM_MOVE_CHANCE on the first roll —
+    // the patrol branch stays off and the optimal coverage move shows.
+    const move = chooseDetectiveMove(view, 1, legalMovesFor(view, 1), createRng(43));
     expect(move).toBe("e");
+  });
+
+  it("patrols on a random draw below the calibrated chance (step-14 calibration)", () => {
+    // Seed 1 draws < DETECTIVE_RANDOM_MOVE_CHANCE on the first roll —
+    // the move is a legal patrol pick instead of the coverage optimum.
+    const view = makeView({
+      detectiveStarts: ["a", "j"],
+      detektivePositions: ["a", "j"],
+      events: [
+        {
+          kind: "hinweis",
+          round: 1,
+          zone: "x",
+          nodeIds: ["d", "f", "g"],
+          visibleTo: "detectives",
+        },
+      ],
+    });
+    const moves = legalMovesFor(view, 1);
+    const move = chooseDetectiveMove(view, 1, moves, createRng(1));
+    expect(moves.map((m) => m.nodeId)).toContain(move);
   });
 
   it("falls back to the last hint area when the belief set is empty", () => {

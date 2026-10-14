@@ -38,6 +38,7 @@ function makeView(overrides: Partial<GanoveView> = {}): GanoveView {
     escapeNodeIds: ["b", "d", "g"],
     legalMoves: [],
     missionAction: null,
+    cameFromNodeId: null,
     ...overrides,
   };
   const ctx: MoveContext = {
@@ -75,7 +76,10 @@ describe("chooseGanoveTurn — Mission-Routing", () => {
     expect(turn.type).toBe("move");
   });
 
-  it("refuses the action at critical heat (unless on the deadline)", () => {
+  it("acts at critical heat — heat never vetoes an action (step-14 calibration)", () => {
+    // Stalling on the target while the trail is hot only hands the
+    // squad more rounds of deduction; the survival floor is the only
+    // gate left.
     const view = makeView({
       ganovePosition: "f",
       missionAction: "diebstahl",
@@ -85,22 +89,26 @@ describe("chooseGanoveTurn — Mission-Routing", () => {
       round: 5,
       roundLimit: 30,
     });
-    expect(chooseGanoveTurn(view, createRng(1)).type).toBe("move");
+    expect(chooseGanoveTurn(view, createRng(1))).toEqual({ type: "action" });
   });
 
-  it("acts despite critical heat once the round budget forces it", () => {
+  it("does not ping-pong back onto the node it just left", () => {
+    // cameFromNodeId feeds the anti-oscillation tie-break: between two
+    // otherwise equal moves the one that does not reverse the last step
+    // wins. At e with target f both f and the came-from node c are
+    // legal; the AI must not choose c when an equal-or-better option
+    // exists.
     const view = makeView({
-      ganovePosition: "f",
-      missionAction: "diebstahl",
-      detektivePositions: ["a", "i"],
-      heatLevel: "kritisch",
-      heatScore: 6,
-      round: 28,
-      roundLimit: 30,
+      ganovePosition: "e",
+      cameFromNodeId: "c",
+      detektivePositions: ["i"],
+      mission: makeMission({
+        targets: { diebstahl: "f", kontakt: "i", flucht: "b", sabotage: null },
+      }),
     });
-    // remainingWork at diebstahl on f = 0 + d(f→i)=3 + d(i→b)=3 + 2 = 8
-    // > 30−28=2 rounds left → the deadline forces the action.
-    expect(chooseGanoveTurn(view, createRng(1))).toEqual({ type: "action" });
+    const turn = chooseGanoveTurn(view, createRng(1));
+    expect(turn.type).toBe("move");
+    expect(turn.type === "move" ? turn.target : null).not.toBe("c");
   });
 
   it("avoids landing within reach of a detective when alternatives exist", () => {
@@ -163,8 +171,31 @@ describe("chooseSabotagePath — Binärwahl", () => {
     expect(chooseSabotagePath(wahlView("g"))).toBe("sabotage");
   });
 
-  it("declines at critical heat", () => {
-    expect(chooseSabotagePath(wahlView("g", "kritisch"))).toBe("flucht");
+  it("declines a detour beyond the acceptance bound", () => {
+    // muenster: kontakt domplatz → sabotage stadtwerke → flucht
+    // wolbeck is a detour of 8 — well beyond SABOTAGE_ACCEPT_DETOUR,
+    // so the direct escape wins even though the offer is on the table.
+    const muenster = loadMap("muenster");
+    const view = makeView({
+      map: muenster,
+      ganovePosition: "domplatz",
+      legalMoves: [],
+      mission: makeMission({
+        stage: "wahl",
+        targets: {
+          diebstahl: "rathaus",
+          kontakt: "domplatz",
+          flucht: "wolbeck",
+          sabotage: "stadtwerke",
+        },
+        pendingChoice: { sabotageNode: "stadtwerke", effect: "funkstille" },
+      }),
+    });
+    expect(chooseSabotagePath(view)).toBe("flucht");
+  });
+
+  it("accepts a cheap detour even at critical heat (step-14 calibration)", () => {
+    expect(chooseSabotagePath(wahlView("g", "kritisch"))).toBe("sabotage");
   });
 
   it("declines when the mission carries no sabotage target", () => {
@@ -181,8 +212,11 @@ describe("chooseSabotagePath — Binärwahl", () => {
 
 describe("shouldUseRadio", () => {
   it("fires once heat reaches the threshold, only once per game", () => {
-    expect(shouldUseRadio(makeView({ heatScore: 3 }))).toBe(true);
-    expect(shouldUseRadio(makeView({ heatScore: 2 }))).toBe(false);
+    // RADIO_HEAT_THRESHOLD = 1 (step-14 calibration): the radio taps as
+    // soon as any hint activity exists so triggered cameras become
+    // known before the ganove re-enters them.
+    expect(shouldUseRadio(makeView({ heatScore: 1 }))).toBe(true);
+    expect(shouldUseRadio(makeView({ heatScore: 0 }))).toBe(false);
     expect(shouldUseRadio(makeView({ heatScore: 6, radioUsed: true }))).toBe(false);
   });
 });

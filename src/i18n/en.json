@@ -152,6 +152,7 @@
   "missionselect.title": "Choose a mission — {map}",
   "missionselect.subtitle": "Pick the assignment for this game.",
   "mission.case": "Case (predefined)",
+  "mission.caseArtAlt": "Case illustration in detective noir style",
   "mission.caseHint": "A story with fixed targets from the mission set.",
   "mission.random": "Random mission",
   "mission.randomHint": "Targets are drawn within the rules.",

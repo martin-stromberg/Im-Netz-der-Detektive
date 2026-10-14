@@ -37,3 +37,4 @@ Batch-Serien mit Outcome-Verteilung und Balancing-Metriken.
 - [Technischer Ablauf](ablauf-technisch.md)
 - [API](api.md)
 - [Business Rules](business-rules.md)
+- [Balancing-Bericht](balancing-bericht.md) — Schritt-14-Kalibrierung: Baseline, Stellschrauben und die gemessenen KI-vs.-KI-Outcome-Verteilungen über ≥ 400 Seeds.

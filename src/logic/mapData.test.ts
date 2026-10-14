@@ -92,24 +92,24 @@ describe("muenster structural metrics", () => {
     expect(fahrt).toBeLessThanOrEqual(Math.ceil(muenster.edges.length * 0.1));
   });
 
-  it("carries the Muenster balancing defaults", () => {
+  it("carries the Muenster balancing defaults (step-14 calibration)", () => {
     const s = muenster.settings;
-    expect(s.detectiveCount).toEqual({ suggested: 4, min: 2, max: 6 });
-    expect(s.cameraCount).toEqual({ suggested: 8, min: 0, max: 15 });
-    expect(s.roundLimit).toEqual({ suggested: 30, min: 15, unlimited: true });
+    expect(s.detectiveCount).toEqual({ suggested: 3, min: 2, max: 6 });
+    expect(s.cameraCount).toEqual({ suggested: 4, min: 0, max: 15 });
+    expect(s.roundLimit).toEqual({ suggested: 40, min: 15, unlimited: true });
     expect(s.radioHintCount).toEqual({ suggested: 5, min: 3, max: 10 });
     expect(s.edgeBlockRounds).toEqual({ suggested: 3, min: 1, max: 6 });
     expect(s.cameraMinGap).toBe(2);
-    expect(s.hintZoneRadius).toBe(2);
+    expect(s.hintZoneRadius).toBe(3);
     expect(s.eventMode).toBe("tension");
-    expect(s.eventDefaults).toEqual({ cycle: 4, chance: 0.25, threshold: 40, perRound: 10 });
-    expect(s.eventMix).toEqual({ sichtbarkeit: 0.25, hinweis: 0.45, umwelt: 0.3 });
+    expect(s.eventDefaults).toEqual({ cycle: 5, chance: 0.25, threshold: 50, perRound: 10 });
+    expect(s.eventMix).toEqual({ sichtbarkeit: 0.15, hinweis: 0.4, umwelt: 0.45 });
     expect(s.missionRules).toEqual({
-      minGap: 3,
-      maxGap: 8,
+      minGap: 2,
+      maxGap: 5,
       routeBudget: 18,
       routeBudgetSabotage: 22,
-      sabotageDetour: 4,
+      sabotageDetour: 8,
     });
     expect([...s.sabotageEffects].sort()).toEqual(
       ["falsche_spur", "funkstille", "kamera_aus"].sort(),
