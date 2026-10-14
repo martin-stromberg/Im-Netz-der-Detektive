@@ -208,4 +208,36 @@ describe("validateMapPack", () => {
     expect(errors.join("\n")).toContain("viewBox");
     expect(errors.join("\n")).toContain("edges[0].type");
   });
+
+  it("accepts a package with board features and node landmarks", () => {
+    const pack = validPack();
+    (pack.nodes as { landmark?: string }[])[0].landmark = "dom";
+    pack.board = {
+      features: [
+        { kind: "shape", style: "water", d: "M 0 0 L 10 10 Z" },
+        { kind: "shape", style: "park", d: "M 1 1 L 2 2 Z" },
+      ],
+    };
+    const validated = validateMapPack(pack);
+    expect(validated.board?.features).toHaveLength(2);
+    expect(validated.nodes[0].landmark).toBe("dom");
+  });
+
+  it("rejects unknown landmark ids and invalid board features", () => {
+    const pack = validPack();
+    (pack.nodes as { landmark?: string }[])[0].landmark = "himalaya";
+    pack.board = {
+      features: [{ kind: "shape", style: "lava", d: "" } as never],
+    };
+    const errors = errorsOf(pack);
+    expect(errors.join("\n")).toContain("landmark");
+    expect(errors.join("\n")).toContain("board.features[0].style");
+    expect(errors.join("\n")).toContain("board.features[0].d");
+  });
+
+  it("rejects a non-object board", () => {
+    const pack = validPack();
+    (pack as { board?: unknown }).board = "flat";
+    expect(errorsOf(pack).join("\n")).toContain("board: must be an object");
+  });
 });

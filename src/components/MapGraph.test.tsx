@@ -255,4 +255,29 @@ describe("MapGraph — detective perspective props", () => {
     fireEvent.keyDown(a, { key: "ArrowLeft" });
     expect(a).toHaveFocus();
   });
+
+  it("renders the comic board layer and landmark glyphs when the pack provides them", () => {
+    const illustrated = {
+      ...map,
+      board: {
+        features: [
+          { kind: "shape" as const, style: "water" as const, d: "M 0 0 L 10 10 Z" },
+          { kind: "shape" as const, style: "park" as const, d: "M 1 1 L 2 2 Z" },
+        ],
+      },
+      nodes: map.nodes.map((node) =>
+        node.id === "a" ? { ...node, landmark: "dom" as const } : node,
+      ),
+    };
+    const { container } = render(<MapGraph map={illustrated} />);
+    expect(container.querySelectorAll("[data-board-style]")).toHaveLength(2);
+    expect(container.querySelectorAll("[data-landmark='dom']")).toHaveLength(1);
+    // Decoration never intercepts input.
+    expect(container.querySelector('[data-layer="board"]')?.getAttribute("pointer-events")).toBe(
+      "none",
+    );
+    expect(
+      container.querySelector('[data-layer="landmarks"]')?.getAttribute("pointer-events"),
+    ).toBe("none");
+  });
 });

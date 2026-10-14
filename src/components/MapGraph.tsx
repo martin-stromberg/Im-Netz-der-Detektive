@@ -21,6 +21,8 @@ import type { MissionKind } from "../logic/MissionSystem";
 import { isEdgeBlocked, type BlockedEdge, type MoveTarget } from "../logic/Movement";
 import type { MapNode, MapPack } from "../logic/mapPack";
 import { t } from "../i18n";
+import { LandmarkGlyph } from "./landmarks";
+import { MapBackdrop } from "./MapBackdrop";
 import styles from "./MapGraph.module.css";
 
 export interface MapGraphProps {
@@ -208,6 +210,7 @@ export function MapGraph({
       aria-label={t("map.ariaLabel", { name: map.name })}
       data-testid="map-graph"
     >
+      <MapBackdrop board={map.board} />
       <g data-layer="edges">
         {map.edges.map((edge) => {
           const a = nodeById(map, edge.a);
@@ -245,6 +248,15 @@ export function MapGraph({
             </g>
           );
         })}
+      </g>
+      <g data-layer="landmarks" aria-hidden="true" pointerEvents="none">
+        {map.nodes.map((node) =>
+          node.landmark !== undefined ? (
+            <g key={`landmark-${node.id}`} transform={`translate(${node.x}, ${node.y - 4})`}>
+              <LandmarkGlyph landmark={node.landmark} />
+            </g>
+          ) : null,
+        )}
       </g>
       <g data-layer="nodes">
         {map.nodes.map((node) => {

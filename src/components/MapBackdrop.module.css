@@ -1,0 +1,34 @@
+/* Comic board palette — muted fills that read as geography against the
+   night theme, with a darker outline for the hand-drawn feel. */
+
+.feature_water {
+  fill: #1d3247;
+  stroke: #2d4a66;
+  stroke-width: 2;
+}
+
+.feature_park {
+  fill: #1f3328;
+  stroke: #2f4a3a;
+  stroke-width: 2;
+}
+
+.feature_rail {
+  fill: none;
+  stroke: #5a5148;
+  stroke-width: 2.5;
+  stroke-dasharray: 8 4;
+}
+
+.feature_street {
+  fill: none;
+  stroke: #323a48;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.feature_block {
+  fill: #202835;
+  stroke: #2e3a4d;
+  stroke-width: 1.5;
+}
