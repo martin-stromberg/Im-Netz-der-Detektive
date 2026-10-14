@@ -4,6 +4,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MissionSelect } from "./MissionSelect";
 import { loadMap } from "../logic/MapLoader";
 import { loadMissionSet } from "../logic/MissionLoader";
+import { useUiPrefs } from "../state/uiPrefs";
+import en from "../i18n/en.json";
 
 const muenster = loadMap("muenster");
 const luebeck = loadMap("luebeck");
@@ -116,5 +118,23 @@ describe("MissionSelect", () => {
       type: "custom",
       targets: { diebstahl: "a", kontakt: "j", flucht: "d", sabotage: undefined },
     });
+  });
+
+  it("resolves case name and story via reference keys in the active language", () => {
+    useUiPrefs.getState().setLanguage("en");
+    render(<MissionSelect map={muenster} onBack={vi.fn()} onSelect={vi.fn()} />);
+    fireEvent.click(screen.getByTestId("mission-case"));
+    for (const entry of loadMissionSet(muenster).cases) {
+      const card = screen.getByTestId(`case-${entry.id}`);
+      // DE literals are present in the set as fallback; with EN active
+      // the catalog text via nameKey/storyKey wins.
+      expect(card).toHaveTextContent(
+        en[`mission.case.muenster.${entry.id}.name` as keyof typeof en],
+      );
+      expect(card).toHaveTextContent(
+        en[`mission.case.muenster.${entry.id}.story` as keyof typeof en],
+      );
+      expect(card).not.toHaveTextContent(entry.name);
+    }
   });
 });

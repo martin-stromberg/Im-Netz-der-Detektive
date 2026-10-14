@@ -4,7 +4,7 @@
  * announced-but-unbuilt cities. The playable list is curated
  * (`MENU_MAP_IDS`) — dev fixtures like `teststadt` never appear here.
  */
-import { t } from "../i18n";
+import { resolveText, t } from "../i18n";
 import { loadMap } from "../logic/MapLoader";
 import { MapValidationError, type MapPack } from "../logic/mapPack";
 import { FORTHCOMING_MAP_IDS, MENU_MAP_IDS } from "./menuFlow";
@@ -60,7 +60,9 @@ export function MapSelect({ onBack, onSelect }: MapSelectProps) {
                 <img className={styles.cardImage} src={MAP_ART[map.id]} alt={map.name} />
               ) : null}
               <span className={styles.cardTitle}>{map.name}</span>
-              <span className={styles.cardText}>{map.tagline ?? ""}</span>
+              <span className={styles.cardText}>
+                {resolveText(map.taglineKey, map.tagline ?? "")}
+              </span>
             </button>
           ))}
           {FORTHCOMING_MAP_IDS.map((id) => (

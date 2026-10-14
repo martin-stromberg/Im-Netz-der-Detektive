@@ -23,6 +23,10 @@ fi
 echo "Running i18n check..."
 python "$repo_root/.githooks/i18n-check.py"
 
+# --- Hardcoded Visible Strings Check (fixer Pfad, blockierend) ---
+echo "Running hardcoded visible strings check..."
+python "$repo_root/.githooks/no-hardcoded-strings-check.py"
+
 # --- Map Package Schema Check (fixer Pfad, blockierend) ---
 echo "Running map package schema check..."
 python "$repo_root/.githooks/map-schema-check.py"

@@ -36,8 +36,10 @@
   flex: none;
 }
 
+/* Completed steps stay distinguishable via strikethrough + ✓ marker —
+   the colour only supports the shape coding and meets WCAG AA (5.6:1). */
 .status_erledigt {
-  color: #5f6b7d;
+  color: #8a94a6;
   text-decoration: line-through;
 }
 

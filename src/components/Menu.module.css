@@ -30,7 +30,12 @@
 .card:hover:not(:disabled),
 .card:focus-visible:not(:disabled) {
   border-color: #e8b45a;
-  outline: none;
+}
+
+/* Keyboard focus needs a stronger cue than the border recolour alone. */
+.card:focus-visible:not(:disabled) {
+  outline: 2px solid #f5d76e;
+  outline-offset: 1px;
 }
 
 .card:disabled {
@@ -103,6 +108,16 @@
 .selectInput:focus-visible {
   border-color: #e8b45a;
   outline: none;
+}
+
+.rangeInput {
+  accent-color: #e8b45a;
+  width: 160px;
+}
+
+.rangeInput:focus-visible {
+  outline: 2px solid #f5d76e;
+  outline-offset: 2px;
 }
 
 .actions {

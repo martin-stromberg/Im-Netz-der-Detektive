@@ -101,6 +101,12 @@ export interface MapPack {
   id: string;
   name: string;
   tagline?: string;
+  /**
+   * Optional i18n reference key for the tagline (spec section 11):
+   * the UI resolves it via `resolveText` — `tagline` stays the
+   * German source literal and fallback.
+   */
+  taglineKey?: string;
   viewBox: string;
   nodes: MapNode[];
   edges: MapEdge[];
@@ -430,6 +436,9 @@ export function validateMapPack(data: unknown): MapPack {
   }
   if ("tagline" in data && data.tagline !== undefined && !isNonEmptyString(data.tagline)) {
     errors.push("tagline: must be a non-empty string when present");
+  }
+  if ("taglineKey" in data && data.taglineKey !== undefined && !isNonEmptyString(data.taglineKey)) {
+    errors.push("taglineKey: must be a non-empty string when present");
   }
 
   const nodeIds = new Set<string>();

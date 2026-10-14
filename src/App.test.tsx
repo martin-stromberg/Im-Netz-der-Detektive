@@ -56,6 +56,18 @@ describe("App", () => {
     expect(screen.getByTestId("stats-screen")).toBeInTheDocument();
   });
 
+  it("opens the app settings and re-renders every screen on a language switch", () => {
+    render(<App />);
+    fireEvent.click(screen.getByTestId("menu-settings"));
+    expect(screen.getByTestId("app-settings-screen")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("language-en"));
+    // <html lang> follows the preference …
+    expect(document.documentElement.lang).toBe("en");
+    // … and every screen the user lands on is English immediately.
+    fireEvent.click(screen.getByTestId("app-settings-back"));
+    expect(screen.getByTestId("menu-new-game")).toHaveTextContent("New game");
+  });
+
   it("renders the ganove screen directly with ?mode=ganove", () => {
     setSearch("?mode=ganove");
     render(<App />);
