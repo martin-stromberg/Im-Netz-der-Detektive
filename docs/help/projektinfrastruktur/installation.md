@@ -49,6 +49,7 @@
 | Skript | Stufe in `pre-commit` | Stufe in `pre-push` | Prüfung |
 |--------|----------------------|---------------------|---------|
 | `i18n-check.py` | blockierend (gestagte Dateien) | `--all --strict` | Schlüsselparität `src/i18n/*.json`, verwendete `t("...")`-Schlüssel definiert |
+| `no-hardcoded-strings-check.py` | blockierend (gestagte Dateien) | `--all --strict` | Keine hartkodierten sichtbaren Texte in `.tsx` (JSX-Textkinder, String-Literal-Kinder, `aria-label`/`aria-description`/`placeholder`/`alt`/`title`-Literale); `i18n-allow` als markierter Ausstieg; manuell via `npm run check:strings` |
 | `map-schema-check.py` | blockierend (gestagte Pakete) | `--all --strict` | Kartenpaket-Schema `src/data/maps/*.json` |
 | `no-math-random-check.py` | blockierend (gestagte Dateien) | `--all --strict` | `Math.random()`-Verbot in `src/logic/**` |
 | `no-stub-check.py` | Warnung | `--all --strict` | `throw new Error("not implemented")`, throw-only-Rümpfe, TODO-Stubs in `.ts`/`.tsx` |

@@ -62,6 +62,14 @@ export interface MissionCase {
   id: string;
   name: string;
   story: string;
+  /**
+   * Optional i18n reference keys (spec section 11): the UI resolves
+   * them via `resolveText` so `name`/`story` stay the German source
+   * literals — also kept in the game log and replay — while other
+   * languages get their catalog text.
+   */
+  nameKey?: string;
+  storyKey?: string;
   diebstahl: string;
   kontakt: string;
   flucht: string;
@@ -340,6 +348,11 @@ export function validateMissionSet(data: unknown, map: MapPack): MissionSet {
       for (const field of ["id", "name", "story"] as const) {
         if (!isNonEmptyString(entry[field])) {
           errors.push(`${where}.${field}: required non-empty string`);
+        }
+      }
+      for (const field of ["nameKey", "storyKey"] as const) {
+        if (entry[field] !== undefined && !isNonEmptyString(entry[field])) {
+          errors.push(`${where}.${field}: must be a non-empty string when present`);
         }
       }
       if (isNonEmptyString(entry.id)) {

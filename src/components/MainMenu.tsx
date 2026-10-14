@@ -66,6 +66,14 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
           >
             {t("menu.stats")}
           </button>
+          <button
+            type="button"
+            className={shared.secondaryButton}
+            data-testid="menu-settings"
+            onClick={() => onNavigate("appSettings")}
+          >
+            {t("menu.settings")}
+          </button>
         </div>
       </section>
     </div>

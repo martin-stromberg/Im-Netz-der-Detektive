@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GanoveScreen } from "./components/GanoveScreen";
 import { DetektivScreen } from "./components/DetektivScreen";
 import { MainMenu } from "./components/MainMenu";
@@ -10,6 +10,7 @@ import { DevModeScreen } from "./components/DevModeScreen";
 import { StatsScreen } from "./components/StatsScreen";
 import { ResumeScreen } from "./components/ResumeScreen";
 import { ReplayScreen } from "./components/ReplayScreen";
+import { AppSettingsScreen } from "./components/AppSettingsScreen";
 import { readParams } from "./components/gameSetup";
 import type { MenuScreen, PendingGameConfig, PlayerMode } from "./components/menuFlow";
 import type { MapPack } from "./logic/mapPack";
@@ -18,6 +19,8 @@ import { deleteResumeEntry, type ResumeEntry } from "./logic/GameIndex";
 import { resumeLogEntries } from "./logic/SaveGame";
 import type { MissionOption, StartGameOptions } from "./state/gameStore";
 import { useGameStore } from "./state/gameStore";
+import { useUiPrefs } from "./state/uiPrefs";
+import { installAudioUnlock } from "./audio/gameAudio";
 import styles from "./App.module.css";
 
 /**
@@ -36,6 +39,9 @@ function initialMode(): PlayerMode | null {
 export default function App() {
   const [deepLink] = useState<PlayerMode | null>(initialMode);
   const [screen, setScreen] = useState<MenuScreen>("menu");
+  // One root subscription to the UI language: a runtime switch re-renders
+  // the whole screen tree, so every `t()` call resolves the new catalog.
+  const language = useUiPrefs((s) => s.language);
   const [map, setMap] = useState<MapPack | null>(null);
   const [mode, setMode] = useState<PlayerMode>("ganove");
   const [settings, setSettings] = useState<StartGameOptions>({});
@@ -43,6 +49,15 @@ export default function App() {
   const [replayLog, setReplayLog] = useState<string | null>(null);
   // Bumped after a damaged resume entry is dropped — remounts the list.
   const [resumeRefresh, setResumeRefresh] = useState(0);
+
+  // <html lang> follows the UI language for assistive technology.
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
+  // Autoplay policy: the AudioContext may only start on a user gesture —
+  // a one-shot global listener unlocks the engine on the first input.
+  useEffect(() => installAudioUnlock(), []);
 
   const exitToMenu = () => {
     useGameStore.getState().resetGame();
@@ -156,6 +171,9 @@ export default function App() {
       break;
     case "stats":
       content = <StatsScreen onBack={() => setScreen("menu")} onReplay={openReplay} />;
+      break;
+    case "appSettings":
+      content = <AppSettingsScreen onBack={() => setScreen("menu")} />;
       break;
     case "resume":
       content = (

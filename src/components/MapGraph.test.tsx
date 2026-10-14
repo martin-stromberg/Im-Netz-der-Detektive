@@ -219,4 +219,40 @@ describe("MapGraph — detective perspective props", () => {
     fireEvent.keyDown(node, { key: "Enter" });
     expect(onSelect).toHaveBeenCalledWith("e");
   });
+
+  it("roams between interactive nodes with the arrow keys", () => {
+    const { container } = render(
+      <MapGraph
+        map={map}
+        legalTargets={[
+          { nodeId: "a", edgeType: "weg" },
+          { nodeId: "b", edgeType: "weg" },
+          { nodeId: "e", edgeType: "weg" },
+        ]}
+        onNodeSelect={vi.fn()}
+      />,
+    );
+    const a = container.querySelector('[data-node-id="a"]') as HTMLElement;
+    const b = container.querySelector('[data-node-id="b"]') as HTMLElement;
+    const e = container.querySelector('[data-node-id="e"]') as HTMLElement;
+    a.focus();
+    expect(a).toHaveFocus();
+    // a(10,10) → right: b(20,10) is perfectly aligned, e(20,30) farther off-axis.
+    fireEvent.keyDown(a, { key: "ArrowRight" });
+    expect(b).toHaveFocus();
+    // b → down: e(20,30) sits directly below.
+    fireEvent.keyDown(b, { key: "ArrowDown" });
+    expect(e).toHaveFocus();
+    // e → left: a(10,10) is the only candidate left of e.
+    fireEvent.keyDown(e, { key: "ArrowLeft" });
+    expect(a).toHaveFocus();
+    // e → up: b(20,10) is above; ArrowRight from a with no rightward
+    // candidate keeps the focus put.
+    fireEvent.keyDown(e, { key: "ArrowUp" });
+    expect(b).toHaveFocus();
+    fireEvent.keyDown(b, { key: "ArrowLeft" });
+    expect(a).toHaveFocus();
+    fireEvent.keyDown(a, { key: "ArrowLeft" });
+    expect(a).toHaveFocus();
+  });
 });

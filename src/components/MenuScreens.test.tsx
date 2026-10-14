@@ -7,6 +7,8 @@ import { MapSelect } from "./MapSelect";
 import { ModeSelect } from "./ModeSelect";
 import { StatsScreen } from "./StatsScreen";
 import { useGameStore, type LogEntry } from "../state/gameStore";
+import { useUiPrefs } from "../state/uiPrefs";
+import en from "../i18n/en.json";
 import { serializeLog, LOG_STORAGE_KEY, type StorageLike } from "../logic/Recorder";
 
 beforeEach(() => {
@@ -24,6 +26,8 @@ describe("MainMenu", () => {
     expect(onNavigate).toHaveBeenCalledWith("map");
     fireEvent.click(screen.getByTestId("menu-stats"));
     expect(onNavigate).toHaveBeenCalledWith("stats");
+    fireEvent.click(screen.getByTestId("menu-settings"));
+    expect(onNavigate).toHaveBeenCalledWith("appSettings");
   });
 });
 
@@ -41,6 +45,13 @@ describe("MapSelect", () => {
     expect(screen.queryByTestId("map-card-teststadt")).toBeNull();
     fireEvent.click(muenster);
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: "muenster" }));
+  });
+
+  it("shows the map tagline via its reference key in English", () => {
+    useUiPrefs.getState().setLanguage("en");
+    render(<MapSelect onBack={vi.fn()} onSelect={vi.fn()} />);
+    expect(screen.getByTestId("map-card-muenster")).toHaveTextContent(en["map.tagline.muenster"]);
+    expect(screen.getByTestId("map-card-luebeck")).toHaveTextContent(en["map.tagline.luebeck"]);
   });
 });
 

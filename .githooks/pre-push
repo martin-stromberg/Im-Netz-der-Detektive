@@ -26,6 +26,10 @@ python "$repo_root/.githooks/component-usage-check.py" --all --strict
 echo "Running i18n check..."
 python "$repo_root/.githooks/i18n-check.py" --all --strict
 
+# --- Hardcoded Visible Strings Check (ganzes Repo, blockierend) ---
+echo "Running hardcoded visible strings check..."
+python "$repo_root/.githooks/no-hardcoded-strings-check.py" --all --strict
+
 # --- Map Package Schema Check (ganzes Repo, blockierend) ---
 echo "Running map package schema check..."
 python "$repo_root/.githooks/map-schema-check.py" --all --strict

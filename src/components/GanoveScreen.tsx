@@ -26,6 +26,7 @@ import {
   type StartGameOptions,
 } from "../state/gameStore";
 import { installDetectiveDriver } from "../state/detectiveDriver";
+import { installGameAudio } from "../audio/gameAudio";
 import { loadMap } from "../logic/MapLoader";
 import { buildResumeEntry } from "../logic/SaveGame";
 import { saveResumeEntry } from "../logic/GameIndex";
@@ -131,6 +132,9 @@ export function MapLegend() {
         </svg>
         {t("legend.target")}
       </span>
+      <span className={styles.legendItem} data-testid="legend-keyboard">
+        {t("legend.keyboard")}
+      </span>
     </div>
   );
 }
@@ -147,7 +151,11 @@ function IdleView({ notice, onStart }: { notice: string | null; onStart: () => v
         <button type="button" className={styles.primaryButton} onClick={onStart}>
           {t("game.new")}
         </button>
-        {notice !== null ? <p className={styles.notice}>{notice}</p> : null}
+        {notice !== null ? (
+          <p className={styles.notice} role="alert">
+            {notice}
+          </p>
+        ) : null}
       </section>
     </div>
   );
@@ -179,7 +187,11 @@ function PickSpawnView({
         onNodeSelect={onPick}
       />
       <MapLegend />
-      {notice !== null ? <p className={styles.notice}>{notice}</p> : null}
+      {notice !== null ? (
+        <p className={styles.notice} role="alert">
+          {notice}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -196,7 +208,12 @@ function OutcomeView({
   onExit?: () => void;
 }) {
   return (
-    <section className={styles.panel} data-testid="outcome-panel" data-outcome={outcome}>
+    <section
+      className={styles.panel}
+      data-testid="outcome-panel"
+      data-outcome={outcome}
+      role="status"
+    >
       <h2 className={styles.panelHeading}>{t("outcome.title")}</h2>
       <p className={styles.outcomeText}>{t(OUTCOME_KEY[outcome])}</p>
       <p className={styles.hint}>{t("game.round", { round })}</p>
@@ -251,6 +268,12 @@ export function GanoveScreen({
     }
     return installDetectiveDriver();
   }, [autoDetectives]);
+
+  // Sound dramaturgy (ganove-only tension channel): heat-level rises
+  // trigger staged signals, a running game arms the quiet police
+  // ambient. Without AudioContext or before the unlock gesture this
+  // stays silent by design.
+  useEffect(() => installGameAudio(), []);
 
   const nodeName = (nodeId: string): string =>
     map?.nodes.find((node) => node.id === nodeId)?.name ??
@@ -405,7 +428,7 @@ export function GanoveScreen({
               ? t("game.roundLimit", { round, limit: roundLimit })
               : t("game.round", { round })}
           </span>
-          <span className={styles.phase} data-testid="phase-indicator">
+          <span className={styles.phase} data-testid="phase-indicator" aria-live="polite">
             {phase === "ganove" ? t("game.phase.ganove") : t("game.phase.detektive")}
           </span>
           <HeatBadge level={heat.level} score={heat.score} />
@@ -541,7 +564,11 @@ export function GanoveScreen({
           ) : (
             <OutcomeView outcome={outcome} round={round} onRestart={restart} onExit={onExit} />
           )}
-          {notice !== null ? <p className={styles.notice}>{notice}</p> : null}
+          {notice !== null ? (
+            <p className={styles.notice} role="alert">
+              {notice}
+            </p>
+          ) : null}
         </aside>
       </div>
     </div>

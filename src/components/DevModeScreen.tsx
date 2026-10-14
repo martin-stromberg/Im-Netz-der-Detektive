@@ -121,7 +121,11 @@ export function DevModeScreen({ mapId, onBack }: DevModeScreenProps) {
             {running ? t("dev.running") : t("dev.run")}
           </button>
         </div>
-        {error !== null ? <p className={shared.notice}>{error}</p> : null}
+        {error !== null ? (
+          <p className={shared.notice} role="alert">
+            {error}
+          </p>
+        ) : null}
         {summary !== null ? (
           <div data-testid="dev-summary">
             <table className={styles.summaryTable}>
