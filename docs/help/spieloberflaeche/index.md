@@ -14,12 +14,26 @@ Die spielbare Oberfläche in zwei Perspektiven:
   Deduktionsmodell und der Missionsstruktur mit Zielpools (die
   gezogenen Zielorte bleiben verborgen).
 
-## Moduswahl (vorläufig)
+## Anwendungsrahmen (Schritt 11)
 
-Beide Modi sind über die vorläufige Moduswahl erreichbar: Ohne
-URL-Parameter erscheint beim Start eine Auswahl zwischen „Ganove" und
-„Detektive"; `?mode=ganove` bzw. `?mode=detektiv` wählt direkt. Das
-endgültige Menü folgt in Entwicklungsschritt 11.
+Beide Modi laufen über das vollständige Hauptmenü: „Neue Partie" führt
+durch **Kartenwahl** (Münster und Lübeck spielbar, Hamburg und Köln als
+„In Vorbereitung" markiert), **Moduswahl** (Ganove, Detektiv oder der
+KI-vs.-KI-Dev-Modus mit Batch-Auswertung), kartengebundene
+**Einstellungen** (Detektive, Kameras, Rundenlimit inkl. „Unbegrenzt"
+wo erlaubt, Polizeifunk-Tiefe, Sperrdauer, Ereignismodus und -Kadenz —
+jeweils mit Vorschlagswerten und erlaubten Korridoren) und die
+**Missionsauswahl** (benannter Fall mit Mini-Story, Zufallsmission,
+spielerdefinierte Mission mit Kategorie-Picks auf der Karte und
+Kriterienprüfung, oder freie Flucht ohne Mission). Danach folgt die
+Startaufstellung der gewählten Perspektive.
+
+„Partie fortsetzen" und „Statistiken & Replays" nutzen die
+persistenzfähige Eintragsstruktur: Die Statistikansicht listet bereits
+die aufgezeichneten Partien (neueste zuerst), Fortsetzen bleibt
+deaktiviert, bis laufende Partien gespeichert werden (Schritt 12).
+`?mode=ganove`/`?mode=detektiv` bleiben als direkte Entwickler-Einstiege
+erhalten.
 
 ## Inhalt
 

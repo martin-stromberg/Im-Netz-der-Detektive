@@ -25,14 +25,24 @@
  * random | none | case:<id>) override the defaults; `autoGanove`
  * disables the driver for tests that drive turns manually.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t, type TranslationKey } from "../i18n";
-import { useGameStore, type GameOutcome, type MissionOption } from "../state/gameStore";
+import {
+  useGameStore,
+  type GameOutcome,
+  type MissionOption,
+  type StartGameOptions,
+} from "../state/gameStore";
 import { installGanoveDriver } from "../state/ganoveDriver";
 import { detectiveStartsFromLog } from "../state/detectiveDriver";
 import { loadMap } from "../logic/MapLoader";
+import { resolveFixedTargets } from "../logic/MissionLoader";
 import { createRng } from "../logic/rng";
-import { detectiveSpawnChoices, pickDetectiveSpawns } from "../logic/SpawnSystem";
+import {
+  detectiveSpawnChoices,
+  pickDetectiveSpawns,
+  pickGanoveSpawnForMission,
+} from "../logic/SpawnSystem";
 import {
   MissionGenerationError,
   missionStructure,
@@ -53,6 +63,12 @@ export interface DetektivScreenProps {
   mapId?: string;
   /** Game seed — defaults to `?seed=` or a `Date.now()`-derived value. */
   seed?: number;
+  /** Menu-driven game options (settings + mission); overrides `?mission=`. */
+  options?: StartGameOptions;
+  /** `true` starts the setup flow immediately (skips the idle view). */
+  startImmediately?: boolean;
+  /** Exit-to-menu callback — renders a "Zum Hauptmenü" action. */
+  onExit?: () => void;
   /** `false` disables the automatic AI ganove phase (test hook). */
   autoGanove?: boolean;
 }
@@ -61,6 +77,8 @@ interface PendingSetup {
   map: MapPack;
   seed: number;
   mission: MissionOption;
+  options: StartGameOptions;
+  detectiveCount: number;
   picks: string[];
 }
 
@@ -200,7 +218,7 @@ function PickSpawnsView({
   notice: string | null;
   onPick: (nodeId: string) => void;
 }) {
-  const count = setup.map.settings.detectiveCount.suggested;
+  const count = setup.detectiveCount;
   const choices = detectiveSpawnChoices(setup.map);
   return (
     <div className={shared.screen} data-testid="detektiv-screen" data-view="pickSpawns">
@@ -227,10 +245,12 @@ function OutcomeView({
   outcome,
   round,
   onRestart,
+  onExit,
 }: {
   outcome: GameOutcome;
   round: number;
   onRestart: () => void;
+  onExit?: () => void;
 }) {
   return (
     <section className={shared.panel} data-testid="outcome-panel" data-outcome={outcome}>
@@ -240,11 +260,28 @@ function OutcomeView({
       <button type="button" className={shared.primaryButton} onClick={onRestart}>
         {t("game.new")}
       </button>
+      {onExit !== undefined ? (
+        <button
+          type="button"
+          className={shared.secondaryButton}
+          data-testid="exit-to-menu"
+          onClick={onExit}
+        >
+          {t("menu.toMenu")}
+        </button>
+      ) : null}
     </section>
   );
 }
 
-export function DetektivScreen({ mapId, seed, autoGanove = true }: DetektivScreenProps) {
+export function DetektivScreen({
+  mapId,
+  seed,
+  options,
+  startImmediately = false,
+  onExit,
+  autoGanove = true,
+}: DetektivScreenProps) {
   const map = useGameStore((s) => s.map);
   const round = useGameStore((s) => s.round);
   const roundLimit = useGameStore((s) => s.roundLimit);
@@ -263,6 +300,7 @@ export function DetektivScreen({ mapId, seed, autoGanove = true }: DetektivScree
   const [setup, setSetup] = useState<PendingSetup | null>(null);
   const [abortConfirm, setAbortConfirm] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const autoStarted = useRef(false);
   // Deduction tools: player notes (UI state — never enter the event log).
   const [markers, setMarkers] = useState<Record<string, string>>({});
   const [markerMode, setMarkerMode] = useState(false);
@@ -298,37 +336,68 @@ export function DetektivScreen({ mapId, seed, autoGanove = true }: DetektivScree
       const nextMap = loadMap(mapId ?? params.get("map") ?? "muenster");
       const rawSeed = seed ?? (params.get("seed") ? Number(params.get("seed")) : undefined);
       const gameSeed = rawSeed ?? nextSeed();
-      const mission = resolveMissionOption(params.get("mission"));
+      const mission = options?.mission ?? resolveMissionOption(params.get("mission"));
+      const startOptions = options ?? {};
+      const detectiveCount =
+        startOptions.detectiveCount ?? nextMap.settings.detectiveCount.suggested;
       setMarkers({});
       setMarkerMode(false);
       // "random" spawn rule: the map assigns the posts, no pick view —
-      // the ganove's start stays hidden either way (store draws it).
+      // the ganove's start is drawn with the mission criteria applied
+      // (fixed-target missions constrain the legal set).
       if (nextMap.spawnRules.detectives.mode === "random") {
-        const positions = pickDetectiveSpawns(
-          nextMap,
-          createRng(gameSeed),
-          nextMap.settings.detectiveCount.suggested,
-        );
-        startGame(nextMap, gameSeed, mission, { detectivePositions: positions });
+        const positions = pickDetectiveSpawns(nextMap, createRng(gameSeed), detectiveCount);
+        startGame({
+          map: nextMap,
+          seed: gameSeed,
+          mission,
+          options: startOptions,
+          detectiveCount,
+          picks: positions,
+        });
         return;
       }
-      setSetup({ map: nextMap, seed: gameSeed, mission, picks: [] });
+      setSetup({
+        map: nextMap,
+        seed: gameSeed,
+        mission,
+        options: startOptions,
+        detectiveCount,
+        picks: [],
+      });
     });
 
-  const startGame = (
-    nextMap: MapPack,
-    gameSeed: number,
-    mission: MissionOption,
-    options: { detectivePositions: string[] },
-  ) => {
+  const startGame = (pending: PendingSetup) => {
+    const fixedTargets = resolveFixedTargets(pending.map, pending.mission);
+    const startOptions: StartGameOptions = {
+      ...pending.options,
+      detectivePositions: pending.picks,
+      mission: pending.mission,
+      // Fixed-target missions (Fall/custom) need a criteria-conforming
+      // ganove spawn — it is pre-drawn from the filtered candidate set;
+      // without fixed targets the store draws it as before.
+      ...(fixedTargets !== null
+        ? {
+            ganovePosition: pickGanoveSpawnForMission(
+              pending.map,
+              createRng(pending.seed),
+              pending.picks,
+              fixedTargets,
+            ),
+          }
+        : {}),
+    };
     try {
-      useGameStore.getState().startGame(nextMap, gameSeed, { ...options, mission });
+      useGameStore.getState().startGame(pending.map, pending.seed, startOptions);
     } catch (error) {
       if (!(error instanceof MissionGenerationError)) {
         throw error;
       }
       // "random" is impossible for this draw — fall back to "auto".
-      useGameStore.getState().startGame(nextMap, gameSeed, { ...options, mission: "auto" });
+      useGameStore.getState().startGame(pending.map, pending.seed, {
+        ...startOptions,
+        mission: "auto",
+      });
     }
     setSetup(null);
   };
@@ -339,12 +408,22 @@ export function DetektivScreen({ mapId, seed, autoGanove = true }: DetektivScree
         return;
       }
       const picks = [...setup.picks, nodeId];
-      if (picks.length >= setup.map.settings.detectiveCount.suggested) {
-        startGame(setup.map, setup.seed, setup.mission, { detectivePositions: picks });
+      if (picks.length >= setup.detectiveCount) {
+        startGame({ ...setup, picks });
       } else {
         setSetup({ ...setup, picks });
       }
     });
+
+  // Menu-driven entry: skip the idle view when `startImmediately` is
+  // set (StrictMode-safe — the guard swallows the double effect call).
+  useEffect(() => {
+    if (startImmediately && !autoStarted.current) {
+      autoStarted.current = true;
+      beginSetup();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startImmediately]);
 
   const restart = () => {
     useGameStore.getState().resetGame();
@@ -443,7 +522,7 @@ export function DetektivScreen({ mapId, seed, autoGanove = true }: DetektivScree
         </div>
         <aside className={shared.sidebar}>
           {outcome !== null ? (
-            <OutcomeView outcome={outcome} round={round} onRestart={restart} />
+            <OutcomeView outcome={outcome} round={round} onRestart={restart} onExit={onExit} />
           ) : null}
           {outcome === null && phase === "detektive" ? (
             <p className={shared.hint} data-testid="play-hint">

@@ -124,6 +124,8 @@ export function startOptionsFromHeader(header: LogEntry): ReconstructedStart {
       cameraCount: config.cameraCount as number | undefined,
       radioHintCount: config.radioHintCount as number | undefined,
       edgeBlockRounds: config.edgeBlockRounds as number | undefined,
+      eventMode: config.eventMode as StartGameOptions["eventMode"],
+      eventDefaults: config.eventDefaults as StartGameOptions["eventDefaults"],
       cameraProtectedNodes: config.cameraProtectedNodes as string[] | undefined,
       mission: config.mission as MissionOption | undefined,
       resolvedMission: (header.mission ?? null) as RecordedMission | null,

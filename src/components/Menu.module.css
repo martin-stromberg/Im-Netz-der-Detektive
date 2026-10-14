@@ -1,0 +1,144 @@
+/* Menu flow styles — reuses the noir theme of GanoveScreen.module.css. */
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  background: #161b26;
+  border: 1px solid #2a3240;
+  border-radius: 8px;
+  padding: 14px;
+  color: #eaf0f8;
+  cursor: pointer;
+  font: inherit;
+}
+
+.card:hover:not(:disabled),
+.card:focus-visible:not(:disabled) {
+  border-color: #e8b45a;
+  outline: none;
+}
+
+.card:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cardTitle {
+  font-weight: 700;
+  color: #e8b45a;
+  letter-spacing: 0.03em;
+}
+
+.cardText {
+  font-size: 0.85rem;
+  color: #9db8d9;
+}
+
+.cardImage {
+  width: 100%;
+  border-radius: 6px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #0c0f16;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0c0f16;
+  background: #8a94a6;
+  border-radius: 4px;
+  padding: 1px 6px;
+  width: fit-content;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px 16px;
+  align-items: center;
+  max-width: 480px;
+}
+
+.fieldLabel {
+  color: #c8d0dc;
+}
+
+.fieldHint {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: #8a94a6;
+  margin-top: -6px;
+}
+
+.numberInput,
+.selectInput {
+  background: #0c0f16;
+  color: #eaf0f8;
+  border: 1px solid #2a3240;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font: inherit;
+  min-width: 90px;
+}
+
+.numberInput:focus-visible,
+.selectInput:focus-visible {
+  border-color: #e8b45a;
+  outline: none;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.story {
+  font-size: 0.85rem;
+  color: #9db8d9;
+  font-style: italic;
+}
+
+.errorList {
+  color: #e88a7a;
+  font-size: 0.85rem;
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.summaryTable {
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.summaryTable th,
+.summaryTable td {
+  border: 1px solid #2a3240;
+  padding: 4px 12px;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.summaryTable th {
+  color: #e8b45a;
+  font-weight: 600;
+}

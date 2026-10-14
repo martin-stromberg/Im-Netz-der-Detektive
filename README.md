@@ -15,9 +15,27 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-**Spielbar — in beiden Perspektiven!** Detektiv-Perspektive
-(Entwicklungsschritt 10): `npm run dev` öffnet eine vorläufige
-Moduswahl — oder direkt `?mode=detektiv`. Du führst den kompletten
+**Vollständiger Anwendungsrahmen — beide Perspektiven über das
+Hauptmenü spielbar** (Entwicklungsschritt 11): `npm run dev` öffnet
+das Hauptmenü — „Neue Partie" führt durch Kartenwahl (Münster und
+Lübeck spielbar, Hamburg/Köln „in Vorbereitung"), Moduswahl (Ganove,
+Detektiv oder der KI-vs.-KI-Dev-Modus mit Batch-Auswertung),
+kartengebundene Einstellungen (Detektive, Kameras, Rundenlimit inkl.
+„Unbegrenzt" wo erlaubt, Polizeifunk-Tiefe, Sperrdauer,
+Ereignismodus/-Kadenz — mit Vorschlagswerten und Korridoren) und die
+Missionsauswahl (benannter Fall mit Mini-Story, Zufallsmission,
+spielerdefinierte Mission mit Kriterienprüfung auf der Karte, oder
+freie Flucht). Danach folgt die regelkonforme Startaufstellung —
+Detektive zuerst, Ganove zuletzt, mit missionsgefilterten
+Ganove-Kandidaten bei festen Zielen. „Partie fortsetzen" und
+„Statistiken & Replays" nutzen bereits die persistenzfähige
+Eintragsstruktur (`GameIndex`); die Statistikansicht listet die
+aufgezeichneten Partien. `?mode=ganove`/`?mode=detektiv` bleiben als
+direkte Entwickler-Einstiege erhalten. Titel- und Kartenbilder sind
+lokal eingebettete, KI-generierte Assets (`src/assets/ASSETS.md`).
+
+Detektiv-Perspektive
+(Entwicklungsschritt 10): Du führst den kompletten
 Trupp D1 → Dn gegen den KI-Ganoven: freie Postenwahl auf der
 Stadtkarte (Ganove-Start bleibt verdeckt), legale Züge per Klick
 oder Tastatur, KI-Ganove-Zug automatisch nach dem letzten Detektiv.

@@ -6,11 +6,14 @@ import {
   assignSpawns,
   detectiveSpawnChoices,
   ganoveSpawnChoices,
+  ganoveSpawnChoicesForMission,
   pickDetectiveSpawns,
   pickGanoveSpawn,
+  pickGanoveSpawnForMission,
   SpawnError,
   spawnSequence,
 } from "./SpawnSystem";
+import type { MissionTargets } from "./MissionSystem";
 
 const map = loadMap("teststadt");
 const allNodeIds = map.nodes.map((n) => n.id).sort();
@@ -120,6 +123,63 @@ describe("pickDetectiveSpawns / pickGanoveSpawn", () => {
   it("throws SpawnError when no ganove candidate satisfies the distance", () => {
     const strict = withSpawnRules({ ganove: { mode: "free", minDistanceToDetective: 99 } });
     expect(() => pickGanoveSpawn(strict, createRng(1), ["a"])).toThrow(SpawnError);
+  });
+});
+
+describe("ganoveSpawnChoicesForMission / pickGanoveSpawnForMission", () => {
+  /** Targets with all criteria satisfied: a→j→d legs fit, gaps hold. */
+  const validTargets: MissionTargets = {
+    diebstahl: "a",
+    kontakt: "j",
+    flucht: "d",
+    sabotage: null,
+  };
+
+  function withRouteBudget(routeBudget: number): MapPack {
+    return {
+      ...map,
+      settings: {
+        ...map.settings,
+        missionRules: { ...map.settings.missionRules, routeBudget },
+      },
+    };
+  }
+
+  it("returns the unfiltered choices without fixed targets", () => {
+    const expected = ganoveSpawnChoices(map, ["j"]);
+    expect(ganoveSpawnChoicesForMission(map, ["j"])).toEqual(expected);
+    expect(ganoveSpawnChoicesForMission(map, ["j"], null)).toEqual(expected);
+    expect(ganoveSpawnChoicesForMission(map, ["j"], validTargets)).toEqual(expected);
+  });
+
+  it("removes spawns that violate the mission criteria", () => {
+    // routeBudget 11 → only spawns within distance 1 of diebstahl "a"
+    // stay legal (dist 10 + startLeg ≤ 11), i.e. "a" itself.
+    const tight = withRouteBudget(11);
+    expect(ganoveSpawnChoicesForMission(tight, ["j"], validTargets)).toEqual(["a"]);
+  });
+
+  it("throws SpawnError when no spawn satisfies criteria and distance", () => {
+    // kontakt "e" / flucht "b" sit 2 apart — flucht_kontakt_gap fails
+    // for every start, so no candidate survives.
+    const impossible: MissionTargets = {
+      diebstahl: "a",
+      kontakt: "e",
+      flucht: "b",
+      sabotage: null,
+    };
+    expect(ganoveSpawnChoicesForMission(map, ["j"], impossible)).toEqual([]);
+    expect(() => pickGanoveSpawnForMission(map, createRng(1), ["j"], impossible)).toThrow(
+      SpawnError,
+    );
+  });
+
+  it("draws deterministically from the filtered set", () => {
+    const tight = withRouteBudget(11);
+    const a = pickGanoveSpawnForMission(tight, createRng(5), ["j"], validTargets);
+    const b = pickGanoveSpawnForMission(tight, createRng(5), ["j"], validTargets);
+    expect(a).toBe("a");
+    expect(b).toBe(a);
   });
 });
 

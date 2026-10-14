@@ -8,6 +8,7 @@
  * the minimum distance are never offered, regardless of mode.
  */
 import { bfsDistances, buildGraph } from "./Graph";
+import { missionCriteriaViolations, type MissionTargets } from "./MissionSystem";
 import type { MapPack, SpawnRule } from "./mapPack";
 import type { Rng } from "./rng";
 
@@ -98,6 +99,31 @@ export function pickDetectiveSpawns(map: MapPack, rng: Rng, count: number): stri
 }
 
 /**
+ * `ganoveSpawnChoices` plus a mission-criteria filter: when the game
+ * carries fixed targets (a predefined "Fall", a player-defined mission
+ * or a recorded `resolvedMission`), candidates are additionally
+ * restricted to positions where `missionCriteriaViolations` finds no
+ * conflict with `map.settings.missionRules`. `targets === null` (or
+ * omitted) keeps the plain distance-filtered set — `random`/`auto`
+ * missions draw their targets from the spawn, never against it.
+ */
+export function ganoveSpawnChoicesForMission(
+  map: MapPack,
+  detectivePositions: readonly string[],
+  targets?: MissionTargets | null,
+): string[] {
+  const choices = ganoveSpawnChoices(map, detectivePositions);
+  if (targets === undefined || targets === null) {
+    return choices;
+  }
+  const graph = buildGraph(map);
+  return choices.filter(
+    (nodeId) =>
+      missionCriteriaViolations(graph, map.settings.missionRules, targets, nodeId).length === 0,
+  );
+}
+
+/**
  * Deterministically draws the ganove's spawn from the distance-filtered
  * candidates. Throws `SpawnError` when no eligible node remains.
  */
@@ -110,6 +136,28 @@ export function pickGanoveSpawn(
   if (choices.length === 0) {
     throw new SpawnError(
       "no ganove spawn candidate satisfies minDistanceToDetective for the placed detectives",
+    );
+  }
+  return rng.pick(choices);
+}
+
+/**
+ * `pickGanoveSpawn` over the mission-filtered candidate set. Throws
+ * `SpawnError` when no position satisfies both the spawn rule and the
+ * mission criteria (e.g. a custom mission that is unplayable for the
+ * placed detectives).
+ */
+export function pickGanoveSpawnForMission(
+  map: MapPack,
+  rng: Rng,
+  detectivePositions: readonly string[],
+  targets?: MissionTargets | null,
+): string {
+  const choices = ganoveSpawnChoicesForMission(map, detectivePositions, targets);
+  if (choices.length === 0) {
+    throw new SpawnError(
+      "no ganove spawn candidate satisfies spawnRules and the mission criteria " +
+        "for the placed detectives",
     );
   }
   return rng.pick(choices);

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { MapPack, RangeSetting } from "../logic/mapPack";
+import { EVENT_MODES, type EventDefaults, type MapPack, type RangeSetting } from "../logic/mapPack";
 import { createRng, mixSeed, type Rng } from "../logic/rng";
 import { buildGraph } from "../logic/Graph";
 import { deactivateAll, placeCameras, triggeredCamera } from "../logic/CameraSystem";
@@ -47,13 +47,13 @@ import {
   type MissionStructureStep,
   type MissionTargets,
 } from "../logic/MissionSystem";
-import { getMissionCase, loadMissionSet } from "../logic/MissionLoader";
+import { getMissionCase, loadMissionSet, resolveFixedTargets } from "../logic/MissionLoader";
 import type { SabotageEffect } from "../logic/mapPack";
 import {
   detectiveSpawnChoices,
   ganoveSpawnChoices,
   pickDetectiveSpawns,
-  pickGanoveSpawn,
+  pickGanoveSpawnForMission,
   SpawnError,
 } from "../logic/SpawnSystem";
 
@@ -186,6 +186,18 @@ export interface StartGameOptions {
   radioHintCount?: number;
   /** `umwelt` block duration override inside `edgeBlockRounds.[min,max]`. */
   edgeBlockRounds?: number;
+  /**
+   * Event trigger mode override (menu "Ereignismodus"); defaults to
+   * `settings.eventMode`. Must be one of `cycle|chance|tension`.
+   */
+  eventMode?: EventMode;
+  /**
+   * Event cadence override (menu "Kadenz"): merged over
+   * `settings.eventDefaults`, so callers only pass the keys they change
+   * (e.g. `{ cycle: 4 }`). Merged values must stay positive numbers —
+   * `cycle` an integer ≥ 1, `chance` inside (0, 1].
+   */
+  eventDefaults?: Partial<EventDefaults>;
   /** Mission to play; defaults to `"auto"` (see `MissionOption`). */
   mission?: MissionOption;
   /**
@@ -225,6 +237,8 @@ export interface GameState {
   cameras: Camera[];
   blockedEdges: BlockedEdge[];
   eventMode: EventMode;
+  /** Effective event cadence (map defaults merged with the override). */
+  eventDefaults: EventDefaults;
   tensionValue: number;
   seed: number;
   log: LogEntry[];
@@ -337,6 +351,7 @@ function initialData(): GameData {
     cameras: [],
     blockedEdges: [],
     eventMode: "tension",
+    eventDefaults: { cycle: 0, chance: 0, threshold: 0, perRound: 0 },
     tensionValue: 0,
     seed: 0,
     log: [],
@@ -356,6 +371,7 @@ function resolveSpawnPositions(
   map: MapPack,
   rng: Rng,
   options?: StartGameOptions,
+  missionTargets?: MissionTargets | null,
 ): { detectivePositions: string[]; ganovePosition: string } {
   const count =
     options?.detectiveCount ??
@@ -385,7 +401,10 @@ function resolveSpawnPositions(
     }
     ganovePosition = options.ganovePosition;
   } else {
-    ganovePosition = pickGanoveSpawn(map, rng, detectivePositions);
+    // Fixed-target missions (case/custom/recorded) additionally exclude
+    // spawn positions that violate the mission criteria — a drawn start
+    // that would immediately fail `resolveMission` is never picked.
+    ganovePosition = pickGanoveSpawnForMission(map, rng, detectivePositions, missionTargets);
   }
 
   return { detectivePositions, ganovePosition };
@@ -462,6 +481,54 @@ function resolveCameraProtectedNodes(map: MapPack, option: string[] | undefined)
     }
   }
   return [...option];
+}
+
+/**
+ * Effective event trigger mode for a new game: the map's
+ * `settings.eventMode` unless an option override names another valid
+ * mode (`GameConfigError` otherwise).
+ */
+function resolveEventMode(map: MapPack, option: EventMode | undefined): EventMode {
+  if (option === undefined) {
+    return map.settings.eventMode;
+  }
+  if (!(EVENT_MODES as readonly string[]).includes(option)) {
+    throw new GameConfigError(
+      `eventMode ${JSON.stringify(option)} is not one of ${EVENT_MODES.join("|")}`,
+    );
+  }
+  return option;
+}
+
+/**
+ * Effective event cadence for a new game: `settings.eventDefaults`
+ * merged with the optional override. Every merged value must stay a
+ * positive number — `cycle` an integer ≥ 1, `chance` inside (0, 1],
+ * `threshold`/`perRound` > 0 — otherwise `GameConfigError` is thrown.
+ */
+function resolveEventDefaults(
+  map: MapPack,
+  option: Partial<EventDefaults> | undefined,
+): EventDefaults {
+  const merged: EventDefaults = { ...map.settings.eventDefaults, ...option };
+  if (!Number.isInteger(merged.cycle) || merged.cycle < 1) {
+    throw new GameConfigError(`eventDefaults.cycle ${merged.cycle} must be an integer >= 1`);
+  }
+  if (
+    typeof merged.chance !== "number" ||
+    !Number.isFinite(merged.chance) ||
+    merged.chance <= 0 ||
+    merged.chance > 1
+  ) {
+    throw new GameConfigError(`eventDefaults.chance ${merged.chance} must be inside (0, 1]`);
+  }
+  for (const key of ["threshold", "perRound"] as const) {
+    const value = merged[key];
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+      throw new GameConfigError(`eventDefaults.${key} ${value} must be a positive number`);
+    }
+  }
+  return merged;
 }
 
 /**
@@ -869,7 +936,7 @@ export const useGameStore = create<GameState>((set, get) => {
       state.eventMode,
       state.round,
       state.tensionValue,
-      map.settings.eventDefaults,
+      state.eventDefaults,
       rng,
     );
     if (trigger.tensionValue !== state.tensionValue) {
@@ -989,7 +1056,18 @@ export const useGameStore = create<GameState>((set, get) => {
       // One RNG stream per game: spawns first (unchanged draw order),
       // then the camera placement — same seed, same game.
       const rng = createRng(seed);
-      const { detectivePositions, ganovePosition } = resolveSpawnPositions(map, rng, options);
+      // Fixed mission targets are known before the spawn draw — they
+      // constrain which ganove spawns may be drawn (criteria-checked).
+      const fixedTargets =
+        options?.resolvedMission !== undefined
+          ? (options.resolvedMission?.targets ?? null)
+          : resolveFixedTargets(map, options?.mission);
+      const { detectivePositions, ganovePosition } = resolveSpawnPositions(
+        map,
+        rng,
+        options,
+        fixedTargets,
+      );
       const roundLimit = resolveRoundLimit(map, options?.roundLimit);
       const cameraCount = resolveRangeSetting(
         map.settings.cameraCount,
@@ -1006,6 +1084,8 @@ export const useGameStore = create<GameState>((set, get) => {
         options?.edgeBlockRounds,
         "edgeBlockRounds",
       );
+      const eventMode = resolveEventMode(map, options?.eventMode);
+      const eventDefaults = resolveEventDefaults(map, options?.eventDefaults);
       const graph = buildGraph(map);
       // Log-reconstruction path: a recorded mission/camera list is
       // applied verbatim and performs no draws, so the reconstructed
@@ -1032,7 +1112,8 @@ export const useGameStore = create<GameState>((set, get) => {
         ...initialData(),
         map,
         seed,
-        eventMode: map.settings.eventMode,
+        eventMode,
+        eventDefaults,
         detektivePositions: detectivePositions,
         ganovePosition,
         roundLimit,
@@ -1056,7 +1137,8 @@ export const useGameStore = create<GameState>((set, get) => {
           cameraCount,
           radioHintCount,
           edgeBlockRounds,
-          eventMode: map.settings.eventMode,
+          eventMode,
+          eventDefaults,
           mission: options?.mission ?? "auto",
           cameraProtectedNodes,
         },
