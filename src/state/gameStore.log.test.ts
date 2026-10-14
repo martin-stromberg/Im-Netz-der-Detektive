@@ -633,6 +633,41 @@ describe("export and auto-persist", () => {
     expect(listGameLogs(storage)).toHaveLength(1);
   });
 
+  it("autoPersist: false suppresses the finished-log write (replay path)", () => {
+    const data = new Map<string, string>();
+    const storage: StorageLike = {
+      getItem: (key) => data.get(key) ?? null,
+      setItem: (key, value) => void data.set(key, value),
+      removeItem: (key) => void data.delete(key),
+    };
+    vi.stubGlobal("window", { localStorage: storage });
+
+    store().startGame(missionMap, 1, {
+      detectivePositions: ["p"],
+      ganovePosition: "s",
+      mission: "none",
+      autoPersist: false,
+    });
+    store().moveGanove("d");
+    store().abortAsDraw();
+
+    // The game finished and logged its result — only the FIFO write
+    // is suppressed.
+    expect(store().outcome).toBe("draw");
+    expect(store().log.at(-1)).toMatchObject({ type: "result", outcome: "draw" });
+    expect(listGameLogs(storage)).toHaveLength(0);
+
+    // The suppression is per game: the next regular start persists again.
+    reset();
+    store().startGame(missionMap, 1, {
+      detectivePositions: ["p"],
+      ganovePosition: "s",
+      mission: "none",
+    });
+    store().abortAsDraw();
+    expect(listGameLogs(storage)).toHaveLength(1);
+  });
+
   it("is a silent no-op for finished games without localStorage", () => {
     store().startGame(missionMap, 1, {
       detectivePositions: ["p"],

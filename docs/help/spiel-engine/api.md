@@ -293,7 +293,11 @@ Implementierungen (`StorageLike`, `LogDownloader`).
 
 **Auto-Persist:** `finish()` (Partieende) ruft `saveGameLog` auf — die
 letzten N Partien bleiben sitzungsübergreifend verfügbar, ohne dass
-headless Läufe etwas schreiben.
+headless Läufe etwas schreiben. `startGame`-Option `autoPersist: false`
+unterdrückt den Schreibzugriff für diese eine Partie — der Replay-Pfad
+(`replayTo`) nutzt ihn, damit ein abgespieltes Log nicht als Duplikat
+erneut im FIFO landet; `startGame`/`resetGame`/`resumeGame` stellen den
+Normalzustand wieder her.
 
 ### `SaveGame.ts` — Speicherstand (Snapshot + Log + Seed)
 
@@ -345,7 +349,7 @@ bleibt headless.
 |---------------|--------------|
 | `openReplay(jsonl)` | `{entries, start, actions}` — `ReplayError` ohne verwertbaren Header |
 | `isReplayAction(entry)` / `replayActions(entries)` | Aktoreinträge in `seq`-Reihenfolge — ein Schritt je Eintrag |
-| `replayTo(driver, map, source, stepCount)` | `resetGame` + `startGame` aus der Header-Rekonstruktion + die ersten `stepCount` Aktoreinträge (geklemmt auf `[0, actions.length]`; Stop bei `outcome`) |
+| `replayTo(driver, map, source, stepCount)` | `resetGame` + `startGame` aus der Header-Rekonstruktion (mit `autoPersist: false` — kein erneuter Log-Schreibzugriff) + die ersten `stepCount` Aktoreinträge (geklemmt auf `[0, actions.length]`; Stop bei `outcome`) |
 | `ReplayDriver` | Store-Oberfläche des Abspielers — `useGameStore` kompatibel |
 
 ### `Statistics.ts` — aggregierte Statistiken (rein)

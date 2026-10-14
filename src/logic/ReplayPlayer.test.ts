@@ -3,10 +3,10 @@
  * re-executed on the header reconstruction reproduce the recorded
  * game state exactly — at every step, in both directions.
  */
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadMap } from "./MapLoader";
 import { runAiGame } from "./AiSimulation";
-import { serializeLog } from "./Recorder";
+import { LOG_STORAGE_KEY, listGameLogs, serializeLog, type StorageLike } from "./Recorder";
 import { isReplayAction, openReplay, ReplayError, replayActions, replayTo } from "./ReplayPlayer";
 import { visibleEvents } from "./InformationSystem";
 import { snapshotGame } from "./SaveGame";
@@ -14,6 +14,19 @@ import { useGameStore, type GameStateSnapshot } from "../state/gameStore";
 
 const map = loadMap("teststadt");
 const store = () => useGameStore.getState();
+
+/** In-memory `localStorage` replacement for headless tests. */
+function fakeStorage(initial?: Record<string, string>): StorageLike & {
+  data: Map<string, string>;
+} {
+  const data = new Map<string, string>(Object.entries(initial ?? {}));
+  return {
+    data,
+    getItem: (key) => data.get(key) ?? null,
+    setItem: (key, value) => void data.set(key, value),
+    removeItem: (key) => void data.delete(key),
+  };
+}
 
 /** Runs one AI-vs-AI game to a natural (non-draw) outcome. */
 function recordedGame(seed = 3): { jsonl: string; observed: GameStateSnapshot[] } {
@@ -142,6 +155,47 @@ describe("replayTo determinism", () => {
     const beyond = currentSnapshot();
     replayTo(useGameStore, map, source, source.actions.length);
     expect(currentSnapshot()).toEqual(beyond);
+  });
+});
+
+/**
+ * A replay re-runs an already-recorded game on the live store — it must
+ * never feed the `game-logs` FIFO again, or the statistics would count
+ * the replayed match twice and repeated replays would flood the FIFO.
+ */
+describe("log persistence during replay", () => {
+  beforeEach(() => store().resetGame());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("replaying a stored log to the end appends no duplicate", () => {
+    const { jsonl } = recordedGame();
+    const storage = fakeStorage({ [LOG_STORAGE_KEY]: JSON.stringify([jsonl]) });
+    vi.stubGlobal("window", { localStorage: storage });
+
+    const source = openReplay(jsonl);
+    // Full replay to the recorded end — and once more, like a user
+    // re-opening the same log from the stats view.
+    replayTo(useGameStore, map, source, source.actions.length);
+    expect(store().outcome).not.toBeNull();
+    replayTo(useGameStore, map, source, source.actions.length);
+
+    expect(listGameLogs(storage)).toEqual([jsonl]);
+  });
+
+  it("a live game started after a replay persists again", () => {
+    const { jsonl } = recordedGame();
+    const storage = fakeStorage({ [LOG_STORAGE_KEY]: JSON.stringify([jsonl]) });
+    vi.stubGlobal("window", { localStorage: storage });
+
+    const source = openReplay(jsonl);
+    replayTo(useGameStore, map, source, source.actions.length);
+    expect(listGameLogs(storage)).toHaveLength(1);
+
+    // The suppression is scoped to the replayed start — a subsequent
+    // regular game finishes into the FIFO as usual.
+    store().startGame(map, 11, { mission: "none" });
+    store().abortAsDraw();
+    expect(listGameLogs(storage)).toHaveLength(2);
   });
 });
 

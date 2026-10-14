@@ -140,7 +140,13 @@ export function replayTo(
   const steps = Math.max(0, Math.min(stepCount, source.actions.length));
   const driverState = driver.getState();
   driverState.resetGame();
-  driverState.startGame(map, source.start.seed, source.start.options);
+  // The replay re-runs an already-recorded game: `autoPersist: false`
+  // keeps `finish` from appending the identical log to the retained
+  // `game-logs` FIFO a second time (no duplicates, clean statistics).
+  driverState.startGame(map, source.start.seed, {
+    ...source.start.options,
+    autoPersist: false,
+  });
   for (let i = 0; i < steps; i += 1) {
     if (driver.getState().outcome !== null) {
       return;

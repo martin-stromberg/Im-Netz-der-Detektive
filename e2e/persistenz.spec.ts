@@ -51,6 +51,15 @@ async function openMenu(page: Page) {
   await expect(page.getByTestId("main-menu")).toBeVisible();
 }
 
+/** Number of JSONL logs retained under the `game-logs` FIFO key. */
+async function storedLogCount(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const raw = window.localStorage.getItem("im-netz-der-detektive:game-logs");
+    const parsed: unknown = raw === null ? [] : JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.length : 0;
+  });
+}
+
 /** Menu flow into a running ganove game on muenster (random mission). */
 async function startGanoveGame(page: Page) {
   await openMenu(page);
@@ -194,9 +203,17 @@ test.describe("replay player", () => {
 
   test("play runs to the recorded end and shows the outcome", async ({ page }) => {
     await recordBatch(page);
+    const logsBefore = await storedLogCount(page);
     await page.locator("[data-log-row]").first().getByText("Replay").click();
     await page.getByTestId("replay-play").click();
     await expect(page.getByTestId("replay-outcome")).toBeVisible({ timeout: 60_000 });
     await expect(page.getByTestId("replay-next")).toBeDisabled();
+
+    // A replayed game is already recorded — finishing it again must
+    // not append a duplicate to the retained game-logs FIFO.
+    expect(await storedLogCount(page)).toBe(logsBefore);
+    await page.getByTestId("replay-back").click();
+    await expect(page.getByTestId("stats-screen")).toBeVisible();
+    await expect(page.locator("[data-log-row]")).toHaveCount(logsBefore);
   });
 });
