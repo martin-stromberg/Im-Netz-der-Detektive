@@ -17,13 +17,23 @@
  * random | none | case:<id>) override the defaults; `autoDetectives`
  * disables the driver for tests that drive turns manually.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t, type TranslationKey } from "../i18n";
-import { useGameStore, type GameOutcome, type MissionOption } from "../state/gameStore";
+import {
+  useGameStore,
+  type GameOutcome,
+  type MissionOption,
+  type StartGameOptions,
+} from "../state/gameStore";
 import { installDetectiveDriver } from "../state/detectiveDriver";
 import { loadMap } from "../logic/MapLoader";
+import { resolveFixedTargets } from "../logic/MissionLoader";
 import { createRng } from "../logic/rng";
-import { pickDetectiveSpawns, ganoveSpawnChoices } from "../logic/SpawnSystem";
+import {
+  ganoveSpawnChoicesForMission,
+  pickDetectiveSpawns,
+  pickGanoveSpawnForMission,
+} from "../logic/SpawnSystem";
 import { MissionGenerationError, type MissionKind } from "../logic/MissionSystem";
 import { visibleEvents, type RadioHint } from "../logic/InformationSystem";
 import type { MapPack } from "../logic/mapPack";
@@ -38,6 +48,12 @@ export interface GanoveScreenProps {
   mapId?: string;
   /** Game seed — defaults to `?seed=` or a `Date.now()`-derived value. */
   seed?: number;
+  /** Menu-driven game options (settings + mission); overrides `?mission=`. */
+  options?: StartGameOptions;
+  /** `true` starts the setup flow immediately (skips the idle view). */
+  startImmediately?: boolean;
+  /** Exit-to-menu callback — renders a "Zum Hauptmenü" action. */
+  onExit?: () => void;
   /** `false` disables the automatic AI detective phase (test hook). */
   autoDetectives?: boolean;
 }
@@ -46,6 +62,7 @@ interface PendingSetup {
   map: MapPack;
   seed: number;
   mission: MissionOption;
+  options: StartGameOptions;
   detectivePositions: string[];
 }
 
@@ -143,7 +160,10 @@ function PickSpawnView({
   notice: string | null;
   onPick: (nodeId: string) => void;
 }) {
-  const choices = ganoveSpawnChoices(setup.map, setup.detectivePositions);
+  // Fixed-target missions (Fall/custom) narrow the offer: only spawns
+  // satisfying both the spawn rule and the mission criteria are legal.
+  const fixedTargets = resolveFixedTargets(setup.map, setup.mission);
+  const choices = ganoveSpawnChoicesForMission(setup.map, setup.detectivePositions, fixedTargets);
   return (
     <div className={styles.screen} data-testid="ganove-screen" data-view="pickSpawn">
       <header className={styles.header}>
@@ -166,10 +186,12 @@ function OutcomeView({
   outcome,
   round,
   onRestart,
+  onExit,
 }: {
   outcome: GameOutcome;
   round: number;
   onRestart: () => void;
+  onExit?: () => void;
 }) {
   return (
     <section className={styles.panel} data-testid="outcome-panel" data-outcome={outcome}>
@@ -179,11 +201,28 @@ function OutcomeView({
       <button type="button" className={styles.primaryButton} onClick={onRestart}>
         {t("game.new")}
       </button>
+      {onExit !== undefined ? (
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          data-testid="exit-to-menu"
+          onClick={onExit}
+        >
+          {t("menu.toMenu")}
+        </button>
+      ) : null}
     </section>
   );
 }
 
-export function GanoveScreen({ mapId, seed, autoDetectives = true }: GanoveScreenProps) {
+export function GanoveScreen({
+  mapId,
+  seed,
+  options,
+  startImmediately = false,
+  onExit,
+  autoDetectives = true,
+}: GanoveScreenProps) {
   const map = useGameStore((s) => s.map);
   const round = useGameStore((s) => s.round);
   const roundLimit = useGameStore((s) => s.roundLimit);
@@ -200,6 +239,7 @@ export function GanoveScreen({ mapId, seed, autoDetectives = true }: GanoveScree
   const [setup, setSetup] = useState<PendingSetup | null>(null);
   const [abortConfirm, setAbortConfirm] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const autoStarted = useRef(false);
 
   // UI triggers, the engine rules: the store subscription drives the
   // whole detective phase deterministically after each ganove turn.
@@ -231,43 +271,77 @@ export function GanoveScreen({ mapId, seed, autoDetectives = true }: GanoveScree
       const nextMap = loadMap(mapId ?? params.get("map") ?? "muenster");
       const rawSeed = seed ?? (params.get("seed") ? Number(params.get("seed")) : undefined);
       const gameSeed = rawSeed ?? nextSeed();
-      const detectivePositions = pickDetectiveSpawns(
-        nextMap,
-        createRng(gameSeed),
-        nextMap.settings.detectiveCount.suggested,
-      );
-      setSetup({
+      const mission = options?.mission ?? resolveMissionOption(params.get("mission"));
+      const startOptions = options ?? {};
+      const detectiveCount =
+        startOptions.detectiveCount ?? nextMap.settings.detectiveCount.suggested;
+      const detectivePositions = pickDetectiveSpawns(nextMap, createRng(gameSeed), detectiveCount);
+      const pending: PendingSetup = {
         map: nextMap,
         seed: gameSeed,
-        mission: resolveMissionOption(params.get("mission")),
+        mission,
+        options: startOptions,
         detectivePositions,
-      });
+      };
+      // Spawn rule "random": the map assigns the ganove's start —
+      // the pick view is skipped entirely (spec section 3).
+      if (nextMap.spawnRules.ganove.mode === "random") {
+        const ganovePosition = pickGanoveSpawnForMission(
+          nextMap,
+          createRng(gameSeed),
+          detectivePositions,
+          resolveFixedTargets(nextMap, mission),
+        );
+        startGame(pending, { detectivePositions, ganovePosition });
+        return;
+      }
+      setSetup(pending);
     });
+
+  const startGame = (
+    pending: PendingSetup,
+    positions: { detectivePositions: string[]; ganovePosition: string },
+  ) => {
+    const startOptions = {
+      ...pending.options,
+      ...positions,
+      mission: pending.mission,
+    };
+    try {
+      useGameStore.getState().startGame(pending.map, pending.seed, startOptions);
+    } catch (error) {
+      if (!(error instanceof MissionGenerationError)) {
+        throw error;
+      }
+      // "random" is impossible for this draw — fall back to "auto".
+      useGameStore.getState().startGame(pending.map, pending.seed, {
+        ...startOptions,
+        mission: "auto",
+      });
+    }
+    setSetup(null);
+  };
 
   const pickSpawn = (nodeId: string) =>
     runGuarded(() => {
       if (setup === null) {
         return;
       }
-      const options = {
+      startGame(setup, {
         detectivePositions: setup.detectivePositions,
         ganovePosition: nodeId,
-        mission: setup.mission,
-      };
-      try {
-        useGameStore.getState().startGame(setup.map, setup.seed, options);
-      } catch (error) {
-        if (!(error instanceof MissionGenerationError)) {
-          throw error;
-        }
-        // "random" is impossible for this draw — fall back to "auto".
-        useGameStore.getState().startGame(setup.map, setup.seed, {
-          ...options,
-          mission: "auto",
-        });
-      }
-      setSetup(null);
+      });
     });
+
+  // Menu-driven entry: skip the idle view when `startImmediately` is
+  // set (StrictMode-safe — the guard swallows the double effect call).
+  useEffect(() => {
+    if (startImmediately && !autoStarted.current) {
+      autoStarted.current = true;
+      beginSetup();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startImmediately]);
 
   const restart = () => {
     useGameStore.getState().resetGame();
@@ -444,7 +518,7 @@ export function GanoveScreen({ mapId, seed, autoDetectives = true }: GanoveScree
               )}
             </>
           ) : (
-            <OutcomeView outcome={outcome} round={round} onRestart={restart} />
+            <OutcomeView outcome={outcome} round={round} onRestart={restart} onExit={onExit} />
           )}
           {notice !== null ? <p className={styles.notice}>{notice}</p> : null}
         </aside>

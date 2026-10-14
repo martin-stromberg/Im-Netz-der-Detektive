@@ -2,9 +2,60 @@
 
 # Spieloberfläche — Ablauf für Anwender
 
-Dieser Ablauf beschreibt zuerst den **Ganove-Modus** und danach den
-**Detektiv-Modus** — die Moduswahl erfolgt vorläufig über die
-Startauswahl oder `?mode=ganove` bzw. `?mode=detektiv`.
+Dieser Ablauf beschreibt zuerst den **Menüfluss** (für beide
+Perspektiven gemeinsam), dann den **Ganove-Modus** und danach den
+**Detektiv-Modus**. Die Entwickler-Einstiege `?mode=ganove` bzw.
+`?mode=detektiv` bleiben für Tests erhalten.
+
+# Menüfluss
+
+## Schritt-für-Schritt-Anleitung
+
+### 1. Hauptmenü
+
+- **Neue Partie** startet den Auswahlfluss.
+- **Partie fortsetzen** ist vorbereitet, aber deaktiviert, bis laufende
+  Partien gespeichert werden (folgt in einem späteren Schritt).
+- **Statistiken & Replays** listet die aufgezeichneten Partien
+  (Karte, Seed, Ausgang, Runden) — das Abspielen folgt später.
+
+### 2. Karte wählen
+
+Münster und Lübeck sind spielbar; Hamburg und Köln sind als „In
+Vorbereitung" markiert und nicht wählbar.
+
+### 3. Modus wählen
+
+„Ganove" (du fliehst), „Detektiv" (du führst den Trupp) oder der
+„Dev-Modus" (KI gegen KI als Balancing-Werkzeug mit Batch-Auswertung).
+
+### 4. Einstellungen
+
+Alle Werte liegen in den erlaubten Korridoren der Karte — die
+Vorschläge sind vorausgewählt: Detektiv- und Kameraanzahl,
+Rundenlimit (mit „Unbegrenzt" nur auf Karten, die es erlauben —
+z. B. Münster), Polizeifunk-Tiefe, Sperrdauer, Ereignismodus
+(Im Takt / Zufällig / Spannung) und die Ereignis-Kadenz. Ungültige
+Werte werden beim Weitergehen namentlich beanstandet.
+
+### 5. Mission wählen
+
+- **Fall:** ein benannter, handgebauter Fall mit Mini-Story (falls die
+  Karte welche mitbringt).
+- **Zufalls-Mission:** die Ziele werden regelkonform gelost.
+- **Spielerdefiniert:** Diebstahl → Kontakt → Fluchtpunkt (plus
+  optionale Sabotage) werden direkt auf der Karte gewählt — nur Orte
+  der passenden Kategorie sind wählbar, und die Mission wird gegen
+  die Kriterien geprüft, bevor sie übernommen werden kann.
+- **Ohne Mission:** freie Flucht über jeden Fluchtpunkt.
+
+### 6. Startaufstellung
+
+Danach geht es in den gewählten Modus — die Aufstellung folgt den
+Kartenregeln: Detektive zuerst, Ganove zuletzt; bei „Zufall" wird
+automatisch aufgestellt.
+
+---
 
 # Ganove-Modus
 
@@ -71,8 +122,9 @@ Eine vollständig gespielte Partie mit verständlicher Endanzeige.
 
 ### 1. Modus und Partie beginnen
 
-„Detektive" in der Startauswahl wählen (oder direkt
-`?mode=detektiv` öffnen), dann „Neue Partie".
+„Detektiv" in der Moduswahl wählen (oder direkt `?mode=detektiv`
+öffnen) — die Aufstellung folgt nach den Einstellungen und der
+Missionswahl.
 
 ### 2. Trupp aufstellen
 

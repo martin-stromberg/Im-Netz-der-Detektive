@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import App from "./App";
+import { useGameStore } from "./state/gameStore";
 import de from "./i18n/de.json";
 
 function setSearch(search: string) {
@@ -11,31 +12,48 @@ function setSearch(search: string) {
 describe("App", () => {
   beforeEach(() => {
     setSearch("");
+    useGameStore.getState().resetGame();
   });
 
-  it("renders the temporary mode chooser without a mode parameter", () => {
+  it("renders the main menu without a mode parameter", () => {
     render(<App />);
+    expect(screen.getByTestId("main-menu")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: de["app.title"] })).toBeInTheDocument();
-    expect(screen.getByText(de["app.subtitle"])).toBeInTheDocument();
-    expect(screen.getByTestId("mode-select")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: new RegExp(de["mode.ganove"]) })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: new RegExp(de["mode.detektiv"]) }),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("menu-new-game")).toBeInTheDocument();
+    expect(screen.getByTestId("menu-resume")).toBeDisabled();
+    expect(screen.getByTestId("menu-stats")).toBeInTheDocument();
   });
 
-  it("opens the ganove start view when the ganove mode is picked", () => {
+  it("walks menu → map → mode → settings → mission → ganove spawn pick", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: new RegExp(de["mode.ganove"]) }));
-    expect(screen.getByTestId("ganove-screen")).toHaveAttribute("data-view", "idle");
-    expect(screen.getByRole("button", { name: de["game.new"] })).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("menu-new-game"));
+    expect(screen.getByTestId("map-select")).toBeInTheDocument();
+    // Forthcoming cities are disabled placeholders.
+    expect(screen.getByTestId("map-card-hamburg")).toBeDisabled();
+    fireEvent.click(screen.getByTestId("map-card-muenster"));
+    expect(screen.getByTestId("mode-select-screen")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("mode-ganove"));
+    expect(screen.getByTestId("settings-screen")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("settings-continue"));
+    expect(screen.getByTestId("mission-select")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("mission-none"));
+    expect(screen.getByTestId("ganove-screen")).toHaveAttribute("data-view", "pickSpawn");
   });
 
-  it("opens the detektiv start view when the detective mode is picked", () => {
+  it("walks the detektiv flow into the detective spawn picks", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: new RegExp(de["mode.detektiv"]) }));
-    expect(screen.getByTestId("detektiv-screen")).toHaveAttribute("data-view", "idle");
-    expect(screen.getByRole("button", { name: de["game.new"] })).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("menu-new-game"));
+    fireEvent.click(screen.getByTestId("map-card-luebeck"));
+    fireEvent.click(screen.getByTestId("mode-detektiv"));
+    fireEvent.click(screen.getByTestId("settings-continue"));
+    fireEvent.click(screen.getByTestId("mission-random"));
+    expect(screen.getByTestId("detektiv-screen")).toHaveAttribute("data-view", "pickSpawns");
+  });
+
+  it("opens the stats view from the main menu", () => {
+    render(<App />);
+    fireEvent.click(screen.getByTestId("menu-stats"));
+    expect(screen.getByTestId("stats-screen")).toBeInTheDocument();
   });
 
   it("renders the ganove screen directly with ?mode=ganove", () => {

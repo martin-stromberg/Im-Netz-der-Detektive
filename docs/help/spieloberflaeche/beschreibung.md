@@ -4,8 +4,9 @@
 
 Zwei spielbare Perspektiven teilen sich diese Dokumentation:
 **Ganove-Modus** (Mensch als Ganove) und **Detektiv-Modus** (Mensch
-als Detektivtrupp). Die Moduswahl erfolgt vorläufig über die
-Startauswahl oder `?mode=` — das endgültige Menü folgt in Schritt 11.
+als Detektivtrupp). Die Auswahl erfolgt über das Hauptmenü — Karte,
+Modus, Einstellungen und Mission werden vor der Partie gewählt
+(Schritt 11); `?mode=` bleibt als Entwickler-Einstieg erhalten.
 
 # Ganove-Modus — Beschreibung
 
@@ -54,10 +55,9 @@ anhand ihrer Hinweise einkreisen.
 - Der Ganove sieht **keine** Kameras und **keine** Hinweise der
   Detektive — das ist gewollte Informationsasymmetrie; der Polizeifunk
   ist der einzige Einblick (einmalig).
-- Karten- und Konfigurationsauswahl (Stadt, Detektivzahl, Zeitlimit,
-  feste Fälle) folgt mit dem Menü in einem späteren Schritt — aktuell
-  startet eine Partie mit den Standardwerten der Karte Münster und
-  einer generierten Mission.
+- Stadt, Perspektive, Werte und Mission wählst du im Menüfluss — die
+  Vorschläge der Karte sind vorausgewählt, und „Unbegrenzt" beim
+  Rundenlimit ist nur auf Karten wählbar, die es erlauben.
 
 ---
 
@@ -71,9 +71,9 @@ und den unsichtbaren Gegner deduktiv eingrenzen.
 
 ## Funktionsweise
 
-- **Moduswahl (vorläufig):** Ohne URL-Parameter wählst du beim Start
-  zwischen den beiden Spielmodi; `?mode=detektiv` öffnet diesen Modus
-  direkt. Das endgültige Menü folgt in Schritt 11.
+- **Moduswahl:** Im Hauptmenü wählst du Karte, Modus, Einstellungen
+  und Mission — `?mode=detektiv` öffnet diesen Modus alternativ direkt
+  (Entwickler-Einstieg).
 - **Startaufstellung:** Nach „Neue Partie" verteilst du deine
   Detektive Posten für Posten (D1 → Dn) auf die markierten legalen
   Kandidaten — der Startort des Ganoven wird verdeckt gezogen und nie

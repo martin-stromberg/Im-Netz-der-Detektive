@@ -1,5 +1,36 @@
 # Änderungsprotokoll
 
+## 2026-10-14 — Anwendungsrahmen: Menü, Einstellungen, Szenario-Auswahl (Schritt 11)
+
+- Vollständiges Hauptmenü mit zustandsbasiertem Fluss
+  (`menu → map → mode → settings → mission → game`): Kartenwahl
+  Münster/Lübeck (Hamburg/Köln „in Vorbereitung"), Moduswahl
+  Ganove/Detektiv/Dev, korridorgebundene Einstellungen je Karte
+  (`{suggested, min, max}`, „Unbegrenzt" nur wo erlaubt,
+  Ereignismodus + vereinheitlichte Kadenz) und Missionsauswahl
+  (Fall mit Mini-Story, Zufall, spielerdefiniert mit
+  Kriterienprüfung, ohne Mission). Die vorläufige Moduswahl ist
+  ersetzt; `?mode=` bleibt Deep-Link.
+- Missionsbewusste Startaufstellung: `ganoveSpawnChoicesForMission`/
+  `pickGanoveSpawnForMission` filtern die Ganove-Kandidaten zusätzlich
+  nach den Missionskriterien (Fall/Custom/`resolvedMission`) — ein
+  gezogener Start, der die Mission sofort unspielbar machte, wird
+  nicht mehr angeboten. `MissionLoader.resolveFixedTargets` liefert
+  die festen Ziele vor dem Draw.
+- `StartGameOptions`/`GameState` um `eventMode` + `eventDefaults`
+  erweitert (validierte Overrides, im Event-Header protokolliert,
+  `startOptionsFromHeader` rekonstruiert sie); `GameIndex.ts`
+  liefert die persistenzfähigen Einträge `GameSummary`/
+  `ResumeEntry` für Schritt 12 — die Statistikansicht listet die
+  aufgezeichneten Partien bereits.
+- Dev-Modus: `AiSimulation`-Batch (Karte/Größe/Seed wählbar) mit
+  `summarizeBatch`-Auswertung; drei lokal eingebettete
+  KI-generierte Rasterassets (`src/assets/`, Pollinations.ai,
+  dokumentiert in `ASSETS.md`) für Titel- und Kartenkarten.
+- 48 neue Unit-/Komponententests (494 gesamt) und 8 neue
+  Playwright-Szenarien in `e2e/menu.spec.ts` (20 gesamt) — alle
+  grün; Coverage 92,4 % Statements.
+
 ## 2026-10-14 — Detektiv-Perspektive / zweiter Spielmodus (Schritt 10)
 
 - Zweiter spielbarer Modus: `DetektivScreen` (`src/components/`) führt

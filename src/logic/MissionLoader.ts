@@ -5,12 +5,15 @@
  * the build, so `loadMissionSet` is synchronous and works headless —
  * the same pattern as `MapLoader`.
  */
+import type { MissionOption } from "../state/gameStore";
 import type { MapPack } from "./mapPack";
 import {
+  caseTargets,
   MissionValidationError,
   validateMissionSet,
   type MissionCase,
   type MissionSet,
+  type MissionTargets,
 } from "./MissionSystem";
 
 const registry = import.meta.glob<unknown>("../data/missions/*.json", {
@@ -48,6 +51,36 @@ export function loadMissionSet(map: MapPack): MissionSet {
     ]);
   }
   return validateMissionSet(data, map);
+}
+
+/**
+ * Resolves the fixed target set of a `MissionOption` — the spawn flow
+ * needs it before `startGame` to keep only ganove spawns that satisfy
+ * the mission criteria. Returns `null` for `"auto"`/`"random"`/`"none"`
+ * (those carry no fixed targets or draw them from the spawn) and for a
+ * missing/undefined option. `{type:"case"}` throws
+ * `MissionValidationError` when the map has no set or the id is
+ * unknown; `{type:"custom"}` returns the player's picks verbatim.
+ */
+export function resolveFixedTargets(
+  map: MapPack,
+  mission: MissionOption | undefined,
+): MissionTargets | null {
+  if (mission === undefined || typeof mission !== "object") {
+    return null;
+  }
+  if (mission.type === "case") {
+    return caseTargets(getMissionCase(loadMissionSet(map), mission.id));
+  }
+  if (mission.type === "custom") {
+    return {
+      diebstahl: mission.targets.diebstahl,
+      kontakt: mission.targets.kontakt,
+      flucht: mission.targets.flucht,
+      sabotage: mission.targets.sabotage ?? null,
+    };
+  }
+  return null;
 }
 
 /**
