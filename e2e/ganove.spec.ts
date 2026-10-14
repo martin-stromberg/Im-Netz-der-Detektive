@@ -7,6 +7,10 @@ import { expect, test, type Page } from "@playwright/test";
  * test takes goes through real DOM interaction (clicks/keys).
  */
 
+// Node `process` is ambient at test runtime but not typed here (the
+// tsconfig does not pull in @types/node).
+declare const process: { env: Record<string, string | undefined> };
+
 interface Snapshot {
   phase: "ganove" | "detektive";
   round: number;
