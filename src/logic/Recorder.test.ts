@@ -148,6 +148,7 @@ describe("headerFromLog / startOptionsFromHeader", () => {
       cameraCount: 8,
       radioHintCount: 5,
       edgeBlockRounds: 3,
+      eventMode: "tension",
       cameraProtectedNodes: [],
       mission: "auto",
       // The recorded mission/cameras are applied verbatim — no redraws.

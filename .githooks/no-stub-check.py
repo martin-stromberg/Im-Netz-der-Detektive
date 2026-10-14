@@ -46,7 +46,8 @@ TS_MODIFIER = (
     r"override|abstract|const|let|var|function)"
 )
 STUB_BLOCK_RE = re.compile(
-    rf"{TS_MODIFIER}[^{{}};]*\)\s*(?::\s*[^{{}};]+)?\{{\s*throw\s+[^{{}};]*;\s*\}}"
+    rf"^[ \t]*{TS_MODIFIER}[^{{}};]*\)\s*(?::\s*[^{{}};]+)?\{{\s*throw\s+[^{{}};]*;\s*\}}",
+    re.MULTILINE,
 )
 STUB_ARROW_RE = re.compile(r"=>\s*\{\s*throw\s+[^{}]*;\s*\}")
 

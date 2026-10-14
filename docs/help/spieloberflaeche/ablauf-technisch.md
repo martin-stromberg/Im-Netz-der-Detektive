@@ -2,9 +2,31 @@
 
 # Spieloberfläche — Technischer Ablauf
 
-Diese Seite dokumentiert beide Spielmodi. `App.tsx` wählt über
-`?mode=` bzw. die vorläufige Modusauswahl zwischen `GanoveScreen`
-und `DetektivScreen` — das endgültige Menü folgt in Schritt 11.
+Diese Seite dokumentiert den Anwendungsrahmen und beide Spielmodi.
+`App.tsx` führt einen reinen Zustandsfluss (`MenuScreen`-Union aus
+`src/components/menuFlow.ts` — kein Router-Paket):
+`menu → map → mode → settings → mission → game` sowie die Seitenzweige
+`dev` und `stats`. `?mode=ganove|detektiv` bleibt als
+Deep-Link-Einstieg direkt in die Bildschirme erhalten.
+
+## Menüfluss (Komponenten)
+
+| Ansicht | Komponente | Aufgabe |
+|---|---|---|
+| `menu` | `MainMenu` | Neue Partie, Fortsetzen (deaktiviert bis Schritt 12), Statistiken |
+| `map` | `MapSelect` | `MENU_MAP_IDS` aktiv laden, `FORTHCOMING_MAP_IDS` disabled |
+| `mode` | `ModeSelect` | `ganove`/`detektiv` → `settings`, `dev` → `dev` |
+| `settings` | `SettingsScreen` | korridorgebundene `StartGameOptions` (inkl. `roundLimit: null` nur bei `unlimited`, `eventMode` + vereinheitlichte Kadenz via `cadenceToEventDefaults`) |
+| `mission` | `MissionSelect` | `case`/`random`/`custom`/`none`; `CustomMissionPicker` mit Kategorie-Picks + `validateCustomTargets` |
+| `dev` | `DevModeScreen` | `runAiBatch` + `summarizeBatch` (aufgezeichnet via `Recorder`) |
+| `stats` | `StatsScreen` | `listGameSummaries` über dem `localStorage`-FIFO |
+| `game` | `GanoveScreen`/`DetektivScreen` | mit `options` + `startImmediately` + `onExit` |
+
+Die ausgewählte `MissionOption` plus Einstellungen wandern als
+`PendingGameConfig` in `startGame`; feste Ziele (`case`/`custom`/
+`resolvedMission`) engen über `ganoveSpawnChoicesForMission` die
+legale Ganove-Startmenge ein — die Distanzregel bleibt unverändert
+zuerst angewendet.
 
 # Ganove-Modus
 
@@ -110,11 +132,12 @@ spiegelbildlich zum `detectiveDriver`.
 
 ## Ablauf
 
-### 1. Moduswahl
+### 1. Einstieg
 
 `App.tsx` liest `?mode=` einmalig beim Mount: `ganove` →
-`GanoveScreen`, `detektiv` → `DetektivScreen`; fehlt der Parameter,
-zeigt eine Schaltflächen-Auswahl (i18n `mode.*`).
+`GanoveScreen`, `detektiv` → `DetektivScreen` (Deep-Link ohne Menü);
+ohne Parameter startet der Menüfluss des Anwendungsrahmens, der die
+Komponente mit `options`, `startImmediately` und `onExit` versorgt.
 
 ### 2. Setup (Detektiv-Aufstellung)
 
