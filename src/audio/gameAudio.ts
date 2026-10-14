@@ -19,8 +19,13 @@ import { useGameStore } from "../state/gameStore";
 import { useUiPrefs } from "../state/uiPrefs";
 import { createAudioEngine, type AudioEngine } from "./AudioEngine";
 import type { HeatLevel } from "../logic/InformationSystem";
+import { pursuitStatus, type PursuitLevel } from "../logic/Pursuit";
 
 const LEVEL_ORDER: readonly HeatLevel[] = ["ruhig", "aktiv", "erhoeht", "kritisch"];
+
+/** Pursuit levels that trigger the alarm cue when *reached*. */
+const ALARM_PURSUIT: readonly PursuitLevel[] = ["nah", "unmittelbar"];
+const PURSUIT_ORDER: readonly PursuitLevel[] = ["ruhig", "spuerbar", "nah", "unmittelbar"];
 
 let defaultEngine: AudioEngine | null = null;
 
@@ -67,6 +72,9 @@ export function installGameAudio(engine: AudioEngine = getDefaultAudioEngine()):
   // Level at install time is the baseline — no signal for existing heat
   // (e.g. a resumed game does not replay old alarms).
   let lastLevelIndex = LEVEL_ORDER.indexOf(useGameStore.getState().getHeatLevel().level);
+  let lastPursuitIndex = -1;
+  let lastEventCount = useGameStore.getState().events.length;
+  let lastOutcome = useGameStore.getState().outcome;
   let ambientOn = false;
 
   const syncGame = () => {
@@ -76,6 +84,44 @@ export function installGameAudio(engine: AudioEngine = getDefaultAudioEngine()):
       engine.playHeatRise(state.getHeatLevel().level);
     }
     lastLevelIndex = levelIndex;
+
+    // New ganove-visible world events get the quiet "news" cue.
+    if (state.events.length > lastEventCount) {
+      const fresh = state.events.slice(lastEventCount);
+      if (fresh.some((event) => event.visibleTo !== "detectives")) {
+        engine.playEventCue("news");
+      }
+    }
+    lastEventCount = state.events.length;
+
+    // Reaching the close-pursuit tiers plays the alarm — easing back
+    // to calm resets the baseline so a re-approach re-arms it.
+    const pursuit =
+      state.map !== null && state.ganovePosition !== null && state.outcome === null
+        ? pursuitStatus(
+            state.map,
+            state.blockedEdges,
+            state.round,
+            state.ganovePosition,
+            state.detektivePositions,
+          )
+        : null;
+    const pursuitIndex = pursuit === null ? -1 : PURSUIT_ORDER.indexOf(pursuit.level);
+    if (
+      pursuit !== null &&
+      pursuitIndex > lastPursuitIndex &&
+      ALARM_PURSUIT.includes(pursuit.level)
+    ) {
+      engine.playEventCue("alarm");
+    }
+    lastPursuitIndex = pursuitIndex;
+
+    // Outcome motif once on the transition (ganove view: escape wins).
+    if (lastOutcome === null && state.outcome !== null) {
+      engine.playEventCue(state.outcome === "escaped" ? "win" : "loss");
+    }
+    lastOutcome = state.outcome;
+
     const running = state.map !== null && state.outcome === null;
     if (running !== ambientOn) {
       ambientOn = running;

@@ -49,6 +49,13 @@ export interface AudioEngineOptions {
   clearIntervalFn?: (id: ReturnType<typeof setInterval>) => void;
 }
 
+/**
+ * Short event cues layered on top of the heat signals: a soft ping for
+ * world news, an urgent pattern when pursuit closes in, a confirm for
+ * finished mission actions and one motif per outcome side.
+ */
+export type EventCue = "news" | "alarm" | "action" | "win" | "loss";
+
 export interface AudioEngine {
   /** `false` when no `AudioContext` API is available — all methods no-op. */
   readonly supported: boolean;
@@ -56,6 +63,8 @@ export interface AudioEngine {
   unlock(): void;
   /** Staged signal for a heat-level *rise* to `level`. */
   playHeatRise(level: HeatLevel): void;
+  /** Short cue for game events — banner moments, pursuit, outcomes. */
+  playEventCue(cue: EventCue): void;
   /** Turns the quiet police-activity ambience on or off. */
   setAmbient(on: boolean): void;
   /** Master volume 0–1. */
@@ -126,6 +135,36 @@ function heatSignal(level: HeatLevel): ToneSpec[] {
       ];
     default:
       return [{ frequency: 196, offset: 0, duration: 0.18, peak: 0.1, type: "sine" }];
+  }
+}
+
+/** Tone pattern per event cue — short, quiet, distinct from heat rises. */
+function eventCueSignal(cue: EventCue): ToneSpec[] {
+  switch (cue) {
+    case "news":
+      return [{ frequency: 523, offset: 0, duration: 0.12, peak: 0.12, type: "sine" }];
+    case "alarm":
+      return [
+        { frequency: 740, offset: 0, duration: 0.08, peak: 0.2, type: "square" },
+        { frequency: 740, offset: 0.1, duration: 0.08, peak: 0.2, type: "square" },
+      ];
+    case "action":
+      return [
+        { frequency: 494, offset: 0, duration: 0.09, peak: 0.15, type: "sine" },
+        { frequency: 659, offset: 0.09, duration: 0.13, peak: 0.15, type: "sine" },
+      ];
+    case "win":
+      return [
+        { frequency: 523, offset: 0, duration: 0.12, peak: 0.16, type: "sine" },
+        { frequency: 659, offset: 0.12, duration: 0.12, peak: 0.16, type: "sine" },
+        { frequency: 784, offset: 0.24, duration: 0.22, peak: 0.16, type: "sine" },
+      ];
+    case "loss":
+      return [
+        { frequency: 330, offset: 0, duration: 0.14, peak: 0.16, type: "sine" },
+        { frequency: 262, offset: 0.14, duration: 0.14, peak: 0.16, type: "sine" },
+        { frequency: 196, offset: 0.28, duration: 0.26, peak: 0.18, type: "sine" },
+      ];
   }
 }
 
@@ -280,6 +319,19 @@ export function createAudioEngine(options: AudioEngineOptions = {}): AudioEngine
       }
       context.resume();
       for (const spec of heatSignal(level)) {
+        playTone(context, spec);
+      }
+    },
+    playEventCue(cue) {
+      if (!unlocked) {
+        return;
+      }
+      const context = ensureContext();
+      if (context === null || master === null) {
+        return;
+      }
+      context.resume();
+      for (const spec of eventCueSignal(cue)) {
         playTone(context, spec);
       }
     },

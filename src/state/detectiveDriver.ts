@@ -47,35 +47,98 @@ export function driveDetectivePhase(): void {
     if (state.map === null || state.phase !== "detektive" || state.outcome !== null) {
       return;
     }
-    const index = state.activeDetectiveIndex;
-    const target = chooseDetectiveMove(
-      buildDetectiveView(state, detectiveStarts),
-      index,
-      state.getLegalDetectiveMoves(),
-      aiRng(state.seed, state.round, index + 1),
-    );
-    state.moveDetective(target);
+    stepDetectivePhase(state, detectiveStarts);
   }
 }
 
+/**
+ * Moves exactly one detective — the unit the UI steps through with a
+ * visible pause between moves so the pursuit plays out on the map
+ * instead of teleporting the whole squad in one tick. Engine-neutral:
+ * the chosen move is identical to `driveDetectivePhase` for the same
+ * seed — only the pacing differs.
+ */
+export function stepDetectivePhase(
+  state: ReturnType<typeof useGameStore.getState> = useGameStore.getState(),
+  detectiveStarts: readonly string[] = detectiveStartsFromLog(useGameStore.getState().log),
+): void {
+  if (state.map === null || state.phase !== "detektive" || state.outcome !== null) {
+    return;
+  }
+  const index = state.activeDetectiveIndex;
+  const target = chooseDetectiveMove(
+    buildDetectiveView(state, detectiveStarts),
+    index,
+    state.getLegalDetectiveMoves(),
+    aiRng(state.seed, state.round, index + 1),
+  );
+  state.moveDetective(target);
+}
+
 let driving = false;
+let scheduled = false;
 
 /**
  * Subscribes to the store and drives every detective phase
  * automatically. Returns the unsubscribe function — idempotent per
  * subscription; a re-entrancy guard prevents nested notifications
  * (each `moveDetective` publishes again) from re-entering the loop.
+ *
+ * `stepDelayMs` paces the squad visibly: each detective moves, the
+ * marker glides along the edge, then the next steps. `0` keeps the
+ * original synchronous drain (tests, headless callers).
  */
-export function installDetectiveDriver(): () => void {
-  return useGameStore.subscribe((state) => {
-    if (driving || state.map === null || state.phase !== "detektive" || state.outcome !== null) {
+export function installDetectiveDriver(stepDelayMs = 0): () => void {
+  if (stepDelayMs <= 0) {
+    return useGameStore.subscribe((state) => {
+      if (driving || state.map === null || state.phase !== "detektive" || state.outcome !== null) {
+        return;
+      }
+      driving = true;
+      try {
+        driveDetectivePhase();
+      } finally {
+        driving = false;
+      }
+    });
+  }
+
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const scheduleStep = () => {
+    if (scheduled) {
       return;
     }
-    driving = true;
-    try {
-      driveDetectivePhase();
-    } finally {
-      driving = false;
+    scheduled = true;
+    timer = setTimeout(() => {
+      scheduled = false;
+      timer = null;
+      stepDetectivePhase();
+      const next = useGameStore.getState();
+      if (next.map !== null && next.phase === "detektive" && next.outcome === null) {
+        scheduleStep();
+      }
+    }, stepDelayMs);
+  };
+
+  const unsubscribe = useGameStore.subscribe((state) => {
+    if (state.map === null || state.phase !== "detektive" || state.outcome !== null) {
+      return;
     }
+    scheduleStep();
   });
+  // A game can already sit in the detective phase when the driver
+  // installs (resume into an unfinished phase).
+  const current = useGameStore.getState();
+  if (current.map !== null && current.phase === "detektive" && current.outcome === null) {
+    scheduleStep();
+  }
+  return () => {
+    unsubscribe();
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+      scheduled = false;
+    }
+  };
 }

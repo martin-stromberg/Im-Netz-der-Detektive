@@ -41,6 +41,34 @@
   stroke-dasharray: 4 4;
 }
 
+/* Fresh block flashes amber so the umwelt event is seen, not just
+   read in the intel feed. */
+.edgeFlash {
+  stroke: #f5d76e;
+  stroke-width: 3.5;
+  animation: edge-flash 3400ms ease-out;
+}
+
+@keyframes edge-flash {
+  0% {
+    stroke-opacity: 1;
+  }
+
+  40% {
+    stroke-opacity: 1;
+  }
+
+  100% {
+    stroke-opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edgeFlash {
+    animation: none;
+  }
+}
+
 .blockGlyph line {
   stroke: #d98c8c;
   stroke-width: 2.5;
@@ -127,6 +155,19 @@
 
 .mission_flucht {
   stroke: #7fb8d4;
+}
+
+/* Positions are placed via inline CSS `transform` so piece movement
+   glides along the edge instead of teleporting — the detective-phase
+   step delay in the driver gives each hop its own beat. */
+.markerMove {
+  transition: transform 480ms cubic-bezier(0.25, 0.8, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markerMove {
+    transition: none;
+  }
 }
 
 .detectiveMarker .detectiveShape {

@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadMap } from "../logic/MapLoader";
+import { ganoveSpawnChoices } from "../logic/SpawnSystem";
 import { useGameStore } from "./gameStore";
 import {
   detectiveStartsFromLog,
@@ -102,6 +103,41 @@ describe("installDetectiveDriver", () => {
       expect(useGameStore.getState().outcome).toBe("draw");
     } finally {
       unsubscribe();
+    }
+  });
+
+  it("steps the squad one detective per delay tick", () => {
+    vi.useFakeTimers();
+    try {
+      useGameStore.getState().startGame(map, 7, {
+        detectivePositions: ["a", "i", "j"],
+        ganovePosition: ganoveSpawnChoices(map, ["a", "i", "j"])[0],
+        mission: "none",
+        cameraCount: 0,
+        roundLimit: 20,
+      });
+      const unsubscribe = installDetectiveDriver(100);
+      try {
+        const escape = new Set(useGameStore.getState().escapeNodeIds);
+        const legal = useGameStore
+          .getState()
+          .getLegalGanoveMoves()
+          .filter((move) => !escape.has(move.nodeId));
+        useGameStore.getState().moveGanove(legal[0].nodeId);
+        expect(useGameStore.getState().phase).toBe("detektive");
+        // One move per tick: the squad advances visibly, not in a burst.
+        vi.advanceTimersByTime(100);
+        const afterFirst = useGameStore.getState();
+        expect(afterFirst.phase).toBe("detektive");
+        expect(afterFirst.detektivePositions[0]).not.toBe("a");
+        vi.advanceTimersByTime(300);
+        expect(useGameStore.getState().phase).toBe("ganove");
+        expect(useGameStore.getState().round).toBe(2);
+      } finally {
+        unsubscribe();
+      }
+    } finally {
+      vi.useRealTimers();
     }
   });
 });

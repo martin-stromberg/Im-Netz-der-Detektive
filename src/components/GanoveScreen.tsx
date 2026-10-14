@@ -44,7 +44,8 @@ import { MapGraph } from "./MapGraph";
 import { HeatBadge } from "./HeatBadge";
 import { MissionPanel, currentMissionTarget } from "./MissionPanel";
 import { PursuitBadge } from "./PursuitBadge";
-import { pursuitStatus } from "../logic/Pursuit";
+import { EventBanner, type Banner, type BannerTone } from "./EventBanner";
+import { pursuitStatus, type PursuitLevel } from "../logic/Pursuit";
 import { nextSeed, readParams, resolveMissionOption } from "./gameSetup";
 import styles from "./GanoveScreen.module.css";
 
@@ -61,6 +62,11 @@ export interface GanoveScreenProps {
   onExit?: () => void;
   /** `false` disables the automatic AI detective phase (test hook). */
   autoDetectives?: boolean;
+  /**
+   * Milliseconds between single detective moves — the visible beat the
+   * hunt plays in. `0` drains the phase synchronously (tests).
+   */
+  detectiveStepDelay?: number;
 }
 
 interface PendingSetup {
@@ -243,6 +249,7 @@ export function GanoveScreen({
   startImmediately = false,
   onExit,
   autoDetectives = true,
+  detectiveStepDelay = 650,
 }: GanoveScreenProps) {
   const map = useGameStore((s) => s.map);
   const round = useGameStore((s) => s.round);
@@ -260,7 +267,132 @@ export function GanoveScreen({
   const [setup, setSetup] = useState<PendingSetup | null>(null);
   const [abortConfirm, setAbortConfirm] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [banners, setBanners] = useState<readonly Banner[]>([]);
+  const [flashEdges, setFlashEdges] = useState<readonly string[]>([]);
   const autoStarted = useRef(false);
+
+  // Transient staging layer: banner texts auto-expire, edge flashes the
+  // same. Timers are tracked for unmount cleanup.
+  const bannerSeq = useRef(0);
+  const bannerTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(
+    () => () => {
+      for (const timer of bannerTimers.current) {
+        clearTimeout(timer);
+      }
+    },
+    [],
+  );
+  const pushBanner = (text: string, tone: BannerTone) => {
+    const id = ++bannerSeq.current;
+    setBanners((prev) => [...prev, { id, text, tone }].slice(-3));
+    bannerTimers.current.push(
+      setTimeout(() => setBanners((prev) => prev.filter((b) => b.id !== id)), 3600),
+    );
+  };
+  const flashEdge = (a: string, b: string) => {
+    const key = `${a}|${b}`;
+    setFlashEdges((prev) => (prev.includes(key) ? prev : [...prev, key]));
+    bannerTimers.current.push(
+      setTimeout(() => setFlashEdges((prev) => prev.filter((k) => k !== key)), 3400),
+    );
+  };
+
+  // Staging diffs — every store slice change is scanned once; refs hold
+  // the baselines so resumed/replayed games don't replay old banners.
+  const staged = useRef<{
+    events: number;
+    stage: string | null;
+    appliedEffect: string | null;
+    pendingChoice: boolean;
+    pursuit: number;
+  } | null>(null);
+
+  // Runs after every render — diffs the store snapshots into banners.
+  // The first pass only baselines, so a resumed game never replays.
+  useEffect(() => {
+    const state = useGameStore.getState();
+    const nodeLabel = (nodeId: string): string =>
+      state.map?.nodes.find((node) => node.id === nodeId)?.name ?? nodeId;
+    const pursuitIdx = (level: PursuitLevel | null): number =>
+      level === null ? -1 : ["ruhig", "spuerbar", "nah", "unmittelbar"].indexOf(level);
+    const pursuit =
+      state.map !== null && state.ganovePosition !== null && state.outcome === null
+        ? pursuitStatus(
+            state.map,
+            state.blockedEdges,
+            state.round,
+            state.ganovePosition,
+            state.detektivePositions,
+          )
+        : null;
+    const snap = {
+      events: state.events.length,
+      stage: state.mission?.stage ?? null,
+      appliedEffect: state.mission?.appliedEffect ?? null,
+      pendingChoice: state.mission?.pendingChoice != null,
+      pursuit: pursuitIdx(pursuit?.level ?? null),
+    };
+    if (staged.current === null) {
+      staged.current = snap;
+      return;
+    }
+    const prev = staged.current;
+
+    // New ganove-visible world events: blocked-edge flash + banner.
+    for (const event of state.events.slice(prev.events)) {
+      if (event.kind === "umwelt" && event.edge !== undefined) {
+        pushBanner(
+          t("banner.umwelt", {
+            a: nodeLabel(event.edge.a),
+            b: nodeLabel(event.edge.b),
+            until: event.untilRound ?? "?",
+          }),
+          "info",
+        );
+        flashEdge(event.edge.a, event.edge.b);
+      } else if (event.kind === "polizeifunk") {
+        pushBanner(t("banner.radio"), "info");
+      }
+    }
+
+    // Mission-stage transitions carry their own announcements; the
+    // sabotage *execution* itself is covered by appliedEffect below.
+    if (prev.stage !== snap.stage) {
+      if (snap.stage === "wahl") {
+        pushBanner(t("banner.offer"), "warn");
+      } else if (snap.stage === "flucht") {
+        pushBanner(t("banner.escape"), "warn");
+      } else if (snap.stage === "kontakt") {
+        pushBanner(t("banner.action"), "good");
+      }
+    }
+    if (prev.appliedEffect === null && snap.appliedEffect !== null) {
+      pushBanner(
+        t("banner.sabotage", {
+          effect: t(`effect.${snap.appliedEffect}` as TranslationKey),
+        }),
+        "good",
+      );
+    }
+
+    // Pursuit escalation alarms — re-arms after the squad fell back.
+    if (
+      pursuit !== null &&
+      snap.pursuit > prev.pursuit &&
+      ["nah", "unmittelbar"].includes(pursuit.level)
+    ) {
+      pushBanner(
+        t("banner.pursuit", {
+          detective: `D${pursuit.nearestIndex + 1}`,
+          distance: pursuit.distance,
+        }),
+        "alarm",
+      );
+    }
+
+    staged.current = snap;
+  });
 
   // UI triggers, the engine rules: the store subscription drives the
   // whole detective phase deterministically after each ganove turn.
@@ -268,8 +400,8 @@ export function GanoveScreen({
     if (!autoDetectives) {
       return;
     }
-    return installDetectiveDriver();
-  }, [autoDetectives]);
+    return installDetectiveDriver(detectiveStepDelay);
+  }, [autoDetectives, detectiveStepDelay]);
 
   // Sound dramaturgy (ganove-only tension channel): heat-level rises
   // trigger staged signals, a running game arms the quiet police
@@ -442,11 +574,12 @@ export function GanoveScreen({
         </div>
       </header>
       <div className={styles.layout}>
-        <div className={styles.mapArea}>
+        <div className={styles.mapArea} data-pursuit={pursuit?.level ?? undefined}>
           <MapGraph
             map={runningMap}
             round={round}
             blockedEdges={blockedEdges}
+            flashEdges={flashEdges}
             detectivePositions={detektivePositions}
             ganovePosition={ganovePosition}
             legalTargets={pendingChoice === null && outcome === null ? legalMoves : []}
@@ -457,6 +590,16 @@ export function GanoveScreen({
             escapeNodeIds={escapeNodeIds}
             onNodeSelect={(nodeId) => runGuarded(() => useGameStore.getState().moveGanove(nodeId))}
           />
+          <EventBanner banners={banners} />
+          {outcome !== null ? (
+            <div
+              className={`${styles.splash} ${styles[`splash_${outcome}`]}`}
+              data-testid="outcome-splash"
+              aria-hidden="true"
+            >
+              {t(OUTCOME_KEY[outcome])}
+            </div>
+          ) : null}
           <MapLegend />
         </div>
         <aside className={styles.sidebar}>

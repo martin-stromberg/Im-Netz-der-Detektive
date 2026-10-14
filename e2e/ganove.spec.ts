@@ -82,6 +82,25 @@ async function snapshot(page: Page): Promise<Snapshot> {
   });
 }
 
+/**
+ * Waits until the stepped detective phase hands back to the ganove (or
+ * the game ended). The driver paces one detective per beat, so the
+ * phase needs real time — polling the store snapshot beats fixed waits.
+ */
+async function waitForGanoveTurn(page: Page): Promise<Snapshot> {
+  let latest: Snapshot | undefined;
+  await expect
+    .poll(
+      async () => {
+        latest = await snapshot(page);
+        return latest.outcome !== null || latest.phase === "ganove";
+      },
+      { timeout: 15_000, intervals: [200] },
+    )
+    .toBe(true);
+  return latest as Snapshot;
+}
+
 function openAdjacency(state: Snapshot): Map<string, string[]> {
   const blocked = (a: string, b: string) =>
     state.blockedEdges.some(
@@ -194,7 +213,7 @@ test.describe("ganove perspective", () => {
 
     await page.locator(`[data-node-id="${target}"]`).click();
 
-    const after = await snapshot(page);
+    const after = await waitForGanoveTurn(page);
     expect(after.phase).toBe("ganove");
     expect(after.round).toBe(before.round + 1);
     expect(after.ganovePosition).toBe(target);
@@ -217,9 +236,16 @@ test.describe("ganove perspective", () => {
     let sawChoice = false;
     let actionsTaken = 0;
     for (;;) {
-      const state = await snapshot(page);
+      let state = await snapshot(page);
       if (state.outcome !== null || steps > 200) {
         break;
+      }
+      // The squad is still moving — wait for the handover.
+      if (state.phase === "detektive") {
+        state = await waitForGanoveTurn(page);
+        if (state.outcome !== null) {
+          break;
+        }
       }
       steps += 1;
       if (state.pendingChoice !== null) {
@@ -271,9 +297,16 @@ test.describe("ganove perspective", () => {
 
     let steps = 0;
     for (;;) {
-      const state = await snapshot(page);
+      let state = await snapshot(page);
       if (state.outcome !== null || steps > 200) {
         break;
+      }
+      // The squad is still moving — wait for the handover.
+      if (state.phase === "detektive") {
+        state = await waitForGanoveTurn(page);
+        if (state.outcome !== null) {
+          break;
+        }
       }
       steps += 1;
       if (state.pendingChoice !== null) {
@@ -307,6 +340,8 @@ test.describe("ganove perspective", () => {
     await page.getByTestId("abort-button").click();
     await page.getByTestId("abort-yes").click();
     await expect(page.getByTestId("outcome-panel")).toHaveAttribute("data-outcome", "draw");
-    await expect(page.getByText("Remis — die Partie wurde beendet.")).toBeVisible();
+    await expect(
+      page.getByTestId("outcome-panel").getByText("Remis — die Partie wurde beendet."),
+    ).toBeVisible();
   });
 });

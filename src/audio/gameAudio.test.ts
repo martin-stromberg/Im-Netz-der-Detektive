@@ -12,6 +12,7 @@ function fakeEngine() {
     supported: true,
     unlock: vi.fn(),
     playHeatRise: vi.fn(),
+    playEventCue: vi.fn(),
     setAmbient: vi.fn(),
     setVolume: vi.fn(),
     setMuted: vi.fn(),
