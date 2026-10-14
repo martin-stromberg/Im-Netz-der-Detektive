@@ -17,6 +17,10 @@ Perspektiven gemeinsam), dann den **Ganove-Modus** und danach den
 - **Partie fortsetzen** öffnet die Liste der gespeicherten
   Spielstände (siehe „Speichern & Fortsetzen"); ohne Spielstand ist
   die Schaltfläche deaktiviert und erklärt das im Hinweistext.
+- **Einstellungen** öffnet die Anwendungs-Einstellungen: **Sprache**
+  (Deutsch/English — wechselt sofort jeden Text des Spiels),
+  **Lautstärke** (Schieberegler 0–100) und **Stummschalten** für die
+  Sound-Dramaturgie. Beide Werte bleiben gespeichert.
 - **Statistiken & Replays** zeigt die Gesamtwertung über die
   aufgezeichneten Partien (Siegquoten, Ø Runden, Ø Hinweise, Ø
   Kameratreffer — gesamt und je gespieltem Modus) und darunter die
@@ -59,6 +63,14 @@ Werte werden beim Weitergehen namentlich beanstandet.
 Danach geht es in den gewählten Modus — die Aufstellung folgt den
 Kartenregeln: Detektive zuerst, Ganove zuletzt; bei „Zufall" wird
 automatisch aufgestellt.
+
+### Tastaturbedienung (alle Bildschirme)
+
+Der komplette Fluss ist ohne Maus spielbar: **Tab** wandert durch die
+Schaltflächen und interaktiven Orte, **Eingabetaste/Leertaste** löst
+aus. Auf der Stadtkarte bewegen die **Pfeiltasten** den Fokus
+geometrisch zum nächsten wählbaren Ort — eine Legende auf der Karte
+weist darauf hin.
 
 ---
 

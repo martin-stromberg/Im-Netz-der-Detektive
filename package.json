@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "sim": "vite build --config vite.sim.config.ts && node dist-sim/sim.mjs",
     "coverage": "vitest run --coverage",
+    "check:strings": "python .githooks/no-hardcoded-strings-check.py --all",
     "release": "semantic-release",
     "test:e2e": "playwright test"
   },

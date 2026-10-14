@@ -162,6 +162,9 @@ export function DetectiveMapLegend({ map }: { map: MapPack }) {
       <span className={shared.legendItem} data-testid="legend-zones">
         {t("legend.zone")}: {zones.join(" · ")}
       </span>
+      <span className={shared.legendItem} data-testid="legend-keyboard">
+        {t("legend.keyboard")}
+      </span>
     </div>
   );
 }
@@ -178,7 +181,11 @@ function IdleView({ notice, onStart }: { notice: string | null; onStart: () => v
         <button type="button" className={shared.primaryButton} onClick={onStart}>
           {t("game.new")}
         </button>
-        {notice !== null ? <p className={shared.notice}>{notice}</p> : null}
+        {notice !== null ? (
+          <p className={shared.notice} role="alert">
+            {notice}
+          </p>
+        ) : null}
       </section>
     </div>
   );
@@ -211,7 +218,11 @@ function PickSpawnsView({
         onNodeSelect={onPick}
       />
       <DetectiveMapLegend map={setup.map} />
-      {notice !== null ? <p className={shared.notice}>{notice}</p> : null}
+      {notice !== null ? (
+        <p className={shared.notice} role="alert">
+          {notice}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -228,7 +239,12 @@ function OutcomeView({
   onExit?: () => void;
 }) {
   return (
-    <section className={shared.panel} data-testid="outcome-panel" data-outcome={outcome}>
+    <section
+      className={shared.panel}
+      data-testid="outcome-panel"
+      data-outcome={outcome}
+      role="status"
+    >
       <h2 className={shared.panelHeading}>{t("outcome.title")}</h2>
       <p className={shared.outcomeText}>{t(OUTCOME_KEY[outcome])}</p>
       <p className={shared.hint}>{t("game.round", { round })}</p>
@@ -480,7 +496,7 @@ export function DetektivScreen({
               ? t("game.roundLimit", { round, limit: roundLimit })
               : t("game.round", { round })}
           </span>
-          <span className={shared.phase} data-testid="phase-indicator">
+          <span className={shared.phase} data-testid="phase-indicator" aria-live="polite">
             {phase === "detektive"
               ? t("detektiv.phase.active", { index: activeDetectiveIndex + 1 })
               : t("detektiv.phase.ganove")}
@@ -684,7 +700,11 @@ export function DetektivScreen({
               </button>
             )
           ) : null}
-          {notice !== null ? <p className={shared.notice}>{notice}</p> : null}
+          {notice !== null ? (
+            <p className={shared.notice} role="alert">
+              {notice}
+            </p>
+          ) : null}
         </aside>
       </div>
     </div>

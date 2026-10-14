@@ -8,6 +8,23 @@ als Detektivtrupp). Die Auswahl erfolgt über das Hauptmenü — Karte,
 Modus, Einstellungen und Mission werden vor der Partie gewählt
 (Schritt 11); `?mode=` bleibt als Entwickler-Einstieg erhalten.
 
+**Sprache & Audio (Anwendungs-Einstellungen, Schritt 13):** Über
+„Einstellungen" im Hauptmenü wechselst du die Sprache des gesamten
+Spiels zwischen Deutsch und English — sofort, ohne Neustart, und
+gespeichert. Dort stellst du auch Lautstärke und Stummschaltung der
+prozeduralen Geräuschkulisse ein: ein gestuftes Signal je
+Hitze-Stufen-Anstieg und eine dezente Polizeiaktivitäts-Kulisse in
+der Ganoven-Perspektive (erst nach der ersten Eingabe aktiv).
+
+**Barrierefreiheit:** Farbe ist nirgends die einzige Information —
+Kantentypen tragen Strichmuster, Sperrungen ein Sperr-Glyph,
+Missionsarten verschiedene Formen, Kameras eine Durchstreichung,
+die Hitze-Stufe Symbolbalken plus Klartext, und alle Status-Texte
+erfüllen WCAG-AA-Kontraste. Alles ist per Tastatur steuerbar: Tab +
+Eingabe überall, Pfeiltasten zum geometrischen Wandern zwischen den
+wählbaren Orten auf der Karte; Hinweise und Phasen werden über
+`role="alert"`/`aria-live` auch für Screenreader angesagt.
+
 # Ganove-Modus — Beschreibung
 
 ## Zweck

@@ -15,6 +15,25 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
+**i18n final, Barrierefreiheit und Audio-Dramaturgie**
+(Entwicklungsschritt 13): Das komplette Spiel läuft über einen
+Einstellungs-Screen im Hauptmenü wahlweise auf **Deutsch oder
+English** — der Wechsel wirkt sofort auf jedem Bildschirm und bleibt
+gespeichert; Fall-Storys und Karten-Taglines kommen über
+Referenzschlüssel aus den Sprachkatalogen, und ein neuer
+pre-commit/pre-push-Check blockiert hartkodierte sichtbare Strings
+in Komponenten (`npm run check:strings`). **Barrierefreiheit:** Farbe
+ist nirgends alleinige Information (Muster, Formen, Glyphen und
+Klartext durchgehend), alle Status-/Phasenwechsel landen über
+`role="alert"`/`aria-live` beim Screenreader, die gemessenen
+Kontraste erfüllen WCAG AA, und der Kernfluss ist vollständig per
+Tastatur spielbar — inklusive Pfeiltasten-Roaming zwischen den
+wählbaren Orten der Karte. **Audio:** eine komplett prozedurale
+WebAudio-Dramaturgie ohne Audiodateien — gestuftes Signal je
+Hitze-Stufen-Anstieg und eine dezente Polizeiaktivitäts-Kulisse in
+der Ganoven-Perspektive, regelbar über Lautstärke + Stummschalter,
+autoplay-konform erst nach der ersten Eingabe aktiv.
+
 **Persistenz, Replay und Statistiken** (Entwicklungsschritt 12):
 Laufende Partien lassen sich in beiden Modi über „Partie speichern"
 als versionierter Snapshot ablegen (bis zu 10 Stände, Upsert pro

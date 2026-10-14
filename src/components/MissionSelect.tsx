@@ -6,7 +6,7 @@
  * mission at all. Maps without a bundled set simply don't offer cases.
  */
 import { useState } from "react";
-import { t, type TranslationKey } from "../i18n";
+import { resolveText, t, type TranslationKey } from "../i18n";
 import { hasMissionSet, loadMissionSet } from "../logic/MissionLoader";
 import {
   nodesByCategory,
@@ -205,8 +205,8 @@ export function MissionSelect({ map, onBack, onSelect }: MissionSelectProps) {
                 data-testid={`case-${entry.id}`}
                 onClick={() => onSelect({ type: "case", id: entry.id })}
               >
-                <span className={styles.cardTitle}>{entry.name}</span>
-                <span className={styles.story}>{entry.story}</span>
+                <span className={styles.cardTitle}>{resolveText(entry.nameKey, entry.name)}</span>
+                <span className={styles.story}>{resolveText(entry.storyKey, entry.story)}</span>
               </button>
             ))}
           </div>

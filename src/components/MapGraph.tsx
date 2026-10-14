@@ -10,7 +10,10 @@
  * or hint/event data, so a ganove-side usage cannot leak them. Node
  * interactivity (legal move targets or spawn choices) is expressed via
  * `legalTargets`/`selectableNodeIds` and fired through `onNodeSelect`;
- * selectable nodes are keyboard-operable (`role="button"`, Tab/Enter).
+ * selectable nodes are keyboard-operable (`role="button"`, Tab/Enter)
+ * and additionally roamable with the arrow keys — the focus wanders to
+ * the geometrically nearest interactive node in the pressed direction
+ * (spec `02-technisches-konzept.md` section 11: full keyboard play).
  */
 import type { KeyboardEvent } from "react";
 import type { Camera } from "../logic/InformationSystem";
@@ -58,8 +61,55 @@ export interface MapGraphProps {
 const NODE_RADIUS = 8;
 const MISSION_KINDS: readonly MissionKind[] = ["diebstahl", "kontakt", "sabotage", "flucht"];
 
+/** Arrow-key directions in SVG coordinates (y grows downward). */
+const ARROW_DIRS: Record<string, readonly [number, number]> = {
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+};
+
 function nodeById(map: MapPack, id: string): MapNode | undefined {
   return map.nodes.find((node) => node.id === id);
+}
+
+/**
+ * Geometric arrow-key navigation between interactive nodes: the best
+ * candidate has a positive projection on the pressed direction; ties
+ * prefer alignment over distance (perpendicular offset weighs 4×).
+ * Returns `null` when nothing lies in that direction.
+ */
+function nextInteractiveNode(
+  map: MapPack,
+  fromId: string,
+  key: string,
+  interactiveIds: ReadonlySet<string>,
+): string | null {
+  const dir = ARROW_DIRS[key];
+  const from = nodeById(map, fromId);
+  if (dir === undefined || from === undefined) {
+    return null;
+  }
+  let best: string | null = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+  for (const candidate of map.nodes) {
+    if (candidate.id === fromId || !interactiveIds.has(candidate.id)) {
+      continue;
+    }
+    const dx = candidate.x - from.x;
+    const dy = candidate.y - from.y;
+    const projection = dx * dir[0] + dy * dir[1];
+    if (projection <= 0) {
+      continue;
+    }
+    const perpendicular = Math.abs(dx * dir[1] - dy * dir[0]);
+    const score = projection + 4 * perpendicular;
+    if (score < bestScore) {
+      bestScore = score;
+      best = candidate.id;
+    }
+  }
+  return best;
 }
 
 /** Shape-coded mission-target badge offsets around the node. */
@@ -125,10 +175,23 @@ export function MapGraph({
     }
   };
 
+  const interactiveIds = new Set<string>([...legalTargetIds, ...selectableIds, ...markableIds]);
+  // Focus registry for the arrow-key roaming — filled by ref callbacks
+  // on the interactive node groups below.
+  const nodeRefs = new Map<string, SVGGElement>();
+
   const onNodeKeyDown = (event: KeyboardEvent, nodeId: string) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       selectNode(nodeId);
+      return;
+    }
+    if (event.key in ARROW_DIRS) {
+      event.preventDefault();
+      const next = nextInteractiveNode(map, nodeId, event.key, interactiveIds);
+      if (next !== null) {
+        nodeRefs.get(next)?.focus();
+      }
     }
   };
 
@@ -208,6 +271,17 @@ export function MapGraph({
               role={interactive ? "button" : undefined}
               tabIndex={interactive ? 0 : undefined}
               aria-label={interactive ? ariaLabel : undefined}
+              ref={
+                interactive
+                  ? (element) => {
+                      if (element !== null) {
+                        nodeRefs.set(node.id, element);
+                      } else {
+                        nodeRefs.delete(node.id);
+                      }
+                    }
+                  : undefined
+              }
               onClick={interactive ? () => selectNode(node.id) : undefined}
               onKeyDown={interactive ? (event) => onNodeKeyDown(event, node.id) : undefined}
             >

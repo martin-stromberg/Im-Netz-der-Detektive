@@ -1,4 +1,30 @@
-/* Dark detective-noir theme: deep blues/graphite with amber accents. */
+/* Dark detective-noir theme: deep blues/graphite with amber accents.
+ *
+ * Colour-blind safety (spec `02-technisches-konzept.md` section 11):
+ * colour is never the only cue — every status/type distinction also
+ * carries shape, icon, label or pattern (edge types by stroke pattern,
+ * blocked edges by a crossed glyph, mission kinds by badge shape,
+ * cameras by strikethrough, heat level by icon bars + text, step
+ * status by marker + text). Measured WCAG contrast ratios of the text
+ * palette (WCAG AA needs ≥ 4.5:1 for normal text):
+ *
+ *   #eaf0f8 on #0c0f16 → 16.7:1   main text on screen background
+ *   #eaf0f8 on #161b26 → 15.0:1   main text on panel
+ *   #c8d0dc on #161b26 → 11.1:1   secondary text on panel
+ *   #8a94a6 on #0c0f16 →  6.3:1   hint/subtitle on screen background
+ *   #8a94a6 on #161b26 →  5.6:1   hint on panel
+ *   #9db8d9 on #161b26 →  8.4:1   card text / phase on panel
+ *   #e8b45a on #0c0f16 → 10.1:1   amber title/headings on screen
+ *   #e8b45a on #161b26 →  9.1:1   amber headings on panel
+ *   #0c0f16 on #e8b45a → 10.1:1   primary button label
+ *   #eaf0f8 on #1d2534 → 13.4:1   secondary button label
+ *   #f0c8c8 on #4a2326 →  8.9:1   danger button label
+ *   #e88a7a on #161b26 →  6.9:1   error list on panel
+ *   #d98c8c on #161b26 →  6.6:1   notice accent on panel
+ *   #f0c8c8 on #1d2534 → 10.1:1   notice text on its background
+ *   #7fd4a8 on #161b26 →  9.8:1   success/heat "ruhig" on panel
+ *   #f5d76e on #161b26 → 12.2:1   current status / focus accents
+ */
 .screen {
   min-height: 100vh;
   background: #0c0f16;

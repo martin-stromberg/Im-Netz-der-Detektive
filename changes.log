@@ -1,5 +1,42 @@
 # Änderungsprotokoll
 
+## 2026-10-14 — i18n final, Barrierefreiheit und Audio-Dramaturgie (Schritt 13)
+
+- Laufzeit-Sprachumschaltung: `src/state/uiPrefs.ts` hält die
+  persistierten Anwendungseinstellungen (`indd.ui-prefs` in
+  localStorage, `StorageLike`-Boundary); `src/i18n/index.ts` wählt
+  den Katalog jetzt anhand `useUiPrefs` (`t(key, params, lang?)`,
+  `getLanguage`, `hasTranslation`, `resolveText` für
+  Daten-Referenzschlüssel mit Literal-Fallback); `App` abonniert die
+  Sprache und setzt `<html lang>`. Neuer `AppSettingsScreen` im
+  Hauptmenü (Sprach-Toggle DE/EN, Lautstärke-Regler, Stummschalter).
+- i18n-Referenzschlüssel in Datenpaketen: `MissionCase` erhält
+  `nameKey`/`storyKey`, `MapPack` `taglineKey` — vom Validator als
+  optionale nicht-leere Strings geprüft, vom UI via `resolveText`
+  aufgelöst; Münster-Set und beide Karten nutzen sie.
+- Neuer Hook-Check `no-hardcoded-strings-check.py`
+  (`npm run check:strings`, in `pre-commit`/`pre-push`): blockiert
+  sichtbare String-Literale in `.tsx` (JSX-Textkinder,
+  `{"…"}`-Kinder, `aria-label`/`aria-description`/`placeholder`/`alt`/
+  `title`-Attribute); `i18n-allow` als auditiertes Escape.
+- Barrierefreiheit: Pfeiltasten-Roaming zwischen interaktiven Knoten
+  in `MapGraph` (geometrisch, `nextInteractiveNode`); `role="alert"`
+  auf Hinweis-/Fehlerausgaben, `aria-live="polite"` auf dem
+  Phasenindikator, `role="status"` auf Endbildschirmen;
+  Tastatur-Hinweis in beiden Kartenlegenden; Kontrastfix
+  `status_erledigt` (3,2:1 → 5,6:1) + Fokus-Outline auf `.card`;
+  Palette und gemessene WCAG-AA-Kontraste im CSS-Header dokumentiert.
+- Prozedurales Audio (`src/audio/`): `AudioEngine.ts` synthetisiert
+  gestufte Heat-Signale (1/2/3 Töne je erreichtem Stufen-Anstieg)
+  und eine dezente Polizeiaktivitäts-Kulisse (gefiltertes Rauschen +
+  Funk-Blips via `createRng`); `gameAudio.ts` koppelt Engine an
+  Store (Heat-Anstieg → Signal, laufende Partie → Ambient,
+  Volume/Mute live aus `useUiPrefs`) und an den Autoplay-Unlock beim
+  ersten Nutzer-Gesture; `supported`-Gate hält jsdom still.
+- 37 neue Unit-/Komponententests (579 gesamt) und 3 neue E2E-Tests
+  (29 gesamt): Sprachwechsel-Pfad, Audio-Persistenz,
+  Tastatur-Kernflow.
+
 ## 2026-10-14 — Persistenz, Replay-Player und Statistiken (Schritt 12)
 
 - Speicherbare Partien („Partie speichern" in beiden Spielmodi):

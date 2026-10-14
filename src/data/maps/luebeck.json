@@ -2,6 +2,7 @@
   "id": "luebeck",
   "name": "Lübeck",
   "tagline": "Flucht über die Brücken der Altstadtinsel",
+  "taglineKey": "map.tagline.luebeck",
   "viewBox": "0 0 800 600",
   "nodes": [
     { "id": "hbf", "name": "Lübeck Hauptbahnhof", "x": 40, "y": 230, "categories": ["flucht", "kontakt"], "zone": "westend" },

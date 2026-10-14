@@ -2,6 +2,7 @@
   "id": "muenster",
   "name": "Münster",
   "tagline": "Jagd durch die Fahrradstadt",
+  "taglineKey": "map.tagline.muenster",
   "viewBox": "0 0 1000 800",
   "nodes": [
     {
