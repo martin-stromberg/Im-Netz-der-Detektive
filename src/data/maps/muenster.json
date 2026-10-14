@@ -1125,17 +1125,17 @@
   },
   "settings": {
     "detectiveCount": {
-      "suggested": 4,
+      "suggested": 3,
       "min": 2,
       "max": 6
     },
     "cameraCount": {
-      "suggested": 8,
+      "suggested": 4,
       "min": 0,
       "max": 15
     },
     "roundLimit": {
-      "suggested": 30,
+      "suggested": 40,
       "min": 15,
       "unlimited": true
     },
@@ -1150,25 +1150,25 @@
       "max": 6
     },
     "cameraMinGap": 2,
-    "hintZoneRadius": 2,
+    "hintZoneRadius": 3,
     "eventMode": "tension",
     "eventDefaults": {
-      "cycle": 4,
+      "cycle": 5,
       "chance": 0.25,
-      "threshold": 40,
+      "threshold": 50,
       "perRound": 10
     },
     "eventMix": {
-      "sichtbarkeit": 0.25,
-      "hinweis": 0.45,
-      "umwelt": 0.3
+      "sichtbarkeit": 0.15,
+      "hinweis": 0.4,
+      "umwelt": 0.45
     },
     "missionRules": {
-      "minGap": 3,
-      "maxGap": 8,
+      "minGap": 2,
+      "maxGap": 5,
       "routeBudget": 18,
       "routeBudgetSabotage": 22,
-      "sabotageDetour": 4
+      "sabotageDetour": 8
     },
     "sabotageEffects": [
       "kamera_aus",

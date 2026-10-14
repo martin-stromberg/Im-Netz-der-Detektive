@@ -61,7 +61,8 @@ test.describe("menu flow", () => {
     // Spawn flow: detectives are already placed, the ganove picks last.
     const screen = page.getByTestId("ganove-screen");
     await expect(screen).toHaveAttribute("data-view", "pickSpawn");
-    await expect(page.locator("[data-detective]")).toHaveCount(4);
+    // Muenster suggests 3 detectives since the step-14 balancing.
+    await expect(page.locator("[data-detective]")).toHaveCount(3);
     const choices = page.locator("[data-selectable='true']");
     expect(await choices.count()).toBeGreaterThan(0);
     await choices.first().click();
@@ -81,8 +82,8 @@ test.describe("menu flow", () => {
     await firstCase.click();
     const screen = page.getByTestId("detektiv-screen");
     await expect(screen).toHaveAttribute("data-view", "pickSpawns");
-    // Muenster suggests 4 detectives — each pick is interactive.
-    for (let i = 0; i < 4; i += 1) {
+    // Muenster suggests 3 detectives since step 14 — each pick is interactive.
+    for (let i = 0; i < 3; i += 1) {
       await pickFirstSelectable(page);
     }
     await expect(screen).toHaveAttribute("data-view", "playing");

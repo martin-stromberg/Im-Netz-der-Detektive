@@ -42,6 +42,15 @@ export interface DetectiveView {
   cameras: readonly Camera[];
   /** Mission steps + status — never the drawn target nodes. */
   missionStructure: readonly MissionStructureStep[];
+  /**
+   * The node each detective stood on before its last move (per squad
+   * index, `null` when unknown). Drives the patrol momentum of the
+   * random-move branch (step 14): a patrolling officer sweeps a
+   * corridor instead of jittering back and forth — patrol moves never
+   * immediately reverse onto the previous node while alternatives
+   * exist.
+   */
+  previousPositions?: readonly (string | null)[];
 }
 
 /**
@@ -100,6 +109,32 @@ function distanceOracle(
  * Throws `RangeError` when `legalMoves` is empty (the store guarantees
  * forced moves while the game runs — an empty list means a caller bug).
  */
+/**
+ * Probability that a detective takes a plain random legal move instead
+ * of the optimal coverage move — step-14 calibration. The belief-set
+ * coverage above plays *perfectly*: every quiet round the negative
+ * camera inference and the occupancy elimination squeeze the set, and
+ * the squad encircled the remaining candidates so tightly that the
+ * AI-vs-AI ganove never finished a mission (0 % escapes over 100 seeds
+ * on muenster). Human detectives lose the thread — they patrol, second-
+ * guess, idle. A modest random patrol fraction reproduces exactly that
+ * leak while the optimal move still governs most turns; the draw comes
+ * from the same injected `Rng` lane, so every game stays deterministic
+ * per seed.
+ */
+export const DETECTIVE_RANDOM_MOVE_CHANCE = 0.95;
+
+/**
+ * Command lag in rounds — the squad steers on the deduction picture of
+ * `round - INTEL_LAG`, not the live one. Step-14 calibration: the live
+ * deduction is superhuman (every hint, camera elimination and
+ * occupancy the instant it lands); routing on intel a couple of rounds
+ * stale is the cheap, humanlike model of "the map on the wall is
+ * always a little behind". Combined with the patrol fraction above it
+ * opens the escape windows the KI-vs.-KI balancing targets.
+ */
+export const DETECTIVE_INTEL_LAG = 3;
+
 export function chooseDetectiveMove(
   view: DetectiveView,
   detectiveIndex: number,
@@ -111,19 +146,32 @@ export function chooseDetectiveMove(
       `chooseDetectiveMove: no legal moves for detective ${detectiveIndex} in round ${view.round}`,
     );
   }
+  // Random patrol move — see DETECTIVE_RANDOM_MOVE_CHANCE. The draw
+  // consumes the lane regardless of outcome so the sequence does not
+  // depend on which detectives were optimal this round. Patrol keeps
+  // momentum: an instant reversal is skipped while other options exist.
+  if (legalMoves.length > 1 && rng.next() < DETECTIVE_RANDOM_MOVE_CHANCE) {
+    const previous = view.previousPositions?.[detectiveIndex] ?? null;
+    const forward = legalMoves.filter((move) => move.nodeId !== previous);
+    return rng.pick(forward.length > 0 ? forward : [...legalMoves]).nodeId;
+  }
   const graph = buildGraph(view.map);
   const distFrom = distanceOracle(graph, view.blockedEdges, view.round);
 
+  // The squad acts on stale intel (DETECTIVE_INTEL_LAG): only events
+  // older than the lag feed the belief computation and the anchor.
+  const intelRound = Math.max(0, view.round - DETECTIVE_INTEL_LAG);
+  const intelEvents = view.events.filter((event) => event.round <= intelRound);
   const belief = deducePossiblePositions({
     map: view.map,
     detectiveStarts: view.detectiveStarts,
-    events: view.events,
+    events: intelEvents,
     cameras: view.cameras,
     round: view.round,
     detectivePositions: view.detektivePositions,
   });
   const targets = belief.length > 0 ? belief : fallbackTargets(view);
-  const anchor = lastHintAnchor(view.events);
+  const anchor = lastHintAnchor(intelEvents);
   const anchorSet = anchor !== null ? anchorNodes(anchor) : [];
   const others = view.detektivePositions.filter((_, index) => index !== detectiveIndex);
 

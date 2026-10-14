@@ -152,6 +152,7 @@
   "missionselect.title": "Mission wählen — {map}",
   "missionselect.subtitle": "Wähle den Auftrag für diese Partie.",
   "mission.case": "Fall (vorgegeben)",
+  "mission.caseArtAlt": "Illustration zum Fall im Detektiv-Noir-Stil",
   "mission.caseHint": "Eine Geschichte mit festen Zielen aus dem Missionsset.",
   "mission.random": "Zufalls-Mission",
   "mission.randomHint": "Ziele werden regelkonform gelost.",

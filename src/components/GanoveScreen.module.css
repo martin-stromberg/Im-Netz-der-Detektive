@@ -27,7 +27,14 @@
  */
 .screen {
   min-height: 100vh;
-  background: #0c0f16;
+  /* Step-14 polishing: the generated noir texture sits under a strong
+     dark gradient — atmosphere without hurting the documented
+     contrast ratios (≥92 % flat overlay keeps effective background
+     within the measured range). */
+  background:
+    linear-gradient(rgba(12, 15, 22, 0.93), rgba(12, 15, 22, 0.97)),
+    url("../assets/bg-noir.jpg") center / cover fixed no-repeat;
+  background-color: #0c0f16;
   color: #eaf0f8;
   padding: 16px 24px;
   box-sizing: border-box;

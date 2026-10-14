@@ -15,6 +15,19 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
+**Endabnahme & Polishing — ausbalanciert, vollständig illustriert, E2E in CI**
+(Entwicklungsschritt 14): Das Spiel ist nach KI-vs.-KI-Kalibrierung
+auf Münster **ausgewogen** (~48 % Ganoven-Siege über 400 Seeds, ~50 %
+Sabotage-Annahme; vorher 0 %) — über realistisch fehlerhafte
+Detektiv-KI (Patrouillen mit Momentum, verzögerte Lage) und eine
+fortschrittsorientierte Ganoven-KI; Details in
+`docs/help/spiel-engine/balancing-bericht.md`. **Alle Rasterassets
+sind lokal eingebettet**: Titelbild, Kartenkarten, neue Noir-
+Hintergrundtextur und Fall-Artworks für beide Münster-Fälle
+(`src/assets/ASSETS.md`). Die 29 Playwright-E2E-Szenarien laufen als
+best-effort-Job in beiden CI-Workflows mit Trace-Upload; alle
+Qualitätsgates (Unit + ≥70 % Coverage, Lint, Typecheck, E2E) grün.
+
 **i18n final, Barrierefreiheit und Audio-Dramaturgie**
 (Entwicklungsschritt 13): Das komplette Spiel läuft über einen
 Einstellungs-Screen im Hauptmenü wahlweise auf **Deutsch oder

@@ -14,6 +14,7 @@ import {
   type MissionTargets,
 } from "../logic/MissionSystem";
 import { buildGraph } from "../logic/Graph";
+import { CASE_ART } from "../assets/caseArt";
 import type { MapPack, NodeCategory } from "../logic/mapPack";
 import type { MissionOption } from "../state/gameStore";
 import { MapGraph } from "./MapGraph";
@@ -197,18 +198,29 @@ export function MissionSelect({ map, onBack, onSelect }: MissionSelectProps) {
         ) : null}
         {view === "cases" ? (
           <div className={styles.cardGrid} data-testid="case-list">
-            {cases.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                className={styles.card}
-                data-testid={`case-${entry.id}`}
-                onClick={() => onSelect({ type: "case", id: entry.id })}
-              >
-                <span className={styles.cardTitle}>{resolveText(entry.nameKey, entry.name)}</span>
-                <span className={styles.story}>{resolveText(entry.storyKey, entry.story)}</span>
-              </button>
-            ))}
+            {cases.map((entry) => {
+              const art = CASE_ART[`${map.id}/${entry.id}`];
+              return (
+                <button
+                  key={entry.id}
+                  type="button"
+                  className={styles.card}
+                  data-testid={`case-${entry.id}`}
+                  onClick={() => onSelect({ type: "case", id: entry.id })}
+                >
+                  {art !== undefined ? (
+                    <img
+                      className={styles.cardImage}
+                      src={art}
+                      alt={t("mission.caseArtAlt")}
+                      data-testid="case-art"
+                    />
+                  ) : null}
+                  <span className={styles.cardTitle}>{resolveText(entry.nameKey, entry.name)}</span>
+                  <span className={styles.story}>{resolveText(entry.storyKey, entry.story)}</span>
+                </button>
+              );
+            })}
           </div>
         ) : null}
         {view === "custom" ? (

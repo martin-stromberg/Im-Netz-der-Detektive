@@ -44,6 +44,7 @@ const USAGE = `Usage: npm run sim -- [options]
   --seeds <a-b|a,b,c>        Explizite Seed-Range/-Liste (überstimmt --games/--seed-start)
   --out <dir>                Verzeichnis für die JSONL-Eventlogs (default: keine Dateien)
   --detectives <n>           Detektiv-Anzahl (Map-Einstellung)
+  --cameras <n>              Kamera-Anzahl (Map-Einstellung)
   --round-limit <n|none>     Rundenlimit (Map-Einstellung; "none" = unbegrenzt)
   --mission <auto|random|none>  Missionsoption (default: auto)
   --help                     Diese Hilfe`;
@@ -87,6 +88,7 @@ export function parseSimArgs(argv: readonly string[]): SimCliOptions {
   let seeds: number[] | null = null;
   let outDir: string | null = null;
   let detectiveCount: number | undefined;
+  let cameraCount: number | undefined;
   let roundLimit: number | null | undefined;
   let mission: MissionOption | undefined;
 
@@ -121,6 +123,9 @@ export function parseSimArgs(argv: readonly string[]): SimCliOptions {
       case "--detectives":
         detectiveCount = parsePositiveInt("--detectives", next());
         break;
+      case "--cameras":
+        cameraCount = parsePositiveInt("--cameras", next());
+        break;
       case "--round-limit": {
         const value = next();
         roundLimit =
@@ -151,6 +156,7 @@ export function parseSimArgs(argv: readonly string[]): SimCliOptions {
     gameOptions: {
       startOptions: {
         ...(detectiveCount !== undefined ? { detectiveCount } : {}),
+        ...(cameraCount !== undefined ? { cameraCount } : {}),
         ...(roundLimit !== undefined ? { roundLimit } : {}),
         ...(mission !== undefined ? { mission } : {}),
       },

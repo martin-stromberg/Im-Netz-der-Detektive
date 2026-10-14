@@ -119,7 +119,8 @@ test.describe("save & resume", () => {
     await page.getByTestId("mission-random").click();
     const screen = page.getByTestId("detektiv-screen");
     await expect(screen).toHaveAttribute("data-view", "pickSpawns");
-    for (let i = 0; i < 4; i += 1) {
+    // Muenster suggests 3 detectives since the step-14 balancing.
+    for (let i = 0; i < 3; i += 1) {
       await page.locator("[data-selectable='true']").first().click();
     }
     await expect(screen).toHaveAttribute("data-view", "playing");

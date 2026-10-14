@@ -256,8 +256,9 @@ test.describe("ganove perspective", () => {
 
   test("a lost game shows a non-escape outcome", async ({ page }) => {
     test.setTimeout(180_000);
-    // Seed 4 is deterministic: the AI catches the clicker mid-mission.
-    await startGameViaUi(page, "map=muenster&seed=4&mission=random");
+    // Seed 9 is deterministic under the step-14 balancing: the AI
+    // catches the clicker mid-mission.
+    await startGameViaUi(page, "map=muenster&seed=9&mission=random");
 
     let steps = 0;
     for (;;) {
