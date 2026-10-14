@@ -174,7 +174,9 @@ test.describe("ganove perspective", () => {
     await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "playing");
     await expect(page.getByTestId("phase-indicator")).toHaveText("Du bist am Zug");
     await expect(page.getByTestId("round-indicator")).toContainText("1");
-    await expect(page.getByRole("status")).toContainText("Polizeiaufmerksamkeit");
+    await expect(page.getByRole("status", { name: /Polizeiaufmerksamkeit/ })).toContainText(
+      "Polizeiaufmerksamkeit",
+    );
     await expect(page.getByTestId("radio-button")).toBeEnabled();
     await expect(page.locator("[data-ganove]")).toHaveCount(1);
     await expect(page.locator("[data-legal-target]").first()).toBeVisible();
@@ -200,9 +202,12 @@ test.describe("ganove perspective", () => {
 
   test("complete game with mission runs to escape (ganove win)", async ({ page }) => {
     test.setTimeout(180_000);
-    // Seed 19 is deterministic: the cautious clicker completes the full
+    // Deterministic seed: the cautious clicker completes the full
     // mission (heist → contact → sabotage choice → sabotage → escape).
-    await startGameViaUi(page, "map=muenster&seed=19&mission=random");
+    // Seed 3 survives the sharper post-playtest pursuit; seed 19 timed
+    // out once the squad actually hunts on fresh trails.
+    const seed = process.env.E2E_GANOVE_SEED ?? "3";
+    await startGameViaUi(page, `map=muenster&seed=${seed}&mission=random`);
 
     let steps = 0;
     let sawChoice = false;

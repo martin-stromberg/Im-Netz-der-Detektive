@@ -54,6 +54,10 @@ anhand ihrer Hinweise einkreisen.
   direkter Flucht ist endgültig.
 - **Hitze-Indikator:** Das Badge „Polizeiaufmerksamkeit" zeigt mit
   Symbol und Text in vier Stufen, wie aktiv die Fahndung gerade ist.
+- **Verfolgungsdruck:** Das zweite Badge in der Statuszeile zeigt die
+  Entfernung des nächsten Detektivs (ruhig/spürbar/nah/unmittelbar,
+  jeweils mit Symbol und Text) — die Detektivpositionen siehst du ohne
+  hin, das Badge macht die Annäherung greifbar.
 - **Polizeifunk:** Einmalig pro Partie hörst du den Funk der Detektive
   ab und erfährst die letzten Hinweise.
 - **Ende:** Die Partie endet durch Festnahme, Umzingelung, deine

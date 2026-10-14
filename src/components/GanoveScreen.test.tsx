@@ -80,7 +80,9 @@ describe("GanoveScreen — playing", () => {
     const { container } = render(<GanoveScreen autoDetectives={false} />);
 
     expect(screen.getByTestId("phase-indicator").textContent).toBe(de["game.phase.ganove"]);
-    expect(screen.getByRole("status").textContent).toContain(de["heat.ruhig"]);
+    expect(screen.getByRole("status", { name: /Polizeiaufmerksamkeit/ }).textContent).toContain(
+      de["heat.ruhig"],
+    );
     expect(screen.getByTestId("radio-button")).toBeEnabled();
     expect(screen.getByText(de["mission.none"])).toBeInTheDocument();
     expect(container.querySelector("[data-ganove]")).not.toBeNull();
