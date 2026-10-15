@@ -27,6 +27,28 @@ describe("MapGraph", () => {
     expect(container.querySelectorAll('[data-edge-type="weg"]')).toHaveLength(map.edges.length - 1);
   });
 
+  it("draws every edge as a cased route: dark casing under the semantic core", () => {
+    const { container } = render(<MapGraph map={map} />);
+    const groups = container.querySelectorAll("[data-edge]");
+    expect(groups).toHaveLength(map.edges.length);
+    for (const group of groups) {
+      // Exactly two sibling strokes: the decorative casing painted
+      // first, then the core line that carries the data-* contract.
+      const lines = group.querySelectorAll(":scope > line");
+      expect(lines).toHaveLength(2);
+      const [casing, core] = [...lines];
+      expect(casing.className.baseVal).toContain("edgeCasing");
+      expect(casing.getAttribute("aria-hidden")).toBe("true");
+      expect(core.getAttribute("data-edge-type")).not.toBeNull();
+      expect((casing.compareDocumentPosition(core) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(
+        true,
+      );
+    }
+    // The fahrt edge f–g rides on the wider track-bed casing.
+    const fahrt = container.querySelector('[data-edge="f-g"]');
+    expect(fahrt?.querySelector(":scope > line")?.className.baseVal).toContain("edgeCasingFahrt");
+  });
+
   it("greys out blocked edges and marks them with a barrier glyph", () => {
     const { container } = render(
       <MapGraph map={map} round={2} blockedEdges={[{ a: "f", b: "g", untilRound: 3 }]} />,
@@ -34,6 +56,12 @@ describe("MapGraph", () => {
     const edge = container.querySelector('[data-edge="f-g"] [data-blocked="true"]');
     expect(edge).not.toBeNull();
     expect(container.querySelector('[data-block-glyph="f-g"]')).not.toBeNull();
+    // The blocked route keeps a recognisable pattern: muted casing,
+    // broken core — the cross glyph stays the shape cue.
+    const group = container.querySelector('[data-edge="f-g"]') as Element;
+    const casing = group.querySelector(":scope > line") as Element;
+    expect(casing.className.baseVal).toContain("edgeCasingBlocked");
+    expect((edge as Element).className.baseVal).toContain("edgeBlocked");
     // An expired block is not rendered as blocked.
     const expired = render(
       <MapGraph map={map} round={5} blockedEdges={[{ a: "f", b: "g", untilRound: 3 }]} />,
@@ -535,5 +563,44 @@ describe("Map legend swatches", () => {
     expect(rings).toHaveLength(1);
     expect(dots).toHaveLength(1);
     expect(inners).toHaveLength(1);
+  });
+
+  // Same shape = same meaning: the route swatches are miniatures of the
+  // board's cased-line anatomy — a dark casing line behind the bright
+  // core, identical in both legends.
+  const routeSwatches = (container: HTMLElement) => {
+    const legend = container.querySelector('[data-testid="map-legend"]') as HTMLElement;
+    const pairs: [string, string][] = [
+      ["legendWegCasing", "legendWeg"],
+      ["legendFahrtCasing", "legendFahrt"],
+    ];
+    return pairs.map(([casingClass, coreClass]) => ({
+      casing: legend.querySelector(`line[class*='${casingClass}']`),
+      core: legend.querySelector(`line[class*='${coreClass}']:not([class*='Casing'])`),
+    }));
+  };
+
+  it("the ganove legend mirrors the cased route anatomy", () => {
+    const { container } = render(<MapLegend />);
+    for (const { casing, core } of routeSwatches(container)) {
+      expect(casing).not.toBeNull();
+      expect(core).not.toBeNull();
+      expect(casing?.parentElement).toBe(core?.parentElement);
+      expect(
+        (casing!.compareDocumentPosition(core!) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+      ).toBe(true);
+    }
+  });
+
+  it("the detective legend mirrors the cased route anatomy", () => {
+    const { container } = render(<DetectiveMapLegend map={map} />);
+    for (const { casing, core } of routeSwatches(container)) {
+      expect(casing).not.toBeNull();
+      expect(core).not.toBeNull();
+      expect(casing?.parentElement).toBe(core?.parentElement);
+      expect(
+        (casing!.compareDocumentPosition(core!) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+      ).toBe(true);
+    }
   });
 });

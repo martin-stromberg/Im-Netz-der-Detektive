@@ -1,5 +1,33 @@
 # Änderungsprotokoll
 
+## 2026-10-15 — Routen: gezeichnete Kartenwege statt Drahtlinien (Brettspiel-Redesign Schritt 5)
+
+- Jede Kante in `MapGraph` (`<g data-edge>`) rendert jetzt zwei
+  übereinanderliegende `<line>` — die klassische
+  „cased line"-Kartentechnik: eine dekorative `edgeCasing`-Fassung
+  (`aria-hidden`, `stroke-linecap: round`) unter der semantischen
+  Kern-Linie, die weiterhin `data-edge-type`/`data-blocked` trägt.
+- `weg` liest als befestigte Straße (dunkle Sepia-Fassung
+  `--color-map-weg`, 4.6 px + heller Papierkern), `fahrt` als
+  kräftigere Trasse (breitere Fassung `--color-map-fahrt`, 6 px +
+  Papierkern als rechteckige Schwellen per `stroke-dasharray` mit
+  `linecap: butt`) — eigenes Muster statt bloß anderem Dasharray;
+  Typen unterscheiden sich über Muster + Form + Farbe.
+- Blockierte Kanten bleichen die Fassung (`edgeCasingBlocked`,
+  `--color-map-blocked`) und sprengen den Kern zu Unterbrechungen
+  (`edgeBlocked` nach `.edgeFahrt` deklariert); das rote
+  `data-block-glyph`-Kreuz bleibt die Form-Kodierung, `edgeFlash`
+  (Amber-Puls, `prefers-reduced-motion`-fest) unverändert.
+- Deterministisch und performant: kein `Math.random()`, kein
+  `feTurbulence`-Displacement; `pointer-events: none` unverändert.
+- `MapLegend`/`DetectiveMapLegend` spiegeln die Zweistrich-Anatomie
+  (`legendWegCasing`/`legendFahrtCasing` + Kern-Linien) — keine neuen
+  sichtbaren Strings.
+- Tests: drei neue Vitest-Fälle (Casing-Struktur, blockierte Fassung,
+  Legenden-Mirror beider Legenden) und ein E2E-Test in
+  `e2e/design.spec.ts` (Computed Styles, Schwellen-Muster,
+  Reduced-Motion-Regel für `edgeFlash`).
+
 ## 2026-10-15 — Spielfiguren: Meeple-Spielsteine statt flacher Marker (Brettspiel-Redesign Schritt 4)
 
 - Neues Modul `src/components/boardPieces.tsx` (+ `boardPieces.module.css`)

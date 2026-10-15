@@ -350,15 +350,31 @@
   border-radius: 3px;
 }
 
-.legendWeg {
+/* Route swatches mirror the board's cased-line anatomy: a dark casing
+   line behind the bright core — same shape, same meaning. */
+.legendWegCasing {
   stroke: var(--color-map-weg);
-  stroke-width: 2;
+  stroke-width: 4.6;
+  stroke-linecap: round;
+}
+
+.legendWeg {
+  stroke: var(--color-paper);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.legendFahrtCasing {
+  stroke: var(--color-map-fahrt);
+  stroke-width: 5.6;
+  stroke-linecap: round;
 }
 
 .legendFahrt {
-  stroke: var(--color-map-fahrt);
-  stroke-width: 3.5;
-  stroke-dasharray: 7 4;
+  stroke: var(--color-paper);
+  stroke-width: 3.2;
+  stroke-dasharray: 2.4 3.6;
+  stroke-linecap: butt;
 }
 
 .legendEscape {

@@ -37,7 +37,13 @@ Körpervolumen, Schlagschatten und Sockel auf den Plaketten: Detektive
 als blaue Stehendfiguren mit Trupp-Ziffer, der Ganove als
 Mantel-und-Fedora-Silhouette — Form, Farbe und Beschriftung wirken
 immer zusammen. Der jeweils ziehende Detektiv pflanzt eine
-bernsteinfarbene Fahne auf seinen Sockel. Wählbare Orte erkennst du am perforierten grünen Rand plus
+bernsteinfarbene Fahne auf seinen Sockel. Die Verbindungen zwischen
+den Orten sind wie von Hand gezeichnete Kartenwege: ein **Weg** erscheint
+als helle Straße mit dunkler Sepia-Fassung, eine **Fahrt** als kräftigere
+Trasse mit hellen Quer-Schwellen — Breite, Muster und Farbton unterscheiden
+sich gemeinsam, nie nur die Farbe. Gesperrte Verbindungen bleichen aus,
+ihr Verlauf unterbricht sich und ein rotes Kreuz markiert die Sperre.
+Wählbare Orte erkennst du am perforierten grünen Rand plus
 gestricheltem Ring, den Tastaturfokus am soliden bernsteinfarbenen
 Fassungsring. Die Legende unter der Karte zeigt jedes Zeichen auf
 einem kleinen Papierchip, der exakt die Brettfarben wiedergibt.
@@ -66,8 +72,10 @@ anhand ihrer Hinweise einkreisen.
   Positionen — danach wählst du deinen Startpunkt aus den markierten,
   legalen Orten (mit Mindestabstand zu den Detektiven).
 - **Karte:** Die Stadtkarte zeigt alle Orte mit Klarnamen, Wege als
-  Linien und schnelle „Fahrten" als gestrichelte Linien, gesperrte
-  Straßen ausgegraut mit Sperrzeichen, die Detektive als nummerierte
+  geränderte helle Straßen und schnelle „Fahrten" als breitere
+  Schwellen-Trassen, gesperrte
+  Straßen ausgeblichen mit unterbrochenem Verlauf und Sperrzeichen,
+  die Detektive als nummerierte
   Meeple-Figuren, deine eigene Mantel-und-Fedora-Figur und deine
   Missionsziele als Form-Symbole. Eine Legende unter der Karte erklärt
   alle Zeichen.

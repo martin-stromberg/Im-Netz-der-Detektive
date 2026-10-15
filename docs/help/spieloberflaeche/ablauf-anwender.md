@@ -96,7 +96,8 @@ einem Detektiv).
 ### 3. Runde für Runde spielen
 
 - Bist du am Zug, wähle einen grün markierten Nachbarort — jeder Zug
-  ist genau eine Kante (`Weg` durchgezogen, `Fahrt` gestrichelt).
+  ist genau eine Kante (`Weg`: helle Straße mit dunklem Rand,
+  `Fahrt`: breite Trasse mit hellen Querstrichen).
 - Danach ziehen die Detektive automatisch weiter.
 - Stehst du auf dem aktuellen Missionsziel, kannst du stattdessen
   „Aktion ausführen" wählen.
