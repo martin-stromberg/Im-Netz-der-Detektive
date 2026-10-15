@@ -241,6 +241,15 @@ export function MapGraph({
           <stop offset="58%" style={{ stopColor: "var(--color-ink)", stopOpacity: 0 }} />
           <stop offset="100%" style={{ stopColor: "var(--color-ink)", stopOpacity: 0.22 }} />
         </radialGradient>
+        {/* Token embossing — the plaque face brightens toward the upper
+            left and ages toward the rim, like a raised card medallion.
+            CSS `fill` on `.tokenFace` may override the url() in state
+            variants (e.g. ganove-here, hover). */}
+        <radialGradient id={`${defsId}-tokenFace`} cx="42%" cy="35%" r="78%">
+          <stop offset="0%" style={{ stopColor: "var(--color-paper)", stopOpacity: 1 }} />
+          <stop offset="72%" style={{ stopColor: "var(--color-paper)", stopOpacity: 1 }} />
+          <stop offset="100%" style={{ stopColor: "var(--color-paper-aged)", stopOpacity: 1 }} />
+        </radialGradient>
       </defs>
       <g className={styles.boardFace} aria-hidden="true" pointerEvents="none">
         <rect className={styles.boardPaper} x="0" y="0" width="100%" height="100%" />
@@ -349,7 +358,7 @@ export function MapGraph({
               onKeyDown={interactive ? (event) => onNodeKeyDown(event, node.id) : undefined}
             >
               {interactive ? (
-                // Generous invisible hit area — r=8 dots are small targets.
+                // Generous invisible hit area — the plaque stays inside it.
                 <circle r={NODE_RADIUS + 6} className={styles.hitArea} />
               ) : null}
               {showZones ? (
@@ -361,8 +370,23 @@ export function MapGraph({
                   aria-hidden="true"
                 />
               ) : null}
-              <circle r={NODE_RADIUS} className={styles.nodeDot} />
-              {legalTargetIds.has(node.id) ? (
+              {/* Place token: a printed plaque — soft shadow, framed rim
+                  (Fassung), embossed gradient face and an engraved inner
+                  ring. Pure decor; all state cues ride on rim/ring shapes
+                  plus colour, never colour alone. */}
+              <g className={styles.nodeToken} aria-hidden="true">
+                <ellipse cy={2.2} rx={8.4} ry={7.6} className={styles.tokenShadow} />
+                <circle r={NODE_RADIUS} className={styles.tokenRim} />
+                <circle
+                  r={NODE_RADIUS - 1.8}
+                  className={styles.tokenFace}
+                  fill={`url(#${defsId}-tokenFace)`}
+                />
+                <circle r={NODE_RADIUS - 4} className={styles.tokenInner} />
+              </g>
+              {interactive ? (
+                // Dashed ring marks every selectable place (legal move,
+                // spawn choice, marker target) — same form, same meaning.
                 <circle r={NODE_RADIUS + 4} className={styles.legalRing} aria-hidden="true" />
               ) : null}
               {possibleIds.has(node.id) ? (

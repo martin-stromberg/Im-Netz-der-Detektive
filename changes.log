@@ -1,5 +1,28 @@
 # Änderungsprotokoll
 
+## 2026-10-15 — Orts-Tokens: Orte als geprägte Plaketten statt Punkte (Brettspiel-Redesign Schritt 3)
+
+- `MapGraph` rendert jeden Ort als `nodeToken`-Plakette:
+  `tokenShadow`-Schatten, eingefasster `tokenRim` (r=8), geprägte
+  `tokenFace` via neuem `radialGradient` `{defsId}-tokenFace` in `<defs>`
+  (`useId`-Muster) und gravierte `tokenInner`-Linie — der flache
+  `nodeDot`-Kreis entfällt.
+- Zustände als Form + Farbe: `nodeLegal`/`nodeSelectable` (inkl.
+  markierbarer Orte) perforieren die Fassung in Legal-Grün; der
+  gestrichelte `legalRing` gilt jetzt für jede wählbare Stelle;
+  `:focus-visible` und `nodeCurrentTarget` setzen den soliden
+  Amber-Fassungsring, `nodeGanoveHere` färbt die Token-Fläche.
+- Testvertrag unverändert: alle `data-*`-Attribute, Hit-Area r=14
+  (allein pointer-sensitiv), Overlay-Positionen und das
+  Pfeiltasten-Roaming bleiben erhalten.
+- Legenden spiegeln die Token-Form: `MapLegend`-Swatch zur
+  Mini-Plakette umgebaut, `DetectiveMapLegend` um das identische
+  Orts-Swatch (`legend.target`) erweitert.
+- Tests: sechs neue Vitest-Assertions (Token-Anatomie, Hit-Area,
+  Ring-Konsistenz, Gradient-Auflösung, Legenden-Spiegel beider
+  Perspektiven) und ein E2E-Test in `e2e/design.spec.ts` (geprägte
+  Plaketten im Browser inkl. `:focus-visible`-Ring).
+
 ## 2026-10-15 — Brett-Materialität: Pergament-Fläche, Pappenrand, Tischschatten (Brettspiel-Redesign Schritt 2)
 
 - `MapGraph` erhält eine dekorative Brettfläche als erstes SVG-Kind:

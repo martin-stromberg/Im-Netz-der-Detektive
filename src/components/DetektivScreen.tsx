@@ -159,6 +159,16 @@ export function DetectiveMapLegend({ map }: { map: MapPack }) {
         </svg>
         {t("legend.category")}
       </span>
+      <span className={shared.legendItem}>
+        {/* Mini plaque — identical to the map's selectable place token
+            and to the ganove legend swatch. */}
+        <svg width="14" height="14" aria-hidden="true">
+          <circle cx="7" cy="7" r="6" className={shared.legendTargetRing} />
+          <circle cx="7" cy="7" r="4.4" className={shared.legendTargetDot} />
+          <circle cx="7" cy="7" r="2.9" className={shared.legendTargetInner} />
+        </svg>
+        {t("legend.target")}
+      </span>
       <span className={shared.legendItem} data-testid="legend-zones">
         {t("legend.zone")}: {zones.join(" · ")}
       </span>

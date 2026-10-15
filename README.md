@@ -15,18 +15,25 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-**Brettspiel-Redesign — Schritt 2: Brett-Materialität** (Projekt
-„Finales Brettspiel-Design"): Die SVG-Stadtkarte (`MapGraph`) liegt
-jetzt wie ein gedrucktes Spielbrett auf dem dunklen Tisch —
+**Brettspiel-Redesign — Schritt 3: Orts-Tokens** (Projekt
+„Finales Brettspiel-Design"): Jeder Ort auf der `MapGraph`-Karte ist
+jetzt eine geprägte Plakette statt eines flachen Punktes —
+Schlagschatten, gefasster Rand, `radialGradient`-Volumenprägung und
+gravierte Innenlinie wie eine Kartenplakette auf dem Pergament-Brett.
+Wählbare Orte tragen einen perforierten grünen Rand plus gestrichelten
+Ring (Form + Farbe), der Tastaturfokus einen soliden Bernstein-Ring;
+beide Legenden zeigen dieselbe Miniatur-Plakette. `data-*`-Struktur,
+Hit-Area (r=14) und Pfeiltasten-Roaming bleiben unverändert.
+
+Zuvor — **Schritt 2: Brett-Materialität**: Die SVG-Stadtkarte liegt
+wie ein gedrucktes Spielbrett auf dem dunklen Tisch —
 Pergament-Grundfläche mit prozeduraler Papierkörnung
 (`feTurbulence`) und Vignette (`radialGradient`), kräftiger
 mehrstufiger Pappenrand und Schlagschatten. Alle Kartenfarben laufen
 über neue, auf das helle Papier kalibrierte `--color-map-*`-Tinten
 (WCAG AA); die Board-Geographie nutzt eine Vintage-Pergament-Palette;
 die Legenden zeigen ihre Zeichen auf Papier-Chips in exakt den
-Brettfarben. `data-*`-Struktur, `viewBox` und Props bleiben
-unverändert — wirkt automatisch auf beiden Perspektiven, im Replay
-und im Missions-Picker.
+Brettfarben.
 
 **Brettspiel-Redesign — Schritt 1: Design-Fundament**: Ein globales `src/theme.css` führt die komplette
 Noir-Palette als `:root`-Design-Tokens (`--color-*`) und ergänzt neue
