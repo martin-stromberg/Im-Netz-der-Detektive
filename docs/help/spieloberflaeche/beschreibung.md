@@ -16,6 +16,12 @@ prozeduralen Geräuschkulisse ein: ein gestuftes Signal je
 Hitze-Stufen-Anstieg und eine dezente Polizeiaktivitäts-Kulisse in
 der Ganoven-Perspektive (erst nach der ersten Eingabe aktiv).
 
+**Erscheinungsbild:** Titel und Überschriften aller Bildschirme
+erscheinen in einer historisch angehauchten Schmuckschrift
+(IM Fell English, lokal im Spiel eingebettet — es werden keine
+Schriften aus dem Internet nachgeladen); der übrige Text bleibt in
+der gut lesbaren Systemschrift.
+
 **Barrierefreiheit:** Farbe ist nirgends die einzige Information —
 Kantentypen tragen Strichmuster, Sperrungen ein Sperr-Glyph,
 Missionsarten verschiedene Formen, Kameras eine Durchstreichung,

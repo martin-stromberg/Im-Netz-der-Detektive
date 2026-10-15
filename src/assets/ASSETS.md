@@ -34,3 +34,24 @@ externen Requests zur Laufzeit.
 
 Generiert am 2026-10-14 über `https://image.pollinations.ai/prompt/…`
 (Schritt-14-Ergänzungen mit Retries wegen sporadischem 402-Rate-Limit).
+
+# Schriftarten
+
+Die Schmuckschrift für Titel/Überschriften ist **lokal eingebettet**
+(`@font-face` in `src/theme.css`) — keine CDN- oder Hotlink-Requests zur
+Laufzeit.
+
+| Font | Dateien | Verwendung |
+|------|---------|------------|
+| IM Fell English | `fonts/imfellenglish-regular.woff2` (normal 400), `fonts/imfellenglish-italic.woff2` (italic 400) | `--font-display` → `.title`, `.panelHeading`, `.heading`, `.cardTitle`, `.statHeading`, `.markerHeading` |
+
+- **Name:** IM Fell English
+- **Quelle:** Google Fonts — CSS-API
+  `https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap`,
+  WOFF2-Binaries von `fonts.gstatic.com` (latin-Subset), abgerufen am
+  2026-10-15. Urheber: Igino Marini (Revival der Fell-Types, Oxford).
+- **Version:** v14 (Schriftschnitte regular + italic, nur Weight 400
+  verfügbar)
+- **Lizenz:** [SIL Open Font License 1.1](https://openfontlicense.org) —
+  erlaubt Einbettung und Weitergabe; Lizenztext:
+  https://github.com/google/fonts/tree/main/ofl/imfellenglish

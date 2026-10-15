@@ -1,5 +1,21 @@
 # Änderungsprotokoll
 
+## 2026-10-15 — Design-Fundament: Theme-Tokens und Schmuckschrift (Brettspiel-Redesign Schritt 1)
+
+- Neues globales Stylesheet `src/theme.css` (Import in `src/main.tsx`):
+  alle Farben als `:root`-Custom-Properties (`--color-*`), dazu neue
+  Brettspiel-Tokens für Papier, Pappe, Tisch und Schatten sowie
+  `--font-display`; dokumentierte WCAG-AA-Kontrastpaarungen.
+- Schmuckschrift „IM Fell English" (SIL OFL) lokal als WOFF2 unter
+  `src/assets/fonts/` eingebettet und auf alle Titel/Überschriften
+  angewendet — kein externer Font-Request; Lizenz in
+  `src/assets/ASSETS.md` dokumentiert.
+- Alle CSS-Module (Shared-Theme `GanoveScreen.module.css` plus neun
+  weitere) auf `var()` umgestellt — Klassennamen, Struktur und
+  `data-*`-Attribute unverändert.
+- Neue E2E-Suite `e2e/design.spec.ts`: Schmuckschrift auf Titeln,
+  keine externen Font-Requests, aktive `:root`-Tokens.
+
 ## 2026-10-14 — i18n final, Barrierefreiheit und Audio-Dramaturgie (Schritt 13)
 
 - Laufzeit-Sprachumschaltung: `src/state/uiPrefs.ts` hält die

@@ -4,9 +4,9 @@
   gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid #2a3240;
-  background: #161b26;
-  color: #c8d0dc;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-bg);
+  color: var(--color-text-secondary);
   font-size: 0.8rem;
   white-space: nowrap;
 }
@@ -16,7 +16,7 @@
 }
 
 .barDim {
-  fill: #3a4152;
+  fill: var(--color-bar-dim);
 }
 
 .barLit {
@@ -24,22 +24,22 @@
 }
 
 .level_ruhig {
-  color: #7fd4a8;
+  color: var(--color-green);
 }
 
 .level_aktiv {
-  color: #f5d76e;
+  color: var(--color-amber-bright);
 }
 
 .level_erhoeht {
-  color: #e8a05a;
+  color: var(--color-heat-raised);
 }
 
 .level_kritisch {
-  color: #d98c8c;
-  border-color: #d98c8c;
+  color: var(--color-danger);
+  border-color: var(--color-danger);
 }
 
 .text {
-  color: #c8d0dc;
+  color: var(--color-text-secondary);
 }

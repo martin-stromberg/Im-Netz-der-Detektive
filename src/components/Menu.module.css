@@ -18,23 +18,23 @@
   flex-direction: column;
   gap: 6px;
   text-align: left;
-  background: #161b26;
-  border: 1px solid #2a3240;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 14px;
-  color: #eaf0f8;
+  color: var(--color-text);
   cursor: pointer;
   font: inherit;
 }
 
 .card:hover:not(:disabled),
 .card:focus-visible:not(:disabled) {
-  border-color: #e8b45a;
+  border-color: var(--color-amber);
 }
 
 /* Keyboard focus needs a stronger cue than the border recolour alone. */
 .card:focus-visible:not(:disabled) {
-  outline: 2px solid #f5d76e;
+  outline: 2px solid var(--color-amber-bright);
   outline-offset: 1px;
 }
 
@@ -44,14 +44,15 @@
 }
 
 .cardTitle {
+  font-family: var(--font-display);
   font-weight: 700;
-  color: #e8b45a;
+  color: var(--color-amber);
   letter-spacing: 0.03em;
 }
 
 .cardText {
   font-size: 0.85rem;
-  color: #9db8d9;
+  color: var(--color-detective-light);
 }
 
 .cardImage {
@@ -59,7 +60,7 @@
   border-radius: 6px;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  background: #0c0f16;
+  background: var(--color-screen-bg);
 }
 
 .badge {
@@ -67,8 +68,8 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #0c0f16;
-  background: #8a94a6;
+  color: var(--color-screen-bg);
+  background: var(--color-text-muted);
   border-radius: 4px;
   padding: 1px 6px;
   width: fit-content;
@@ -83,21 +84,21 @@
 }
 
 .fieldLabel {
-  color: #c8d0dc;
+  color: var(--color-text-secondary);
 }
 
 .fieldHint {
   grid-column: 1 / -1;
   font-size: 0.75rem;
-  color: #8a94a6;
+  color: var(--color-text-muted);
   margin-top: -6px;
 }
 
 .numberInput,
 .selectInput {
-  background: #0c0f16;
-  color: #eaf0f8;
-  border: 1px solid #2a3240;
+  background: var(--color-screen-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 6px 10px;
   font: inherit;
@@ -106,17 +107,17 @@
 
 .numberInput:focus-visible,
 .selectInput:focus-visible {
-  border-color: #e8b45a;
+  border-color: var(--color-amber);
   outline: none;
 }
 
 .rangeInput {
-  accent-color: #e8b45a;
+  accent-color: var(--color-amber);
   width: 160px;
 }
 
 .rangeInput:focus-visible {
-  outline: 2px solid #f5d76e;
+  outline: 2px solid var(--color-amber-bright);
   outline-offset: 2px;
 }
 
@@ -129,12 +130,12 @@
 
 .story {
   font-size: 0.85rem;
-  color: #9db8d9;
+  color: var(--color-detective-light);
   font-style: italic;
 }
 
 .errorList {
-  color: #e88a7a;
+  color: var(--color-danger-error);
   font-size: 0.85rem;
   margin: 8px 0 0;
   padding-left: 18px;
@@ -147,14 +148,14 @@
 
 .summaryTable th,
 .summaryTable td {
-  border: 1px solid #2a3240;
+  border: 1px solid var(--color-border);
   padding: 4px 12px;
   text-align: left;
   font-size: 0.85rem;
 }
 
 .summaryTable th {
-  color: #e8b45a;
+  color: var(--color-amber);
   font-weight: 600;
 }
 
@@ -166,16 +167,17 @@
 }
 
 .statBox {
-  background: #161b26;
-  border: 1px solid #2a3240;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 10px 14px;
 }
 
 .statHeading {
   margin: 0 0 6px;
+  font-family: var(--font-display);
   font-size: 0.8rem;
-  color: #e8b45a;
+  color: var(--color-amber);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -189,12 +191,12 @@
 }
 
 .statList dt {
-  color: #c8d0dc;
+  color: var(--color-text-secondary);
 }
 
 .statList dd {
   margin: 0;
-  color: #eaf0f8;
+  color: var(--color-text);
   text-align: right;
 }
 
@@ -207,21 +209,21 @@
 }
 
 .replayPosition {
-  color: #9db8d9;
+  color: var(--color-detective-light);
   font-size: 0.85rem;
 }
 
 .perspectiveToggle {
   display: inline-flex;
   gap: 0;
-  border: 1px solid #2a3240;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   overflow: hidden;
 }
 
 .perspectiveToggle button {
-  background: #0c0f16;
-  color: #9db8d9;
+  background: var(--color-screen-bg);
+  color: var(--color-detective-light);
   border: none;
   padding: 6px 12px;
   font: inherit;
@@ -229,6 +231,6 @@
 }
 
 .perspectiveToggle button[aria-pressed="true"] {
-  background: #e8b45a;
-  color: #0c0f16;
+  background: var(--color-amber);
+  color: var(--color-screen-bg);
 }

@@ -1,14 +1,15 @@
 .panel {
-  background: #161b26;
-  border: 1px solid #2a3240;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 12px 14px;
 }
 
 .heading {
   margin: 0 0 8px;
+  font-family: var(--font-display);
   font-size: 0.95rem;
-  color: #e8b45a;
+  color: var(--color-amber);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -27,7 +28,7 @@
   align-items: center;
   gap: 8px;
   font-size: 0.9rem;
-  color: #8a94a6;
+  color: var(--color-text-muted);
 }
 
 .stepMarker {
@@ -39,35 +40,35 @@
 /* Completed steps stay distinguishable via strikethrough + ✓ marker —
    the colour only supports the shape coding and meets WCAG AA (5.6:1). */
 .status_erledigt {
-  color: #8a94a6;
+  color: var(--color-text-muted);
   text-decoration: line-through;
 }
 
 .status_aktuell {
-  color: #f5d76e;
+  color: var(--color-amber-bright);
   font-weight: 600;
 }
 
 .status_offen {
-  color: #8a94a6;
+  color: var(--color-text-muted);
 }
 
 .currentTarget {
   margin: 10px 0 0;
   font-size: 0.9rem;
-  color: #eaf0f8;
+  color: var(--color-text);
 }
 
 .choice {
   margin-top: 10px;
-  border-top: 1px dashed #2a3240;
+  border-top: 1px dashed var(--color-border);
   padding-top: 10px;
 }
 
 .choiceTitle {
   margin: 0 0 8px;
   font-weight: 600;
-  color: #d98c8c;
+  color: var(--color-danger);
 }
 
 .choiceButton {
@@ -76,23 +77,23 @@
   margin: 0 0 6px;
   padding: 8px 10px;
   text-align: left;
-  border: 1px solid #3d5a80;
+  border: 1px solid var(--color-detective);
   border-radius: 6px;
-  background: #1d2534;
-  color: #eaf0f8;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
   cursor: pointer;
   font-size: 0.9rem;
 }
 
 .choiceButton:hover,
 .choiceButton:focus-visible {
-  background: #243050;
-  outline: 2px solid #f5d76e;
+  background: var(--color-surface-hover);
+  outline: 2px solid var(--color-amber-bright);
   outline-offset: 1px;
 }
 
 .hint {
   margin: 6px 0 0;
   font-size: 0.8rem;
-  color: #8a94a6;
+  color: var(--color-text-muted);
 }

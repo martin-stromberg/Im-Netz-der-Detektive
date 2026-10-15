@@ -4,8 +4,8 @@
   display: block;
   width: 100%;
   height: auto;
-  background: #10141c;
-  border: 1px solid #2a3240;
+  background: var(--color-inset-bg);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
@@ -19,24 +19,24 @@
 }
 
 .edge {
-  stroke: #4a5568;
+  stroke: var(--color-edge-route);
   stroke-width: 2;
 }
 
 .edgeWeg {
-  stroke: #4a5568;
+  stroke: var(--color-edge-route);
 }
 
 /* fahrt: thicker, dashed — a fast but predictable axis. */
 .edgeFahrt {
-  stroke: #7a6a4f;
+  stroke: var(--color-route-fahrt);
   stroke-width: 3.5;
   stroke-dasharray: 10 5;
 }
 
 /* Blocked edges are greyed AND shape-marked by a crossed barrier. */
 .edgeBlocked {
-  stroke: #3a3f4a;
+  stroke: var(--color-edge-blocked);
   stroke-opacity: 0.5;
   stroke-dasharray: 4 4;
 }
@@ -44,7 +44,7 @@
 /* Fresh block flashes amber so the umwelt event is seen, not just
    read in the intel feed. */
 .edgeFlash {
-  stroke: #f5d76e;
+  stroke: var(--color-amber-bright);
   stroke-width: 3.5;
   animation: edge-flash 3400ms ease-out;
 }
@@ -70,19 +70,19 @@
 }
 
 .blockGlyph line {
-  stroke: #d98c8c;
+  stroke: var(--color-danger);
   stroke-width: 2.5;
   stroke-linecap: round;
 }
 
 .nodeDot {
-  fill: #c8d0dc;
-  stroke: #10141c;
+  fill: var(--color-text-secondary);
+  stroke: var(--color-inset-bg);
   stroke-width: 1.5;
 }
 
 .nodeLabel {
-  fill: #8a94a6;
+  fill: var(--color-text-muted);
   font-size: 10px;
   pointer-events: none;
   user-select: none;
@@ -101,38 +101,38 @@
 }
 
 .nodeInteractive:focus-visible .nodeDot {
-  stroke: #f5d76e;
+  stroke: var(--color-amber-bright);
   stroke-width: 3;
 }
 
 .nodeLegal .nodeDot,
 .nodeSelectable .nodeDot {
-  fill: #7fd4a8;
+  fill: var(--color-green);
 }
 
 .nodeInteractive:hover .nodeDot {
-  fill: #a8e8c8;
+  fill: var(--color-green-bright);
 }
 
 .legalRing {
   fill: none;
-  stroke: #7fd4a8;
+  stroke: var(--color-green);
   stroke-width: 1.5;
   stroke-dasharray: 3 3;
 }
 
 .nodeCurrentTarget .nodeDot {
-  stroke: #f5d76e;
+  stroke: var(--color-amber-bright);
   stroke-width: 3;
 }
 
 .nodeGanoveHere .nodeDot {
-  fill: #e8b45a;
+  fill: var(--color-amber);
 }
 
 .escapeMarker {
   fill: none;
-  stroke: #7fb8d4;
+  stroke: var(--color-escape);
   stroke-width: 1.6;
 }
 
@@ -142,19 +142,19 @@
 }
 
 .mission_diebstahl {
-  stroke: #e8b45a;
+  stroke: var(--color-amber);
 }
 
 .mission_kontakt {
-  stroke: #b48ad4;
+  stroke: var(--color-pin);
 }
 
 .mission_sabotage {
-  stroke: #d98c8c;
+  stroke: var(--color-danger);
 }
 
 .mission_flucht {
-  stroke: #7fb8d4;
+  stroke: var(--color-escape);
 }
 
 /* Positions are placed via inline CSS `transform` so piece movement
@@ -171,16 +171,16 @@
 }
 
 .detectiveMarker .detectiveShape {
-  fill: #3d5a80;
-  stroke: #9db8d9;
+  fill: var(--color-detective);
+  stroke: var(--color-detective-light);
   stroke-width: 1.4;
 }
 
 /* The detective currently on the move — brighter fill plus an amber
    outline (form and colour both change). */
 .detectiveActive .detectiveShape {
-  fill: #5a7db0;
-  stroke: #f5d76e;
+  fill: var(--color-detective-active);
+  stroke: var(--color-amber-bright);
   stroke-width: 2.2;
 }
 
@@ -202,43 +202,43 @@
    still occupy — distinct shape from the dashed legal-target circle. */
 .possibleRing {
   fill: none;
-  stroke: #d4a94f;
+  stroke: var(--color-possible);
   stroke-width: 1.8;
 }
 
 /* Squad camera glyph — only rendered in the detective perspective.
    Inactive cameras are shown struck through (form, not just colour). */
 .cameraBody {
-  fill: #243050;
-  stroke: #9db8d9;
+  fill: var(--color-surface-hover);
+  stroke: var(--color-detective-light);
   stroke-width: 1.2;
 }
 
 .cameraLens {
-  fill: #9db8d9;
+  fill: var(--color-detective-light);
 }
 
 .cameraStrike {
-  stroke: #d98c8c;
+  stroke: var(--color-danger);
   stroke-width: 1.8;
   stroke-linecap: round;
 }
 
 /* Player-set marker pin (detective deduction tool). */
 .markerPin path {
-  fill: #b48ad4;
-  stroke: #10141c;
+  fill: var(--color-pin);
+  stroke: var(--color-inset-bg);
   stroke-width: 1;
 }
 
 .ganoveMarker .ganoveShape {
-  fill: #e8b45a;
-  stroke: #10141c;
+  fill: var(--color-amber);
+  stroke: var(--color-inset-bg);
   stroke-width: 1.4;
 }
 
 .markerText {
-  fill: #eaf0f8;
+  fill: var(--color-text);
   font-size: 9px;
   font-weight: 700;
   pointer-events: none;
