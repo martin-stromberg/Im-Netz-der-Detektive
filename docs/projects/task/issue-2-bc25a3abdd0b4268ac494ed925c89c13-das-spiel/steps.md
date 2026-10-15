@@ -4,7 +4,7 @@ Branch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 
 | # | Titel | Abhängigkeiten | Branch | Status |
 |---|-------|----------------|--------|--------|
-| 1 | Design-Fundament: Theme, Schmuckschrift, Farbvariablen | Keine | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-1-design-fundament` | Offen |
+| 1 | Design-Fundament: Theme, Schmuckschrift, Farbvariablen | Keine | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-1-design-fundament` | In Arbeit |
 | 2 | Brett-Materialität: Pergament, Papprand, Tischschatten | 1 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-2-brett-materialitaet` | Offen |
 | 3 | Orts-Tokens: Knoten als geprägte Plaketten | 2 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-3-orts-tokens` | Offen |
 | 4 | Spielfiguren als Meeple-Spielsteine | 2 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-4-spielfiguren` | Offen |
