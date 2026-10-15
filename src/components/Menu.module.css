@@ -131,7 +131,8 @@
 .numberInput:focus-visible,
 .selectInput:focus-visible {
   border-color: var(--color-amber);
-  outline: none;
+  outline: 2px solid var(--color-amber-bright);
+  outline-offset: 1px;
 }
 
 .rangeInput {

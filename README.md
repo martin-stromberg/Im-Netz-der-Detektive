@@ -15,7 +15,22 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-**Brettspiel-Redesign — Schritt 7: Spieltisch** (Projekt
+**Brettspiel-Redesign — Schritt 8: Endabnahme & Polishing** (Projekt
+„Finales Brettspiel-Design"): Vollständiger Abnahme-Durchgang über alle
+Screens und Verträge — Design-Konsistenz (Legenden, Tokens, Figuren,
+Routen, Edelkarten, Tisch), Barrierefreiheit, Reduced Motion,
+`data-*`-Vertrag, Perspektiven-Filter, i18n-Parität und Build-Hygiene.
+Nachgebessert: `:focus-visible` zeigt jetzt auf **jedem** interaktiven
+Element einen sichtbaren bernsteinfarbenen Ring (Primär-Button,
+Zahlen-/Auswahlfelder, Marker-Entfernen-Chips — vorher nur
+Farbwechsel), und die `box-shadow`-Transition der Verfolgungs-Vignette
+respektiert jetzt `prefers-reduced-motion`. Die WCAG-Kontrasttabellen
+in `theme.css`/`GanoveScreen.module.css` dokumentieren zusätzlich das
+Input-Paar `#eaf0f8`/`#10141c` (16,1:1). Neuer E2E-Test in
+`e2e/design.spec.ts` prüft die Fokusringe per echtem Tastaturfokus —
+40/40 E2E, 617/617 Vitest (Coverage 91,4 %), alle Hook-Checks grün.
+
+Zuvor — **Schritt 7: Spieltisch** (Projekt
 „Finales Brettspiel-Design"): Alle zwölf Screens ruhen jetzt auf
 derselben dunklen Tischfläche — die `bg-noir`-Textur unter dem
 Tisch-Schleier (`--color-table-veil`/`--color-table-veil-edge`) mit

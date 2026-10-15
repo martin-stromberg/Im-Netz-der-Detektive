@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 
 /**
  * Design-foundation checks: the OFL display font is embedded locally and
@@ -541,5 +541,65 @@ test.describe("design fundament", () => {
     });
     expect(stacked.direction).toBe("column");
     expect(stacked.sidebarWidth).toBeGreaterThan(stacked.layoutWidth * 0.9);
+  });
+
+  test("focus rings stay visible on interactive controls", async ({ page }) => {
+    // The keyboard focus cue is a real outline, never a colour-only
+    // swap: Tab to the element (Tab guarantees :focus-visible, while a
+    // programmatic .focus() after pointer input would not), then read
+    // the computed outline.
+    const expectFocusRing = async (target: Locator, maxTabs = 60) => {
+      for (let i = 0; i < maxTabs; i += 1) {
+        if (await target.evaluate((el) => el === document.activeElement)) {
+          const outline = await target.evaluate((el) => {
+            const style = getComputedStyle(el);
+            return {
+              style: style.outlineStyle,
+              width: Number.parseFloat(style.outlineWidth),
+            };
+          });
+          expect(outline.style).toBe("solid");
+          expect(outline.width).toBeGreaterThanOrEqual(2);
+          return;
+        }
+        await page.keyboard.press("Tab");
+      }
+      throw new Error("target never received keyboard focus");
+    };
+
+    // Primary button (ganove idle view — the first focusable element).
+    await page.goto("/?mode=ganove&map=teststadt&seed=7&mission=none");
+    await expectFocusRing(page.getByRole("button", { name: "Neue Partie" }));
+
+    // Inset inputs (select + number) on the settings screen.
+    await page.goto("/");
+    await page.getByTestId("menu-new-game").click();
+    await page.getByTestId("map-card-muenster").click();
+    await page.getByTestId("mode-ganove").click();
+    await expect(page.getByTestId("settings-screen")).toBeVisible();
+    await expectFocusRing(page.getByTestId("setting-eventmode"));
+    await expectFocusRing(page.getByTestId("setting-cadence"));
+
+    // The small marker-removal chip inside the detective marker list.
+    await page.goto("/?mode=detektiv&map=teststadt&seed=42&mission=random");
+    await page.getByRole("button", { name: "Neue Partie" }).click();
+    const detektivScreen = page.getByTestId("detektiv-screen");
+    await expect(detektivScreen).toHaveAttribute("data-view", "pickSpawns");
+    for (let i = 0; i < 8; i += 1) {
+      const selectable = page.locator("[data-selectable]").first();
+      if ((await selectable.count()) === 0) {
+        break;
+      }
+      await selectable.dispatchEvent("click");
+      if ((await detektivScreen.getAttribute("data-view")) === "playing") {
+        break;
+      }
+    }
+    await expect(detektivScreen).toHaveAttribute("data-view", "playing");
+    await page.getByTestId("marker-toggle").click();
+    await page.locator('[data-node-id="c"]').dispatchEvent("click");
+    const removeButton = page.locator('[data-marker-item="c"] button');
+    await expect(removeButton).toBeVisible();
+    await expectFocusRing(removeButton);
   });
 });
