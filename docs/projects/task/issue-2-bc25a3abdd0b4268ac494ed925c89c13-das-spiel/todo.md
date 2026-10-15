@@ -11,5 +11,5 @@ Basisbranch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 - [x] Offene Punkte klären (Stil: Pergament-Brett + dunkle Umgebung)
 - [x] Planprüfung → project-plan-check.md (vollständig)
 - [x] Planungscommit + steps.md + status.html
-- [ ] Entwicklungsschleife: Lifecycle je Schritt, Abnahme, Merge
-- [ ] Aufräumen + Abschlusscommit
+- [x] Entwicklungsschleife: Lifecycle je Schritt, Abnahme, Merge (8/8)
+- [x] Aufräumen + Abschlusscommit
