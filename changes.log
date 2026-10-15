@@ -1,5 +1,29 @@
 # Änderungsprotokoll
 
+## 2026-10-15 — Edelkarten: Panels & UI-Flächen mit Kartenhaptik (Brettspiel-Redesign Schritt 6)
+
+- Alle UI-Flächen teilen die neue Edelkarten-Anatomie aus `theme.css`:
+  `--card-face` (fünfschichtiger Kartengrund mit dezenter
+  Ecken-Prägung und Karton-Schimmer) + `--card-rim` (gravierte
+  Innenlinie `--color-card-line` + dunkle Schnittkante
+  `--color-cardboard-edge`) + `--shadow-card` + `--radius-card` (10 px).
+- Umgestellt (nur CSS, keine `.tsx`-Änderung): `.panel`,
+  `.card`, `.statBox`, `.confirm` (Danger-Karte), `.notice`
+  (behält Danger-Leiste), `.splash`, `EventBanner .banner`,
+  `HeatBadge`/`PursuitBadge`-Pills (Level-Codierung unverändert),
+  `MissionPanel`-Modul und `DetektivScreen`-Inputs.
+- Buttons wirken metallisch/embossed (Gradient + Innenlicht +
+  Schatten); Farbcodierung, Texte, Hover- und `:focus-visible`-Regeln
+  unverändert. Inputs lesen sich als eingelassene Karten-Slots,
+  `.summaryTable` und `.perspectiveToggle` erhalten den Kartenrahmen.
+- Kontraste aller neuen Paarungen (≥ WCAG AA, schwächster Wert 5.6:1)
+  im `theme.css`-Header dokumentiert; Legenden-Swatches,
+  `data-*`-Attribute und Reduced-Motion-Regeln unverändert.
+- Tests: neuer E2E-Test in `e2e/design.spec.ts` prüft die
+  Computed-Style-Anatomie (Rand, Radius, Schatten-Stapel), den
+  Embossed-Button, die Badge-Pill und den Amber-Fokusring via
+  echtem Tastatur-Fokus — 37/37 Playwright-Tests grün.
+
 ## 2026-10-15 — Routen: gezeichnete Kartenwege statt Drahtlinien (Brettspiel-Redesign Schritt 5)
 
 - Jede Kante in `MapGraph` (`<g data-edge>`) rendert jetzt zwei

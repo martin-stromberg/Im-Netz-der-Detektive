@@ -340,4 +340,98 @@ test.describe("design fundament", () => {
       .evaluate((el) => getComputedStyle(el).transitionDuration);
     expect(reduced).toBe("0s");
   });
+
+  test("panels, cards, buttons and badges share the dark-card look", async ({ page }) => {
+    // Menu flow: the map card is a selectable Edelkarte — cardboard rim,
+    // engraved inner line, cut edge, table shadow, card radius.
+    await page.goto("/");
+    await page.getByTestId("menu-new-game").click();
+    const card = page.getByTestId("map-card-muenster");
+    await expect(card).toBeVisible();
+    const cardStyle = await card.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return {
+        borderWidth: Number.parseFloat(style.borderTopWidth),
+        borderColor: style.borderTopColor,
+        radius: Number.parseFloat(style.borderTopLeftRadius),
+        shadow: style.boxShadow,
+      };
+    });
+    expect(cardStyle.borderWidth).toBeGreaterThanOrEqual(1);
+    expect(cardStyle.borderColor).toBe("rgb(107, 83, 53)"); // --color-cardboard
+    expect(cardStyle.radius).toBe(10); // --radius-card
+    expect(cardStyle.shadow).toContain("inset"); // engraved inner line
+    // Multi-layer anatomy: inner line + outer edge + two-stage shadow.
+    expect((cardStyle.shadow.match(/rgba?\(/g) ?? []).length).toBeGreaterThanOrEqual(4);
+
+    // Keyboard focus keeps the amber focus ring on the card rim.
+    let cardFocused = false;
+    for (let i = 0; i < 40 && !cardFocused; i += 1) {
+      await page.keyboard.press("Tab");
+      cardFocused = await page.evaluate(
+        () => document.activeElement?.getAttribute("data-testid") === "map-card-muenster",
+      );
+    }
+    expect(cardFocused).toBe(true);
+    const focusStyle = await page.evaluate(() => {
+      const style = getComputedStyle(document.activeElement!);
+      return { outlineColor: style.outlineColor, outlineWidth: style.outlineWidth };
+    });
+    expect(focusStyle.outlineColor).toBe("rgb(245, 215, 110)"); // --color-amber-bright
+    expect(focusStyle.outlineWidth).toBe("2px");
+
+    // Game screen: the idle start panel is the same Edelkarte and the
+    // primary button is embossed (gradient face + drop shadow).
+    await page.goto("/?mode=ganove&map=teststadt&seed=7&mission=none");
+    const panel = page.getByTestId("start-panel");
+    await expect(panel).toBeVisible();
+    const panelStyle = await panel.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return {
+        borderColor: style.borderTopColor,
+        radius: Number.parseFloat(style.borderTopLeftRadius),
+        shadow: style.boxShadow,
+      };
+    });
+    expect(panelStyle.borderColor).toBe("rgb(107, 83, 53)");
+    expect(panelStyle.radius).toBe(10);
+    expect(panelStyle.shadow).toContain("inset");
+    expect((panelStyle.shadow.match(/rgba?\(/g) ?? []).length).toBeGreaterThanOrEqual(4);
+
+    const startButton = page.getByRole("button", { name: "Neue Partie" });
+    const buttonStyle = await startButton.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { backgroundImage: style.backgroundImage, shadow: style.boxShadow };
+    });
+    expect(buttonStyle.backgroundImage).toContain("gradient");
+    expect(buttonStyle.shadow).toContain("inset");
+    expect(buttonStyle.shadow).not.toBe("none");
+
+    // Into the running game: the heat badge is a role=status pill with
+    // the same card rim, and the mission panel keeps its card anatomy.
+    await startButton.click();
+    await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "pickSpawn");
+    await page.locator("[data-selectable='true']").first().dispatchEvent("click");
+    await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "playing");
+
+    const badge = page.locator("[data-heat-level]");
+    await expect(badge).toHaveAttribute("role", "status");
+    const badgeStyle = await badge.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return {
+        radius: Number.parseFloat(style.borderTopLeftRadius),
+        borderColor: style.borderTopColor,
+        shadow: style.boxShadow,
+      };
+    });
+    expect(badgeStyle.radius).toBeGreaterThanOrEqual(100); // pill stays a pill
+    expect(badgeStyle.borderColor).toBe("rgb(107, 83, 53)");
+    expect(badgeStyle.shadow).toContain("inset");
+
+    // Panel headings render in the display font on the Edelkarte.
+    const missionHeading = page.getByRole("heading", { name: "Mission" });
+    await expect(missionHeading).toBeVisible();
+    const headingFont = await missionHeading.evaluate((el) => getComputedStyle(el).fontFamily);
+    expect(headingFont).toContain("IM Fell English");
+  });
 });

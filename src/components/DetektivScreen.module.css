@@ -98,15 +98,19 @@
   font-size: 0.85rem;
 }
 
+/* Recessed card slot — same inset treatment as the menu inputs. */
 .commentInput {
   flex: 1 1 auto;
   min-width: 0;
   background: var(--color-inset-bg);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-cardboard-edge);
   border-radius: 4px;
   color: var(--color-text);
   padding: 4px 6px;
   font-size: 0.8rem;
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 45%),
+    inset 0 0 0 1px var(--color-card-line);
 }
 
 .commentInput:focus-visible {
@@ -114,9 +118,16 @@
   outline-offset: 1px;
 }
 
+/* Small embossed marker-removal chip — surface gradient + shadow like
+   the shared buttons, danger text keeps the destructive coding. */
 .removeButton {
   flex: 0 0 auto;
-  background: none;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-hover) 0%,
+    var(--color-surface-raised) 60%,
+    var(--color-surface-deep) 100%
+  );
   border: 1px solid var(--color-edge-blocked);
   border-radius: 4px;
   color: var(--color-danger);
@@ -124,6 +135,9 @@
   font-size: 1rem;
   line-height: 1;
   padding: 2px 7px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 9%),
+    0 1px 3px rgb(0 0 0 / 40%);
 }
 
 .removeButton:hover,

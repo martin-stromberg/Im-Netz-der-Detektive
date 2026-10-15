@@ -40,6 +40,16 @@
  *   --color-text-muted    on --color-table         →  6.0:1   hint on table surface
  *   --color-amber         on --color-table         →  9.7:1   amber heading on table
  *   --color-paper         on --color-table         → 13.4:1   parchment card on table
+ *
+ * Edelkarte tokens (dark premium cards on the table — panels, menu
+ * cards, badges share the same rim anatomy as the board: cardboard
+ * band + dark edge ring + engraved inner line):
+ *
+ *   --color-text          on --color-card-face-top → 13.7:1   text on the sheen top of a card
+ *   --color-inset-bg      on --color-amber-deep    →  5.6:1   primary label on gradient bottom
+ *   --color-text          on --color-surface-deep  → 14.8:1   secondary label on gradient bottom
+ *   --color-danger-text   on --color-danger-surface-deep → 10.1:1  danger label on gradient bottom
+ *   --color-text          on --color-danger-surface → 11.7:1  text inside the danger confirm card
  */
 
 @font-face {
@@ -165,8 +175,38 @@
   --color-map-detective-stroke: #22334d;
   --color-map-detective-active: #46648f;
 
+  /* ── Edelkarte (dunkle Spielkarte auf dem Tisch) ──
+   * Panels, Menü-Karten, Statboxen, Banner und Badges teilen sich diese
+   * Anatomie: Kartonband-Border (--color-cardboard), dunkle Schnittkante
+   * (--color-cardboard-edge), gravierte Innenlinie (--color-card-line)
+   * und ein zweistufiger Tischschatten (--shadow-card). */
+  --color-card-face-top: #1b2332;
+  --color-card-line: rgb(232 220 192 / 16%);
+  --color-amber-deep: #b8852f;
+  --color-surface-deep: #151b28;
+  --color-danger-surface-deep: #381b1e;
+
   --shadow-panel: 0 2px 8px rgb(0 0 0 / 40%);
   --shadow-board: 0 12px 40px rgb(0 0 0 / 55%);
+  --shadow-card: 0 2px 6px rgb(0 0 0 / 50%), 0 6px 18px rgb(0 0 0 / 35%);
+
+  /* Einheitsradius aller Kartenflächen; Controls bleiben bei 6px. */
+  --radius-card: 10px;
+
+  /* Komplette Edelkarten-Anatomie als wiederverwendbare Token-Listen:
+   * `--card-face` ist der fünfschichtige Kartengrund (dezente
+   * Ecken-Prägung: Licht oben, Schatten unten + Karton-Schimmer),
+   * `--card-rim` der zweistufige Rand (gravierte Innenlinie + dunkle
+   * Schnittkante). Verwendung:
+   *   background: var(--card-face);
+   *   box-shadow: var(--card-rim), var(--shadow-card); */
+  --card-face:
+    radial-gradient(90px 60px at 0% 0%, rgb(255 255 255 / 5%), transparent 70%),
+    radial-gradient(90px 60px at 100% 0%, rgb(255 255 255 / 4%), transparent 70%),
+    radial-gradient(90px 60px at 0% 100%, rgb(0 0 0 / 14%), transparent 70%),
+    radial-gradient(90px 60px at 100% 100%, rgb(0 0 0 / 12%), transparent 70%),
+    linear-gradient(180deg, var(--color-card-face-top), var(--color-panel-bg) 75%);
+  --card-rim: inset 0 0 0 1px var(--color-card-line), 0 0 0 1px var(--color-cardboard-edge);
 
   /* Schmuckschrift für Titel/Überschriften; Fließtext bleibt Systemschrift. */
   --font-display: "IM Fell English", "Iowan Old Style", Georgia, "Times New Roman", serif;
