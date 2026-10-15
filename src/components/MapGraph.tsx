@@ -281,6 +281,18 @@ export function MapGraph({
           const midY = (a.y + b.y) / 2;
           return (
             <g key={`${edge.a}-${edge.b}`} data-edge={`${edge.a}-${edge.b}`}>
+              {/* Map-route casing: a dark ink outline under the bright
+                  core reads like a printed road/track on the parchment
+                  (classic cased-line cartography). Pure decor — the
+                  semantic line below keeps the `data-*` contract. */}
+              <line
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                className={`${styles.edgeCasing} ${edge.type === "fahrt" ? styles.edgeCasingFahrt : ""} ${blocked ? styles.edgeCasingBlocked : ""}`}
+                aria-hidden="true"
+              />
               <line
                 x1={a.x}
                 y1={a.y}

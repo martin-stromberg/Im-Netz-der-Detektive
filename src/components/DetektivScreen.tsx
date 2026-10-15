@@ -114,13 +114,19 @@ export function DetectiveMapLegend({ map }: { map: MapPack }) {
     <div className={shared.legend} data-testid="map-legend">
       <span className={shared.legendTitle}>{t("legend.title")}:</span>
       <span className={shared.legendItem}>
+        {/* Miniature of the board route — identical to the ganove
+            legend swatch (casing + paper core). */}
         <svg width="26" height="8" aria-hidden="true">
+          <line x1="0" y1="4" x2="26" y2="4" className={shared.legendWegCasing} />
           <line x1="0" y1="4" x2="26" y2="4" className={shared.legendWeg} />
         </svg>
         {t("legend.weg")}
       </span>
       <span className={shared.legendItem}>
+        {/* Miniature of the track route — identical to the ganove
+            legend swatch (wider casing + paper sleepers). */}
         <svg width="26" height="8" aria-hidden="true">
+          <line x1="0" y1="4" x2="26" y2="4" className={shared.legendFahrtCasing} />
           <line x1="0" y1="4" x2="26" y2="4" className={shared.legendFahrt} />
         </svg>
         {t("legend.fahrt")}

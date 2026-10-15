@@ -158,6 +158,103 @@ test.describe("design fundament", () => {
     expect(focusStroke).toBe("rgb(125, 82, 16)"); // --color-map-accent
   });
 
+  test("routes draw as cased map paths with legend mirror", async ({ page }) => {
+    // teststadt: 12 weg edges + the single fahrt edge f–g.
+    await page.goto("/?mode=ganove&map=teststadt&seed=7&mission=none");
+    await page.getByRole("button", { name: "Neue Partie" }).click();
+    await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "pickSpawn");
+    const board = page.getByTestId("map-graph");
+    await expect(board).toBeVisible();
+
+    const routes = await board.evaluate((el) => {
+      const readRoute = (selector: string) => {
+        const group = el.querySelector(selector);
+        const strokes = group
+          ? [...group.children].filter((child) => child.tagName === "line")
+          : [];
+        const casing = strokes[0] ? getComputedStyle(strokes[0]) : null;
+        const core = strokes[1] ? getComputedStyle(strokes[1]) : null;
+        return {
+          strokeCount: strokes.length,
+          casingStroke: casing?.stroke ?? null,
+          casingWidth: casing ? Number.parseFloat(casing.strokeWidth) : 0,
+          casingCap: casing?.strokeLinecap ?? null,
+          coreStroke: core?.stroke ?? null,
+          coreWidth: core ? Number.parseFloat(core.strokeWidth) : 0,
+          coreDash: core?.strokeDasharray ?? null,
+          coreCap: core?.strokeLinecap ?? null,
+        };
+      };
+      return {
+        weg: readRoute('[data-edge="a-b"]'),
+        fahrt: readRoute('[data-edge="f-g"]'),
+      };
+    });
+
+    // weg: a surfaced road — dark sepia casing under a solid,
+    // paper-bright core with rounded ends.
+    expect(routes.weg.strokeCount).toBe(2);
+    expect(routes.weg.casingStroke).toBe("rgb(107, 91, 67)"); // --color-map-weg
+    expect(routes.weg.casingWidth).toBeGreaterThan(routes.weg.coreWidth);
+    expect(routes.weg.casingCap).toBe("round");
+    expect(routes.weg.coreStroke).toBe("rgb(232, 220, 192)"); // --color-paper
+    expect(routes.weg.coreDash).toBe("none");
+
+    // fahrt: a stronger track — wider casing plus butt-capped paper
+    // sleepers (a pattern, not just another dasharray on a wire).
+    expect(routes.fahrt.casingStroke).toBe("rgb(122, 82, 40)"); // --color-map-fahrt
+    expect(routes.fahrt.casingWidth).toBeGreaterThan(routes.weg.casingWidth);
+    expect(routes.fahrt.coreStroke).toBe("rgb(232, 220, 192)");
+    expect(routes.fahrt.coreDash).not.toBe("none");
+    expect(routes.fahrt.coreCap).toBe("butt");
+
+    // The legend chips mirror the route anatomy — casing behind core.
+    const legend = page.getByTestId("map-legend");
+    await expect(legend.locator("line[class*='legendWegCasing']")).toHaveCount(1);
+    await expect(legend.locator("line[class*='legendFahrtCasing']")).toHaveCount(1);
+    const legendCore = legend.locator("line[class*='legendFahrt']:not([class*='Casing'])");
+    await expect(legendCore).toHaveCount(1);
+    const swatch = await legendCore.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { stroke: style.stroke, dash: style.strokeDasharray, cap: style.strokeLinecap };
+    });
+    expect(swatch.stroke).toBe("rgb(232, 220, 192)"); // --color-paper
+    expect(swatch.dash).not.toBe("none");
+    expect(swatch.cap).toBe("butt");
+
+    // The edge-flash pulse still honours prefers-reduced-motion: the
+    // animation rule on the flash class is switched off for reduced
+    // motion — verified on the stylesheet the flash class comes from.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const flashAnimationOff = await page.evaluate(() => {
+      for (const sheet of document.styleSheets) {
+        try {
+          for (const rule of sheet.cssRules) {
+            if (!(rule instanceof CSSMediaRule)) {
+              continue;
+            }
+            if (!rule.conditionText.includes("prefers-reduced-motion")) {
+              continue;
+            }
+            for (const inner of rule.cssRules) {
+              if (
+                inner instanceof CSSStyleRule &&
+                inner.selectorText.includes("edgeFlash") &&
+                inner.style.animationName === "none"
+              ) {
+                return true;
+              }
+            }
+          }
+        } catch {
+          // cross-origin sheets are not readable — skip
+        }
+      }
+      return false;
+    });
+    expect(flashAnimationOff).toBe(true);
+  });
+
   test("game pieces stand as shaded meeples with distinct silhouettes", async ({ page }) => {
     // Ganove spawn choice already shows the placed detective squad.
     await page.goto("/?mode=ganove&map=muenster&seed=7&mission=none");

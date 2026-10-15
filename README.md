@@ -15,8 +15,22 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-**Brettspiel-Redesign — Schritt 4: Spielfiguren** (Projekt
-„Finales Brettspiel-Design"): Aus den flachen Positionsmarkern sind
+**Brettspiel-Redesign — Schritt 5: Routen** (Projekt
+„Finales Brettspiel-Design"): Die Verbindungen auf der `MapGraph`-Karte
+lesen jetzt wie gezeichnete Kartenwege — die klassische
+„cased line"-Technik legt eine dunkle Tinten-Fassung (`edgeCasing`)
+unter einen hellen Papierkern. Ein `weg` erscheint als befestigte
+Straße mit Sepia-Rand und durchgezogenem Kern, eine `fahrt` als
+kräftigere Trasse mit querliegenden Papier-Schwellen — Muster, Breite
+und Farbton tragen den Typ gemeinsam, nie die Farbe allein. Blockierte
+Routen bleichen aus, ihr Kern reißt auf und das rote Kreuz-Glyph
+(`data-block-glyph`) bleibt die Form-Kodierung; der `edgeFlash`-Puls
+respektiert weiterhin `prefers-reduced-motion`. `data-*`-Vertrag und
+Kanten-DOM bleiben unverändert; beide Legenden spiegeln die neue
+Zweistrich-Anatomie auf ihren Papierchips. Deterministisch: kein
+`Math.random()`, kein `feTurbulence`-Displacement.
+
+Zuvor — **Schritt 4: Spielfiguren**: Aus den flachen Positionsmarkern sind
 greifbare Meeple-Spielsteine geworden — das neue Modul
 `src/components/boardPieces.tsx` zeichnet stehende Figuren mit
 Körper-`radialGradient`, Schlagschatten und Sockel-Ellipse auf den

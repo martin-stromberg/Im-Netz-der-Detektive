@@ -105,13 +105,17 @@ export function MapLegend() {
     <div className={styles.legend} data-testid="map-legend">
       <span className={styles.legendTitle}>{t("legend.title")}:</span>
       <span className={styles.legendItem}>
+        {/* Miniature of the board route: dark casing + paper core. */}
         <svg width="26" height="8" aria-hidden="true">
+          <line x1="0" y1="4" x2="26" y2="4" className={styles.legendWegCasing} />
           <line x1="0" y1="4" x2="26" y2="4" className={styles.legendWeg} />
         </svg>
         {t("legend.weg")}
       </span>
       <span className={styles.legendItem}>
+        {/* Miniature of the track route: wider casing + paper sleepers. */}
         <svg width="26" height="8" aria-hidden="true">
+          <line x1="0" y1="4" x2="26" y2="4" className={styles.legendFahrtCasing} />
           <line x1="0" y1="4" x2="26" y2="4" className={styles.legendFahrt} />
         </svg>
         {t("legend.fahrt")}

@@ -47,27 +47,55 @@
   pointer-events: none;
 }
 
-.edge {
+/* Routes read as drawn map paths — the classic cased-line technique:
+   a wide dark ink casing (edgeCasing) underneath a bright paper core
+   (edge) that carries the data-* contract. `weg` keeps a solid paper
+   core (a surfaced road); `fahrt` swaps the core for butt-capped paper
+   sleepers on a wider, stronger track bed. Pattern + width + colour
+   carry the type — never colour alone. */
+.edgeCasing {
   stroke: var(--color-map-weg);
-  stroke-width: 2;
+  stroke-width: 4.6;
+  stroke-linecap: round;
 }
 
-.edgeWeg {
-  stroke: var(--color-map-weg);
-}
-
-/* fahrt: thicker, dashed — a fast but predictable axis. */
-.edgeFahrt {
+.edgeCasingFahrt {
   stroke: var(--color-map-fahrt);
-  stroke-width: 3.5;
-  stroke-dasharray: 10 5;
+  stroke-width: 6;
 }
 
-/* Blocked edges are faded AND shape-marked by a crossed barrier. */
-.edgeBlocked {
+/* Blocked routes: the casing bleaches to the muted blocked ink. */
+.edgeCasingBlocked {
   stroke: var(--color-map-blocked);
   stroke-opacity: 0.55;
-  stroke-dasharray: 4 4;
+}
+
+.edge {
+  stroke: var(--color-paper);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+/* weg core: solid paper fill inside the sepia casing (surfaced road). */
+.edgeWeg {
+  stroke: var(--color-paper);
+}
+
+/* fahrt core: paper sleepers across the track bed — butt caps make the
+   dashes rectangular, reading as a rail/coach route rather than dots. */
+.edgeFahrt {
+  stroke-width: 3.4;
+  stroke-dasharray: 3 4.5;
+  stroke-linecap: butt;
+}
+
+/* Blocked edges keep a recognisable pattern: the core breaks into
+   short interrupted strokes (a severed road), the casing fades and the
+   cross glyph marks the barrier — shape, not just colour. Declared
+   after `.edgeFahrt` so the broken-core pattern wins on fahrt edges. */
+.edgeBlocked {
+  stroke-opacity: 0.9;
+  stroke-dasharray: 1.6 3.2;
 }
 
 /* Fresh block flashes in dark amber so the umwelt event is seen, not

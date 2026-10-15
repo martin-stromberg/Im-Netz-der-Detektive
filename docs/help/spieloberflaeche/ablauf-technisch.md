@@ -133,6 +133,40 @@ als Deep-Link-Einstieg direkt in die Bildschirme erhalten.
   E2E-Test in `e2e/design.spec.ts` prüft Computed Styles, die
   480-ms-Transition, Reduced-Motion und die Amber-Fahne.
 
+## Routen (Kartenwege, Schritt 5 des Redesigns)
+
+- Jede Kante in `<g data-edge>` rendert jetzt zwei übereinanderliegende
+  `<line>`: eine dekorative `edgeCasing`-Fassung (`aria-hidden`, vor der
+  Kern-Linie, breit, `stroke-linecap: round`) und darüber die
+  semantische Kern-Linie mit unverändertem `data-edge-type`/
+  `data-blocked`-Vertrag — die klassische „cased line"-Kartentechnik
+  (dunkler Tintenrand + heller Papierkern in `--color-paper`).
+- `weg`: Fassung in `--color-map-weg` (4.6 px) + durchgezogener
+  Papierkern (2.2 px) — eine befestigte Straße. `fahrt`: breitere
+  Fassung in `--color-map-fahrt` (6 px) + Papierkern als
+  `stroke-dasharray`-Schwellen mit `stroke-linecap: butt` — ein
+  eigenes Trassenmuster statt eines bloß anderen Strichelmusters.
+- Blockierte Kanten: `edgeCasingBlocked` bleicht die Fassung zu
+  `--color-map-blocked` (Opazität 0.55), `edgeBlocked` sprengt den Kern
+  zu kurzen Unterbrechungen (`1.6 3.2`, deklariert nach `.edgeFahrt`,
+  damit es das Schwellen-Muster übersteuert); das rote
+  `data-block-glyph`-Kreuz bleibt die Form-Kodierung.
+- `edgeFlash` bleibt unverändert auf der Kern-Linie
+  (`--color-map-accent`, Opazitäts-Puls 3400 ms,
+  `prefers-reduced-motion`-Abschaltung) — Amber auf dunkler Fassung
+  bleibt der Aufmerksamkeits-Cue.
+- `MapLegend` und `DetectiveMapLegend` spiegeln die Zweistrich-Anatomie:
+  `legendWegCasing`/`legendFahrtCasing` vor `legendWeg`/`legendFahrt`
+  auf dem Papierchip — keine neuen sichtbaren Strings.
+- Deterministisch und performant: kein `Math.random()`, kein
+  `feTurbulence`-Displacement; `pointer-events: none` der Karte bleibt.
+- Neue Tests: Casing-Struktur/Malreihenfolge/`aria-hidden`,
+  `edgeCasingFahrt`, blockierte Fassung in `MapGraph.test.tsx`;
+  Legenden-Zweilinien-Mirror in beiden Legenden; ein E2E-Test in
+  `e2e/design.spec.ts` prüft Computed Styles (Fassungs-Breite/-Farbe,
+  Kern, Schwellen-Dasharray, `butt`-Caps), den Legenden-Mirror und die
+  Reduced-Motion-Regel für `edgeFlash` via Stylesheet-Scan.
+
 ## Menüfluss (Komponenten)
 
 | Ansicht | Komponente | Aufgabe |
