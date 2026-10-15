@@ -227,7 +227,9 @@
 
 /* Positions are placed via inline CSS `transform` so piece movement
    glides along the edge instead of teleporting — the detective-phase
-   step delay in the driver gives each hop its own beat. */
+   step delay in the driver gives each hop its own beat. The transition
+   sits on the marker wrapper; the meeple glyphs inside style
+   themselves (boardPieces.module.css). */
 .markerMove {
   transition: transform 480ms cubic-bezier(0.25, 0.8, 0.3, 1);
 }
@@ -236,20 +238,6 @@
   .markerMove {
     transition: none;
   }
-}
-
-.detectiveMarker .detectiveShape {
-  fill: var(--color-detective);
-  stroke: var(--color-map-detective-stroke);
-  stroke-width: 1.4;
-}
-
-/* The detective currently on the move — deeper fill plus an amber
-   outline (form and colour both change). */
-.detectiveActive .detectiveShape {
-  fill: var(--color-map-detective-active);
-  stroke: var(--color-map-accent);
-  stroke-width: 2.2;
 }
 
 /* Zone halo behind the node dot — a soft fill ring per zone; the
@@ -297,18 +285,4 @@
   fill: var(--color-map-pin);
   stroke: var(--color-ink);
   stroke-width: 1;
-}
-
-.ganoveMarker .ganoveShape {
-  fill: var(--color-map-ganove);
-  stroke: var(--color-ink);
-  stroke-width: 1.4;
-}
-
-.markerText {
-  fill: var(--color-text);
-  font-size: 9px;
-  font-weight: 700;
-  pointer-events: none;
-  user-select: none;
 }

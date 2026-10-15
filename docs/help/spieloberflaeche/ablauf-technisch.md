@@ -99,6 +99,40 @@ als Deep-Link-Einstieg direkt in die Bildschirme erhalten.
   und ein E2E-Test in `e2e/design.spec.ts` (Browser-`url(#)`-Füllung,
   Schatten, Swatch, `:focus-visible`-Ring via echter Tab-Fokussierung).
 
+## Spielfiguren (Meeple, Schritt 4 des Redesigns)
+
+- `src/components/boardPieces.tsx` liefert die Figuren-Glyphen nach
+  der `landmarks.tsx`-Konvention: lokale Glyph-Box mit Fußpunkt am
+  Ursprung, `aria-hidden`/`focusable="false"`, `data-piece`-Attribut.
+  `DetectivePiece` (`index?`, `active?`) zeichnet die aufrechte
+  Meeple-Silhouette (Torso + `pieceHead`-Kopf, Revers-`pieceDetail`,
+  `pieceIndex`-Ziffer) und `GanovePiece` die Mantel-A-Linie mit
+  Fedora (`pieceHat` Krone+Krempe, `pieceHatBand`) und
+  `pieceFace`-Schatten — ohne Ziffer. Jede Figur besteht aus
+  `pieceShadow`-Schlagschatten, `pieceBase`-Sockel und dem mit
+  `fill="url(#…-body)"` volumengefüllten `pieceBody`; die
+  `radialGradient`-IDs erzeugt `useId` je Instanz (eindeutig über
+  alle Detektive und Doppel-Mounts hinweg).
+- `MapGraph` rendert im `markers`-Layer weiterhin das Wrapper-`<g>`
+  mit Inline-`transform` (`translate(x, y - 16)`),
+  `markerMove`-Transition (480 ms, bei `prefers-reduced-motion`
+  abgeschaltet), `data-detective`/`data-active-detective`/
+  `data-ganove` und `aria-label` — darin sitzt jetzt die Figur statt
+  des flachen `rect`/der Raute; die alten Klassen (`detectiveShape`,
+  `ganoveShape`, `markerText`, `legendDetective`, `legendGanove`)
+  sind entfernt.
+- `active` auf `DetectivePiece` ergänzt die `pieceActiveMark`-Fahne
+  (`pieceFlagPole` + `pieceFlag` in `--color-map-accent`) und den
+  `pieceActiveBase`-Sockelring — Form + Amber-Akzent, nie nur Farbe.
+- `MapLegend` und `DetectiveMapLegend` betten dieselben Komponenten
+  skaliert (`scale(0.5)`) als Miniaturen ein — ohne Ziffer; die
+  Detektiv-Legende zeigt weiterhin keinen Ganoven.
+- Neue Tests: Suite „board pieces" in `MapGraph.test.tsx` (Anatomie,
+  Silhouetten-Unterschied, Fahne, `url(#…)`-Auflösung,
+  ID-Eindeutigkeit, `markerMove`) plus Legenden-Miniatur-Tests; ein
+  E2E-Test in `e2e/design.spec.ts` prüft Computed Styles, die
+  480-ms-Transition, Reduced-Motion und die Amber-Fahne.
+
 ## Menüfluss (Komponenten)
 
 | Ansicht | Komponente | Aufgabe |

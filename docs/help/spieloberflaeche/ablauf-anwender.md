@@ -85,7 +85,7 @@ Keine — die Anwendung im Browser öffnen genügt.
 ### 1. Partie beginnen
 
 Auf der Startansicht „Neue Partie" wählen. Die Detektive werden
-automatisch auf der Karte platziert (blaue nummerierte Marker).
+automatisch auf der Karte platziert (blaue nummerierte Meeple-Figuren).
 
 ### 2. Startpunkt wählen
 

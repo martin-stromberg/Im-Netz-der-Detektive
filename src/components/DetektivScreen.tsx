@@ -56,6 +56,7 @@ import { deducePossiblePositions } from "../logic/Deduction";
 import { visibleCameras, visibleEvents } from "../logic/InformationSystem";
 import type { MapPack } from "../logic/mapPack";
 import { MapGraph } from "./MapGraph";
+import { DetectivePiece } from "./boardPieces";
 import { chronicleText } from "./chronicle";
 import { nextSeed, readParams, resolveMissionOption } from "./gameSetup";
 import shared from "./GanoveScreen.module.css";
@@ -125,8 +126,12 @@ export function DetectiveMapLegend({ map }: { map: MapPack }) {
         {t("legend.fahrt")}
       </span>
       <span className={shared.legendItem}>
-        <svg width="12" height="12" aria-hidden="true">
-          <rect x="1" y="1" width="10" height="10" rx="2" className={shared.legendDetective} />
+        {/* Mini meeple — identical to the board's detective figure
+            and to the ganove legend swatch. */}
+        <svg width="14" height="18" aria-hidden="true">
+          <g transform="translate(7, 14) scale(0.5)">
+            <DetectivePiece />
+          </g>
         </svg>
         {t("legend.detective")}
       </span>
