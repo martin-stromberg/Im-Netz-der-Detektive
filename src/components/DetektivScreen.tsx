@@ -56,6 +56,7 @@ import { deducePossiblePositions } from "../logic/Deduction";
 import { visibleCameras, visibleEvents } from "../logic/InformationSystem";
 import type { MapPack } from "../logic/mapPack";
 import { MapGraph } from "./MapGraph";
+import { DetectivePiece } from "./boardPieces";
 import { chronicleText } from "./chronicle";
 import { nextSeed, readParams, resolveMissionOption } from "./gameSetup";
 import shared from "./GanoveScreen.module.css";
@@ -113,20 +114,30 @@ export function DetectiveMapLegend({ map }: { map: MapPack }) {
     <div className={shared.legend} data-testid="map-legend">
       <span className={shared.legendTitle}>{t("legend.title")}:</span>
       <span className={shared.legendItem}>
+        {/* Miniature of the board route — identical to the ganove
+            legend swatch (casing + paper core). */}
         <svg width="26" height="8" aria-hidden="true">
+          <line x1="0" y1="4" x2="26" y2="4" className={shared.legendWegCasing} />
           <line x1="0" y1="4" x2="26" y2="4" className={shared.legendWeg} />
         </svg>
         {t("legend.weg")}
       </span>
       <span className={shared.legendItem}>
+        {/* Miniature of the track route — identical to the ganove
+            legend swatch (wider casing + paper sleepers). */}
         <svg width="26" height="8" aria-hidden="true">
+          <line x1="0" y1="4" x2="26" y2="4" className={shared.legendFahrtCasing} />
           <line x1="0" y1="4" x2="26" y2="4" className={shared.legendFahrt} />
         </svg>
         {t("legend.fahrt")}
       </span>
       <span className={shared.legendItem}>
-        <svg width="12" height="12" aria-hidden="true">
-          <rect x="1" y="1" width="10" height="10" rx="2" className={shared.legendDetective} />
+        {/* Mini meeple — identical to the board's detective figure
+            and to the ganove legend swatch. */}
+        <svg width="14" height="18" aria-hidden="true">
+          <g transform="translate(7, 14) scale(0.5)">
+            <DetectivePiece />
+          </g>
         </svg>
         {t("legend.detective")}
       </span>
@@ -158,6 +169,16 @@ export function DetectiveMapLegend({ map }: { map: MapPack }) {
           <path d="M 5 4 L 9 8 L 9 8 Z" className={styles.legendCategory} />
         </svg>
         {t("legend.category")}
+      </span>
+      <span className={shared.legendItem}>
+        {/* Mini plaque — identical to the map's selectable place token
+            and to the ganove legend swatch. */}
+        <svg width="14" height="14" aria-hidden="true">
+          <circle cx="7" cy="7" r="6" className={shared.legendTargetRing} />
+          <circle cx="7" cy="7" r="4.4" className={shared.legendTargetDot} />
+          <circle cx="7" cy="7" r="2.9" className={shared.legendTargetInner} />
+        </svg>
+        {t("legend.target")}
       </span>
       <span className={shared.legendItem} data-testid="legend-zones">
         {t("legend.zone")}: {zones.join(" · ")}

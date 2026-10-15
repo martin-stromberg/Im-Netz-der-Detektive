@@ -1,12 +1,41 @@
-/* Dark detective-noir theme for the shared SVG map. Shapes, glyphs and
- * stroke patterns carry the semantics — colour is never the only cue. */
+/* Parchment board theme for the shared SVG map — a vintage city plan
+ * printed on paper, framed by cardboard and lying on the dark table.
+ * Shapes, glyphs and stroke patterns carry the semantics — colour is
+ * never the only cue. All inks are the dark `--color-map-*` tokens from
+ * theme.css, calibrated for WCAG AA against `--color-paper`. */
 .map {
   display: block;
   width: 100%;
   height: auto;
-  background: #10141c;
-  border: 1px solid #2a3240;
-  border-radius: 8px;
+  box-sizing: border-box; /* the 7px cardboard rim counts into the width */
+  background: var(--color-paper);
+  /* Multi-stage rim: dark outer edge ring, cardboard band, and the
+     paper seam drawn inside the svg (`boardSeam`). */
+  border: 7px solid var(--color-cardboard);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 3px var(--color-cardboard-edge),
+    var(--shadow-board);
+}
+
+/* Board face layers — painted beneath every data layer, decor only. */
+.boardFace {
+  pointer-events: none;
+}
+
+.boardPaper {
+  fill: var(--color-paper);
+}
+
+.boardGrain {
+  fill: #fff; /* opaque source alpha so the noise clips to the face */
+}
+
+.boardSeam {
+  fill: none;
+  stroke: var(--color-cardboard);
+  stroke-width: 2.5;
+  stroke-opacity: 0.55;
 }
 
 /* Nothing inside the map may intercept pointer events except the
@@ -18,33 +47,61 @@
   pointer-events: none;
 }
 
+/* Routes read as drawn map paths — the classic cased-line technique:
+   a wide dark ink casing (edgeCasing) underneath a bright paper core
+   (edge) that carries the data-* contract. `weg` keeps a solid paper
+   core (a surfaced road); `fahrt` swaps the core for butt-capped paper
+   sleepers on a wider, stronger track bed. Pattern + width + colour
+   carry the type — never colour alone. */
+.edgeCasing {
+  stroke: var(--color-map-weg);
+  stroke-width: 4.6;
+  stroke-linecap: round;
+}
+
+.edgeCasingFahrt {
+  stroke: var(--color-map-fahrt);
+  stroke-width: 6;
+}
+
+/* Blocked routes: the casing bleaches to the muted blocked ink. */
+.edgeCasingBlocked {
+  stroke: var(--color-map-blocked);
+  stroke-opacity: 0.55;
+}
+
 .edge {
-  stroke: #4a5568;
-  stroke-width: 2;
+  stroke: var(--color-paper);
+  stroke-width: 2.2;
+  stroke-linecap: round;
 }
 
+/* weg core: solid paper fill inside the sepia casing (surfaced road). */
 .edgeWeg {
-  stroke: #4a5568;
+  stroke: var(--color-paper);
 }
 
-/* fahrt: thicker, dashed — a fast but predictable axis. */
+/* fahrt core: paper sleepers across the track bed — butt caps make the
+   dashes rectangular, reading as a rail/coach route rather than dots. */
 .edgeFahrt {
-  stroke: #7a6a4f;
-  stroke-width: 3.5;
-  stroke-dasharray: 10 5;
+  stroke-width: 3.4;
+  stroke-dasharray: 3 4.5;
+  stroke-linecap: butt;
 }
 
-/* Blocked edges are greyed AND shape-marked by a crossed barrier. */
+/* Blocked edges keep a recognisable pattern: the core breaks into
+   short interrupted strokes (a severed road), the casing fades and the
+   cross glyph marks the barrier — shape, not just colour. Declared
+   after `.edgeFahrt` so the broken-core pattern wins on fahrt edges. */
 .edgeBlocked {
-  stroke: #3a3f4a;
-  stroke-opacity: 0.5;
-  stroke-dasharray: 4 4;
+  stroke-opacity: 0.9;
+  stroke-dasharray: 1.6 3.2;
 }
 
-/* Fresh block flashes amber so the umwelt event is seen, not just
-   read in the intel feed. */
+/* Fresh block flashes in dark amber so the umwelt event is seen, not
+   just read in the intel feed. */
 .edgeFlash {
-  stroke: #f5d76e;
+  stroke: var(--color-map-accent);
   stroke-width: 3.5;
   animation: edge-flash 3400ms ease-out;
 }
@@ -70,19 +127,47 @@
 }
 
 .blockGlyph line {
-  stroke: #d98c8c;
+  stroke: var(--color-map-danger);
   stroke-width: 2.5;
   stroke-linecap: round;
 }
 
-.nodeDot {
-  fill: #c8d0dc;
-  stroke: #10141c;
-  stroke-width: 1.5;
+/* Place token = printed plaque: a soft drop shadow, a framed rim
+   (Fassung), an embossed face (radial gradient from <defs>, applied as
+   a fill attribute so state rules below can override it) and an
+   engraved inner ring — reads like a card medallion on the board.
+   The token never catches input itself — the invisible hit area owns
+   pointer events (`.map :where` covers the children too). */
+.nodeToken {
+  pointer-events: none;
+}
+
+.tokenShadow {
+  fill: var(--color-ink);
+  fill-opacity: 0.22;
+}
+
+.tokenRim {
+  fill: var(--color-paper-aged);
+  stroke: var(--color-ink);
+  stroke-width: 1.6;
+}
+
+/* Base fill is the url(#…-tokenFace) attribute in the markup — no CSS
+   fill here, or it would always win over the gradient. */
+.tokenFace {
+  stroke: none;
+}
+
+.tokenInner {
+  fill: none;
+  stroke: var(--color-ink-soft);
+  stroke-width: 0.9;
+  stroke-opacity: 0.7;
 }
 
 .nodeLabel {
-  fill: #8a94a6;
+  fill: var(--color-ink);
   font-size: 10px;
   pointer-events: none;
   user-select: none;
@@ -100,39 +185,50 @@
   cursor: pointer;
 }
 
-.nodeInteractive:focus-visible .nodeDot {
-  stroke: #f5d76e;
+/* Focused place: solid amber ring on the rim (form + colour). */
+.nodeInteractive:focus-visible .tokenRim {
+  stroke: var(--color-map-accent);
   stroke-width: 3;
+  stroke-dasharray: none;
 }
 
-.nodeLegal .nodeDot,
-.nodeSelectable .nodeDot {
-  fill: #7fd4a8;
+/* Legal/selectable places: perforated stamp-edge rim in legal green —
+   shape (dash) + colour together, mirroring the dashed legalRing and
+   the legend swatch. */
+.nodeLegal .tokenRim,
+.nodeSelectable .tokenRim {
+  stroke: var(--color-map-legal);
+  stroke-width: 2;
+  stroke-dasharray: 2.4 1.2;
 }
 
-.nodeInteractive:hover .nodeDot {
-  fill: #a8e8c8;
+.nodeInteractive:hover .tokenFace {
+  fill: var(--color-map-legal-hover);
 }
 
 .legalRing {
   fill: none;
-  stroke: #7fd4a8;
+  stroke: var(--color-map-legal);
   stroke-width: 1.5;
   stroke-dasharray: 3 3;
 }
 
-.nodeCurrentTarget .nodeDot {
-  stroke: #f5d76e;
+.nodeCurrentTarget .tokenRim {
+  stroke: var(--color-map-accent);
   stroke-width: 3;
 }
 
-.nodeGanoveHere .nodeDot {
-  fill: #e8b45a;
+.nodeGanoveHere .tokenFace {
+  fill: var(--color-map-ganove);
+}
+
+.nodeGanoveHere .tokenInner {
+  stroke: var(--color-paper);
 }
 
 .escapeMarker {
   fill: none;
-  stroke: #7fb8d4;
+  stroke: var(--color-map-escape);
   stroke-width: 1.6;
 }
 
@@ -142,24 +238,26 @@
 }
 
 .mission_diebstahl {
-  stroke: #e8b45a;
+  stroke: var(--color-map-ganove);
 }
 
 .mission_kontakt {
-  stroke: #b48ad4;
+  stroke: var(--color-map-pin);
 }
 
 .mission_sabotage {
-  stroke: #d98c8c;
+  stroke: var(--color-map-danger);
 }
 
 .mission_flucht {
-  stroke: #7fb8d4;
+  stroke: var(--color-map-escape);
 }
 
 /* Positions are placed via inline CSS `transform` so piece movement
    glides along the edge instead of teleporting — the detective-phase
-   step delay in the driver gives each hop its own beat. */
+   step delay in the driver gives each hop its own beat. The transition
+   sits on the marker wrapper; the meeple glyphs inside style
+   themselves (boardPieces.module.css). */
 .markerMove {
   transition: transform 480ms cubic-bezier(0.25, 0.8, 0.3, 1);
 }
@@ -170,24 +268,10 @@
   }
 }
 
-.detectiveMarker .detectiveShape {
-  fill: #3d5a80;
-  stroke: #9db8d9;
-  stroke-width: 1.4;
-}
-
-/* The detective currently on the move — brighter fill plus an amber
-   outline (form and colour both change). */
-.detectiveActive .detectiveShape {
-  fill: #5a7db0;
-  stroke: #f5d76e;
-  stroke-width: 2.2;
-}
-
 /* Zone halo behind the node dot — a soft fill ring per zone; the
    legend names each zone so colour is not the only cue. */
 .zoneHalo {
-  fill-opacity: 0.16;
+  fill-opacity: 0.22;
   stroke: none;
 }
 
@@ -202,45 +286,31 @@
    still occupy — distinct shape from the dashed legal-target circle. */
 .possibleRing {
   fill: none;
-  stroke: #d4a94f;
+  stroke: var(--color-map-possible);
   stroke-width: 1.8;
 }
 
 /* Squad camera glyph — only rendered in the detective perspective.
    Inactive cameras are shown struck through (form, not just colour). */
 .cameraBody {
-  fill: #243050;
-  stroke: #9db8d9;
+  fill: var(--color-detective);
+  stroke: var(--color-map-detective-stroke);
   stroke-width: 1.2;
 }
 
 .cameraLens {
-  fill: #9db8d9;
+  fill: var(--color-map-detective-stroke);
 }
 
 .cameraStrike {
-  stroke: #d98c8c;
+  stroke: var(--color-map-danger);
   stroke-width: 1.8;
   stroke-linecap: round;
 }
 
 /* Player-set marker pin (detective deduction tool). */
 .markerPin path {
-  fill: #b48ad4;
-  stroke: #10141c;
+  fill: var(--color-map-pin);
+  stroke: var(--color-ink);
   stroke-width: 1;
-}
-
-.ganoveMarker .ganoveShape {
-  fill: #e8b45a;
-  stroke: #10141c;
-  stroke-width: 1.4;
-}
-
-.markerText {
-  fill: #eaf0f8;
-  font-size: 9px;
-  font-weight: 700;
-  pointer-events: none;
-  user-select: none;
 }

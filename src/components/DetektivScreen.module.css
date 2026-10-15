@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #8a94a6;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
@@ -26,22 +26,22 @@
 }
 
 .status_erledigt {
-  color: #7fd4a8;
+  color: var(--color-green);
 }
 
 .status_aktuell {
-  color: #f5d76e;
+  color: var(--color-amber-bright);
   font-weight: 700;
 }
 
 .status_offen {
-  color: #8a94a6;
+  color: var(--color-text-muted);
 }
 
 .pool {
   margin-left: auto;
   font-size: 0.75rem;
-  color: #8a94a6;
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -55,21 +55,22 @@
 }
 
 .toolToggle input {
-  accent-color: #e8b45a;
+  accent-color: var(--color-amber);
   width: 16px;
   height: 16px;
 }
 
 .markerList {
   margin-top: 10px;
-  border-top: 1px solid #2a3240;
+  border-top: 1px solid var(--color-border);
   padding-top: 8px;
 }
 
 .markerHeading {
   margin: 0 0 6px;
+  font-family: var(--font-display);
   font-size: 0.85rem;
-  color: #9db8d9;
+  color: var(--color-detective-light);
 }
 
 .markers {
@@ -93,75 +94,95 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #c8d0dc;
+  color: var(--color-text-secondary);
   font-size: 0.85rem;
 }
 
+/* Recessed card slot — same inset treatment as the menu inputs. */
 .commentInput {
   flex: 1 1 auto;
   min-width: 0;
-  background: #10141c;
-  border: 1px solid #2a3240;
+  background: var(--color-inset-bg);
+  border: 1px solid var(--color-cardboard-edge);
   border-radius: 4px;
-  color: #eaf0f8;
+  color: var(--color-text);
   padding: 4px 6px;
   font-size: 0.8rem;
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 45%),
+    inset 0 0 0 1px var(--color-card-line);
 }
 
 .commentInput:focus-visible {
-  outline: 2px solid #f5d76e;
+  outline: 2px solid var(--color-amber-bright);
   outline-offset: 1px;
 }
 
+/* Small embossed marker-removal chip — surface gradient + shadow like
+   the shared buttons, danger text keeps the destructive coding. */
 .removeButton {
   flex: 0 0 auto;
-  background: none;
-  border: 1px solid #3a3f4a;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-hover) 0%,
+    var(--color-surface-raised) 60%,
+    var(--color-surface-deep) 100%
+  );
+  border: 1px solid var(--color-edge-blocked);
   border-radius: 4px;
-  color: #d98c8c;
+  color: var(--color-danger);
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
   padding: 2px 7px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 9%),
+    0 1px 3px rgb(0 0 0 / 40%);
 }
 
 .removeButton:hover,
 .removeButton:focus-visible {
-  border-color: #d98c8c;
-  outline: none;
+  border-color: var(--color-danger);
+}
+
+/* Keyboard focus gets the same amber ring as the sibling .commentInput —
+   the danger border recolour alone is only a colour cue. */
+.removeButton:focus-visible {
+  outline: 2px solid var(--color-amber-bright);
+  outline-offset: 1px;
 }
 
 .roundBadge {
-  color: #e8b45a;
+  color: var(--color-amber);
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
 }
 
 /* Legend swatches — the same glyph shapes MapGraph renders. */
 .legendCameraBody {
-  fill: #243050;
-  stroke: #9db8d9;
+  fill: var(--color-detective);
+  stroke: var(--color-map-detective-stroke);
   stroke-width: 1.2;
 }
 
 .legendCameraLens {
-  fill: #9db8d9;
+  fill: var(--color-map-detective-stroke);
 }
 
 .legendPin {
-  fill: #b48ad4;
-  stroke: #10141c;
+  fill: var(--color-map-pin);
+  stroke: var(--color-ink);
   stroke-width: 1;
 }
 
 .legendDiamond {
   fill: none;
-  stroke: #d4a94f;
+  stroke: var(--color-map-possible);
   stroke-width: 1.8;
 }
 
 .legendCategory {
   fill: none;
-  stroke: #e8b45a;
+  stroke: var(--color-map-ganove);
   stroke-width: 1.6;
 }

@@ -15,6 +15,105 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
+**Brettspiel-Redesign — Schritt 8: Endabnahme & Polishing** (Projekt
+„Finales Brettspiel-Design"): Vollständiger Abnahme-Durchgang über alle
+Screens und Verträge — Design-Konsistenz (Legenden, Tokens, Figuren,
+Routen, Edelkarten, Tisch), Barrierefreiheit, Reduced Motion,
+`data-*`-Vertrag, Perspektiven-Filter, i18n-Parität und Build-Hygiene.
+Nachgebessert: `:focus-visible` zeigt jetzt auf **jedem** interaktiven
+Element einen sichtbaren bernsteinfarbenen Ring (Primär-Button,
+Zahlen-/Auswahlfelder, Marker-Entfernen-Chips — vorher nur
+Farbwechsel), und die `box-shadow`-Transition der Verfolgungs-Vignette
+respektiert jetzt `prefers-reduced-motion`. Die WCAG-Kontrasttabellen
+in `theme.css`/`GanoveScreen.module.css` dokumentieren zusätzlich das
+Input-Paar `#eaf0f8`/`#10141c` (16,1:1). Neuer E2E-Test in
+`e2e/design.spec.ts` prüft die Fokusringe per echtem Tastaturfokus —
+40/40 E2E, 617/617 Vitest (Coverage 91,4 %), alle Hook-Checks grün.
+
+Zuvor — **Schritt 7: Spieltisch** (Projekt
+„Finales Brettspiel-Design"): Alle zwölf Screens ruhen jetzt auf
+derselben dunklen Tischfläche — die `bg-noir`-Textur unter dem
+Tisch-Schleier (`--color-table-veil`/`--color-table-veil-edge`) mit
+Filz-Schimmer und Tischkanten-Vignette. In der Partie liegt das
+Geschehen in einer gerahmten Spieleinlage: Das Pergament-Brett steht
+mit seinem Schatten auf der vertieften Fläche, die Seitenleiste ist
+ein Kartenfach für die Edelkarten-Panels, die Rundenanzeige eine
+eingelassene Zählleiste. `.perspectiveToggle` ist jetzt eine
+Schalterplatte mit Messing-Segment (`--brass-face`), alle
+Bildflächen tragen den Kartenrand. Rein CSS — DOM, `data-*` und die
+900-px-Stapelung unverändert.
+
+Zuvor — **Schritt 6: Edelkarten-Panels** (Projekt
+„Finales Brettspiel-Design"): Alle UI-Flächen — Seitenleisten-Panels,
+Menü-Auswahlkarten, Statistik-Kacheln, Hinweis-/Bestätigungsboxen,
+Splash-Ansagen, Event-Banner und die `role="status"`-Pills für Hitze
+und Verfolgungsdruck — tragen jetzt dieselbe dunkle Spielkarten-
+Haptik: Kartonband-Rand (`--color-cardboard`), gravierte Innenlinie,
+dunkle Schnittkante, dezente Ecken-Prägung und zweistufiger
+Tischschatten — zentral definiert über die neuen Token-Listen
+`--card-face`/`--card-rim` in `src/theme.css`. Buttons wirken
+metallisch/embossed (Gradient + Innenlicht + Schatten), Eingabefelder
+als eingelassene Karten-Slots; Farbcodierungen, `data-*`-Attribute,
+Hover- und `:focus-visible`-Zustände bleiben unverändert —
+ausschließlich CSS-Änderungen, Kontraste ≥ WCAG AA dokumentiert.
+
+Zuvor — **Schritt 5: Routen** (Projekt
+„Finales Brettspiel-Design"): Die Verbindungen auf der `MapGraph`-Karte
+lesen jetzt wie gezeichnete Kartenwege — die klassische
+„cased line"-Technik legt eine dunkle Tinten-Fassung (`edgeCasing`)
+unter einen hellen Papierkern. Ein `weg` erscheint als befestigte
+Straße mit Sepia-Rand und durchgezogenem Kern, eine `fahrt` als
+kräftigere Trasse mit querliegenden Papier-Schwellen — Muster, Breite
+und Farbton tragen den Typ gemeinsam, nie die Farbe allein. Blockierte
+Routen bleichen aus, ihr Kern reißt auf und das rote Kreuz-Glyph
+(`data-block-glyph`) bleibt die Form-Kodierung; der `edgeFlash`-Puls
+respektiert weiterhin `prefers-reduced-motion`. `data-*`-Vertrag und
+Kanten-DOM bleiben unverändert; beide Legenden spiegeln die neue
+Zweistrich-Anatomie auf ihren Papierchips. Deterministisch: kein
+`Math.random()`, kein `feTurbulence`-Displacement.
+
+Zuvor — **Schritt 4: Spielfiguren**: Aus den flachen Positionsmarkern sind
+greifbare Meeple-Spielsteine geworden — das neue Modul
+`src/components/boardPieces.tsx` zeichnet stehende Figuren mit
+Körper-`radialGradient`, Schlagschatten und Sockel-Ellipse auf den
+Orts-Plaketten. Detektiv (aufrechte Silhouette + Index-Ziffer + Blau)
+und Ganove (Mantel-A-Linie + Fedora, ohne Ziffer) unterscheiden sich
+über Form, Farbe und Beschriftung; der aktive Detektiv pflanzt eine
+bernsteinfarbene Fahne auf seinen Sockel. `data-*`-Vertrag,
+`markerMove`-Gleiten (480 ms, respektiert `prefers-reduced-motion`)
+und die `translate`-Ankerung bleiben unverändert; beide Legenden
+zeigen Miniaturen derselben Figuren.
+
+Zuvor — **Schritt 3: Orts-Tokens**: Jeder Ort auf der `MapGraph`-Karte
+ist eine geprägte Plakette statt eines flachen Punktes —
+Schlagschatten, gefasster Rand, `radialGradient`-Volumenprägung und
+gravierte Innenlinie wie eine Kartenplakette auf dem Pergament-Brett.
+Wählbare Orte tragen einen perforierten grünen Rand plus gestrichelten
+Ring (Form + Farbe), der Tastaturfokus einen soliden Bernstein-Ring;
+beide Legenden zeigen dieselbe Miniatur-Plakette. `data-*`-Struktur,
+Hit-Area (r=14) und Pfeiltasten-Roaming bleiben unverändert.
+
+Zuvor — **Schritt 2: Brett-Materialität**: Die SVG-Stadtkarte liegt
+wie ein gedrucktes Spielbrett auf dem dunklen Tisch —
+Pergament-Grundfläche mit prozeduraler Papierkörnung
+(`feTurbulence`) und Vignette (`radialGradient`), kräftiger
+mehrstufiger Pappenrand und Schlagschatten. Alle Kartenfarben laufen
+über neue, auf das helle Papier kalibrierte `--color-map-*`-Tinten
+(WCAG AA); die Board-Geographie nutzt eine Vintage-Pergament-Palette;
+die Legenden zeigen ihre Zeichen auf Papier-Chips in exakt den
+Brettfarben.
+
+**Brettspiel-Redesign — Schritt 1: Design-Fundament**: Ein globales `src/theme.css` führt die komplette
+Noir-Palette als `:root`-Design-Tokens (`--color-*`) und ergänzt neue
+Brettspiel-Tokens für Pergament, Pappe, Tisch und Schatten — Grundlage
+für das „Pergament-Brett auf dunklem Tisch". Titel und Überschriften
+aller Bildschirme laufen in der lokal eingebetteten Schmuckschrift
+**IM Fell English** (SIL OFL, WOFF2 unter `src/assets/fonts/`,
+`src/assets/ASSETS.md`) — kein externer Font-Request zur Laufzeit;
+Fließtext bleibt Systemschrift. Alle CSS-Module konsumieren die Tokens
+per `var()`, die WCAG-AA-Kontrastpaarungen sind in `theme.css`
+dokumentiert.
+
 **Endabnahme & Polishing — ausbalanciert, vollständig illustriert, E2E in CI**
 (Entwicklungsschritt 14): Das Spiel ist nach KI-vs.-KI-Kalibrierung
 auf Münster **ausgewogen** (~48 % Ganoven-Siege über 400 Seeds, ~50 %

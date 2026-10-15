@@ -39,6 +39,26 @@ komplettes Löschen).
 `?mode=ganove`/`?mode=detektiv` bleiben als direkte Entwickler-Einstiege
 erhalten.
 
+## Spieltisch (Schritt 7)
+
+Alle Bildschirme — Hauptmenü, Karten-, Modus-, Einstellungs- und
+Missionswahl, Dev-Modus, Statistiken, Fortsetzen, Replay,
+Anwendungs-Einstellungen und beide Spielbretter — ruhen auf
+derselben dunklen Tischfläche. In der Partie liegt das Brett in
+einer gerahmten Spieleinlage mit Kartenfach-Seitenleiste und
+Zählleiste; auf schmalen Bildschirmen stapelt die Einlage weiter
+vertikal.
+
+## Endabnahme (Schritt 8)
+
+Das Design wurde abschließend über alle Bildschirme und Verträge
+geprüft: Legenden, Figuren, Tokens und Routen spiegeln die finale
+Formensprache, jede Statusinformation ist Form *und* Farbe, jeder
+Tastaturfokus trägt einen sichtbaren Ring, sämtliche Bewegungen
+respektieren die Reduced-Motion-Einstellung, und alle Assets
+(Schriftart IM Fell English, Rasterbilder) sind lokal eingebettet —
+dokumentiert in `src/assets/ASSETS.md`.
+
 ## Inhalt
 
 - [Beschreibung](beschreibung.md)

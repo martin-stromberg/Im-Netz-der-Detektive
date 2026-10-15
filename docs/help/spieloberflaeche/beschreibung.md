@@ -16,6 +16,67 @@ prozeduralen Geräuschkulisse ein: ein gestuftes Signal je
 Hitze-Stufen-Anstieg und eine dezente Polizeiaktivitäts-Kulisse in
 der Ganoven-Perspektive (erst nach der ersten Eingabe aktiv).
 
+**Erscheinungsbild:** Titel und Überschriften aller Bildschirme
+erscheinen in einer historisch angehauchten Schmuckschrift
+(IM Fell English, lokal im Spiel eingebettet — es werden keine
+Schriften aus dem Internet nachgeladen); der übrige Text bleibt in
+der gut lesbaren Systemschrift.
+
+**Spielbrett-Optik:** Die Stadtkarte liegt wie ein gedrucktes
+Brett auf dem dunklen Tisch — helle Pergamentfläche mit feiner
+Papierkörnung und dezent abgedunkelten, gealterten Rändern, eingerahmt
+von einer kräftigen Pappenkante mit Schlagschatten. Die städtische
+Geographie (Wasser, Parks, Schienen, Straßen, Häuserblöcke) bleibt in
+gedeckten Vintage-Farben lesbar; Ortsnamen, Wege, Sperrzeichen,
+Figuren und alle Markierungen sind in dunklen Tintenfarben gesetzt
+und bleiben damit auf dem hellen Papier kontraststark. Jeder Ort ist
+eine kleine geprägte Plakette mit eingefasstem Rand, Volumenprägung
+und dezentem Schatten — wie eine gedruckte Kartenplakette auf dem
+Brett. Die Spielfiguren stehen als greifbare Meeple mit
+Körpervolumen, Schlagschatten und Sockel auf den Plaketten: Detektive
+als blaue Stehendfiguren mit Trupp-Ziffer, der Ganove als
+Mantel-und-Fedora-Silhouette — Form, Farbe und Beschriftung wirken
+immer zusammen. Der jeweils ziehende Detektiv pflanzt eine
+bernsteinfarbene Fahne auf seinen Sockel. Die Verbindungen zwischen
+den Orten sind wie von Hand gezeichnete Kartenwege: ein **Weg** erscheint
+als helle Straße mit dunkler Sepia-Fassung, eine **Fahrt** als kräftigere
+Trasse mit hellen Quer-Schwellen — Breite, Muster und Farbton unterscheiden
+sich gemeinsam, nie nur die Farbe. Gesperrte Verbindungen bleichen aus,
+ihr Verlauf unterbricht sich und ein rotes Kreuz markiert die Sperre.
+Wählbare Orte erkennst du am perforierten grünen Rand plus
+gestricheltem Ring, den Tastaturfokus am soliden bernsteinfarbenen
+Fassungsring. Die Legende unter der Karte zeigt jedes Zeichen auf
+einem kleinen Papierchip, der exakt die Brettfarben wiedergibt.
+
+**Edelkarten-Optik:** Alle Begleitflächen des Spiels — die
+Seitenleisten-Panels, die Auswahl-Karten im Menü, die
+Statistik-Kacheln, Hinweis- und Bestätigungsboxen, die
+Ergebnis-Ansage und selbst die kleinen Status-Pillen für Hitze und
+Verfolgungsdruck — sehen aus wie dunkle, edle Spielkarten, die auf dem
+Tisch um das helle Brett herum liegen: ein Kartonband-Rand mit
+gravierter Innenlinie und dunkler Schnittkante, dezente Ecken-Prägung
+und ein weicher Schatten, als läge die Karte wirklich auf dem Tisch.
+Schaltflächen wirken wie geprägte Messing-Plättchen (leichter Glanz
+von oben, Schatten nach unten), Eingabefelder wie in die Karte
+eingelassene Vertiefungen. Überschriften stehen überall in der
+Schmuckschrift. Farb-Codierungen (Gefahrenrot, Stufenampel der
+Status-Pillen) und die Form-Sprache bleiben unverändert — Zustände
+sind weiterhin über Form *und* Farbe erkennbar, nie nur über Farbe.
+
+**Spieltisch-Optik:** Jeder Bildschirm ruht auf derselben dunklen
+Tischfläche — die vorhandene Nachtstadt-Textur unter einem warmen
+Filz-Schleier, der zum Rand hin in eine dunkle Tischkante
+vignettiert. In der Partie liegt das Spielgeschehen in einer
+gerahmten Spieleinlage: Das Pergament-Brett steht mit seinem
+Schlagschatten auf der vertieften Fläche, die Seitenleiste ist ein
+flaches Kartenfach, in dem die Edelkarten-Panels wie ein Stapel
+liegen, und die Runden-/Phasen-Anzeige sitzt als eingelassene
+Zählleiste auf dem Tischrand. Die kleinen Umschalter (z. B. Sprache,
+Replay-Perspektive) sind vertiefte Schalterplatten mit einem
+geprägten Messing-Segment, und alle Bildflächen (Titelbild,
+Karten- und Fallbilder) tragen den Kartenrand. Unter 900 px Breite
+stapelt die Einlage Brett und Kartenfach weiterhin übereinander.
+
 **Barrierefreiheit:** Farbe ist nirgends die einzige Information —
 Kantentypen tragen Strichmuster, Sperrungen ein Sperr-Glyph,
 Missionsarten verschiedene Formen, Kameras eine Durchstreichung,
@@ -23,7 +84,16 @@ die Hitze-Stufe Symbolbalken plus Klartext, und alle Status-Texte
 erfüllen WCAG-AA-Kontraste. Alles ist per Tastatur steuerbar: Tab +
 Eingabe überall, Pfeiltasten zum geometrischen Wandern zwischen den
 wählbaren Orten auf der Karte; Hinweise und Phasen werden über
-`role="alert"`/`aria-live` auch für Screenreader angesagt.
+`role="alert"`/`aria-live` auch für Screenreader angesagt. Das
+fokussierte Element trägt auf **jedem** Bedienelement — Schaltflächen,
+Karten, Zahlen- und Auswahlfeldern, den kleinen Entfernen-Chips der
+Markerliste und den Orten auf der Karte — einen sichtbaren
+bernsteinfarbenen Ring bzw. Fassungsrahmen (Endabnahme Schritt 8:
+überall ein echter Fokus-Ring, nie nur ein Farbwechsel). Bei
+aktivierter Reduced-Motion-Einstellung des Systems bleiben sämtliche
+Animationen *und* Übergänge aus — Banner, Figuren-Gleiten,
+Kanten-Aufblitzen, Ergebnis-Ansage und die Verfolgungs-Vignette
+erscheinen sofort im Endzustand.
 
 # Ganove-Modus — Beschreibung
 
@@ -40,10 +110,13 @@ anhand ihrer Hinweise einkreisen.
   Positionen — danach wählst du deinen Startpunkt aus den markierten,
   legalen Orten (mit Mindestabstand zu den Detektiven).
 - **Karte:** Die Stadtkarte zeigt alle Orte mit Klarnamen, Wege als
-  Linien und schnelle „Fahrten" als gestrichelte Linien, gesperrte
-  Straßen ausgegraut mit Sperrzeichen, die Detektive als nummerierte
-  Marker, deine eigene Position und deine Missionsziele als
-  Form-Symbole. Eine Legende unter der Karte erklärt alle Zeichen.
+  geränderte helle Straßen und schnelle „Fahrten" als breitere
+  Schwellen-Trassen, gesperrte
+  Straßen ausgeblichen mit unterbrochenem Verlauf und Sperrzeichen,
+  die Detektive als nummerierte
+  Meeple-Figuren, deine eigene Mantel-und-Fedora-Figur und deine
+  Missionsziele als Form-Symbole. Eine Legende unter der Karte erklärt
+  alle Zeichen.
 - **Ziehen:** In deinem Zug wählst du einen grün markierten
   Nachbarort — pro Zug genau eine Kante, Stehenbleiben ist nicht
   erlaubt. Danach ziehen die Detektive automatisch.
@@ -115,7 +188,8 @@ und den unsichtbaren Gegner deduktiv eingrenzen.
   Klarnamen und Ortskategorien (Diebstahl-/Kontakt-/Flucht-/Sabotage-
   Pool als Flaggensymbol), Zonen als farbige Grundflächen (Legende
   nennt die Zonennamen), Wege und Fahrten, gesperrte Straßen mit
-  Sperrzeichen, deine Detektive als nummerierte Marker und alle
+  Sperrzeichen, deine Detektive als nummerierte Meeple-Figuren (der
+  ziehende trägt eine Fahne) und alle
   Kameras — aktive als gefülltes Symbol, sabotierte gestrichen. Den
   Ganoven siehst du **nie**.
 - **Ziehen:** Die Detektive ziehen in fester Reihenfolge D1 → Dn;

@@ -1,5 +1,195 @@
 # Änderungsprotokoll
 
+## 2026-10-15 — Endabnahme & Polishing des Brettspiel-Designs (Schritt 8)
+
+- Vollständiger Audit-Durchgang über alle Screens und Verträge:
+  Design-Konsistenz, A11y (`:focus-visible`, Tab-Reihenfolge, Form+Farbe),
+  Reduced Motion, `data-*`-Selektor-Vertrag, Perspektiven-Filter
+  (`MapGraph`), i18n-Parität, Build/`dist`-Hygiene und `ASSETS.md` —
+  ohne weitere Befunde.
+- Nachbesserungen: `:focus-visible` auf `.primaryButton`
+  (`GanoveScreen.module.css`), `.numberInput`/`.selectInput`
+  (`Menu.module.css`) und `.removeButton` (`DetektivScreen.module.css`)
+  zeigt jetzt einen sichtbaren 2-px-Ring in `--color-amber-bright`
+  statt nur eines Farbwechsels; die `box-shadow`-Transition der
+  Verfolgungs-Vignette (`.mapArea::after`) ist jetzt ebenfalls unter
+  `prefers-reduced-motion` abgeschaltet.
+- Kontrast-Dokumentation ergänzt: `--color-text` auf `--color-inset-bg`
+  (16,1:1, Inset-Eingabefelder) in den Header-Tabellen von `theme.css`
+  und `GanoveScreen.module.css`.
+- Neuer E2E-Test `focus rings stay visible on interactive controls` in
+  `e2e/design.spec.ts` — Tastaturfokus verifiziert die Ringe auf Button,
+  Select, Number-Input und Entfernen-Chip.
+- Alle Gates grün: 617/617 Vitest (Lines-Coverage 91,44 %, Threshold
+  70 %), 40/40 Playwright-E2E, Lint/Format/Typecheck sauber, alle sechs
+  Git-Hook-Checks im `--all --strict`-Modus ohne Befund, `npm run build`
+  grün und `dist` ohne externe Laufzeit-Referenzen (Font lokal als
+  WOFF2 ausgeliefert).
+
+## 2026-10-15 — Spieltisch: alle Screens als gemeinsame Tisch-Komposition (Brettspiel-Redesign Schritt 7)
+
+- `.screen` (von allen zwölf Screens geteilt) ist jetzt die dunkle
+  Tischfläche: `bg-noir`-Textur unter einem ~90 %-deckenden Schleier
+  aus den neuen Tokens `--color-table-veil`/`--color-table-veil-edge`,
+  dazu warmer Filz-Schimmer und Tischkanten-Vignette;
+  `background-color: var(--color-table)`, `.shell` (Overscroll) in
+  `--color-table-edge`.
+- `.layout` (`.mapArea` + `.sidebar`) ist eine gerahmte Spieleinlage:
+  Pappenrand, dunkle Schnittkante, vertiefte Fläche — das
+  Pergament-Brett wirft seinen Brettschatten auf die Einlage;
+  `.sidebar` liest als vertieftes Kartenfach für die
+  Edelkarten-Panels, `.statusBar` als eingelassene Zählleiste.
+- Flache Reste entfernt: `.perspectiveToggle` ist eine eingelassene
+  Schalterplatte mit geprägtem Messing-Segment (neue Composite-Token
+  `--brass-face`, mit `.primaryButton` geteilt); `.cardImage` trägt
+  den Kartenrand (Titelbild, Karten- und Fallbilder).
+- Rein CSS (`theme.css`, `App.module.css`, `GanoveScreen.module.css`,
+  `Menu.module.css`): DOM-Hierarchie, `data-view`/`data-testid` und
+  die 900-px-Stapelung unverändert; Overlay-Stack
+  (EventBanner > Verfolgungs-Vignette > Splash > Brett) intakt.
+- Tests: zwei neue E2E-Tests in `e2e/design.spec.ts` (Tischfläche und
+  Controls sowie Einlage/Kartenfach/Overlay-Stack/Responsivität) —
+  617/617 Vitest, 39/39 Playwright grün.
+
+## 2026-10-15 — Edelkarten: Panels & UI-Flächen mit Kartenhaptik (Brettspiel-Redesign Schritt 6)
+
+- Alle UI-Flächen teilen die neue Edelkarten-Anatomie aus `theme.css`:
+  `--card-face` (fünfschichtiger Kartengrund mit dezenter
+  Ecken-Prägung und Karton-Schimmer) + `--card-rim` (gravierte
+  Innenlinie `--color-card-line` + dunkle Schnittkante
+  `--color-cardboard-edge`) + `--shadow-card` + `--radius-card` (10 px).
+- Umgestellt (nur CSS, keine `.tsx`-Änderung): `.panel`,
+  `.card`, `.statBox`, `.confirm` (Danger-Karte), `.notice`
+  (behält Danger-Leiste), `.splash`, `EventBanner .banner`,
+  `HeatBadge`/`PursuitBadge`-Pills (Level-Codierung unverändert),
+  `MissionPanel`-Modul und `DetektivScreen`-Inputs.
+- Buttons wirken metallisch/embossed (Gradient + Innenlicht +
+  Schatten); Farbcodierung, Texte, Hover- und `:focus-visible`-Regeln
+  unverändert. Inputs lesen sich als eingelassene Karten-Slots,
+  `.summaryTable` und `.perspectiveToggle` erhalten den Kartenrahmen.
+- Kontraste aller neuen Paarungen (≥ WCAG AA, schwächster Wert 5.6:1)
+  im `theme.css`-Header dokumentiert; Legenden-Swatches,
+  `data-*`-Attribute und Reduced-Motion-Regeln unverändert.
+- Tests: neuer E2E-Test in `e2e/design.spec.ts` prüft die
+  Computed-Style-Anatomie (Rand, Radius, Schatten-Stapel), den
+  Embossed-Button, die Badge-Pill und den Amber-Fokusring via
+  echtem Tastatur-Fokus — 37/37 Playwright-Tests grün.
+
+## 2026-10-15 — Routen: gezeichnete Kartenwege statt Drahtlinien (Brettspiel-Redesign Schritt 5)
+
+- Jede Kante in `MapGraph` (`<g data-edge>`) rendert jetzt zwei
+  übereinanderliegende `<line>` — die klassische
+  „cased line"-Kartentechnik: eine dekorative `edgeCasing`-Fassung
+  (`aria-hidden`, `stroke-linecap: round`) unter der semantischen
+  Kern-Linie, die weiterhin `data-edge-type`/`data-blocked` trägt.
+- `weg` liest als befestigte Straße (dunkle Sepia-Fassung
+  `--color-map-weg`, 4.6 px + heller Papierkern), `fahrt` als
+  kräftigere Trasse (breitere Fassung `--color-map-fahrt`, 6 px +
+  Papierkern als rechteckige Schwellen per `stroke-dasharray` mit
+  `linecap: butt`) — eigenes Muster statt bloß anderem Dasharray;
+  Typen unterscheiden sich über Muster + Form + Farbe.
+- Blockierte Kanten bleichen die Fassung (`edgeCasingBlocked`,
+  `--color-map-blocked`) und sprengen den Kern zu Unterbrechungen
+  (`edgeBlocked` nach `.edgeFahrt` deklariert); das rote
+  `data-block-glyph`-Kreuz bleibt die Form-Kodierung, `edgeFlash`
+  (Amber-Puls, `prefers-reduced-motion`-fest) unverändert.
+- Deterministisch und performant: kein `Math.random()`, kein
+  `feTurbulence`-Displacement; `pointer-events: none` unverändert.
+- `MapLegend`/`DetectiveMapLegend` spiegeln die Zweistrich-Anatomie
+  (`legendWegCasing`/`legendFahrtCasing` + Kern-Linien) — keine neuen
+  sichtbaren Strings.
+- Tests: drei neue Vitest-Fälle (Casing-Struktur, blockierte Fassung,
+  Legenden-Mirror beider Legenden) und ein E2E-Test in
+  `e2e/design.spec.ts` (Computed Styles, Schwellen-Muster,
+  Reduced-Motion-Regel für `edgeFlash`).
+
+## 2026-10-15 — Spielfiguren: Meeple-Spielsteine statt flacher Marker (Brettspiel-Redesign Schritt 4)
+
+- Neues Modul `src/components/boardPieces.tsx` (+ `boardPieces.module.css`)
+  liefert stehende Meeple-Glyphen nach `landmarks.tsx`-Konvention:
+  Fußpunkt am Ursprung, `aria-hidden`, `useId`-`radialGradient` für das
+  Körpervolumen, `pieceShadow`-Schlagschatten und `pieceBase`-Sockel.
+- Detektiv und Ganove unterscheiden sich über Silhouette + Farbe +
+  Beschriftung: aufrechte Figur mit `pieceIndex`-Ziffer (D1..Dn) in
+  Blau versus Mantel-A-Linie mit Fedora (`pieceHat`, `pieceHatBand`)
+  und `pieceFace`-Schatten in Amber/Dunkel — Farbe nie alleinig.
+- `MapGraph` ersetzt `detectiveMarker`-`rect` und `ganoveMarker`-Raute
+  durch die Figuren; `data-detective`/`data-active-detective`/
+  `data-ganove`, die `translate(x, y-16)`-Ankerung und die
+  `markerMove`-Gleit-Transition (480 ms, `prefers-reduced-motion`-fest)
+  bleiben unverändert; kein Info-Leak (`ganovePosition` weiterhin nur
+  Ganove-Perspektive).
+- Der aktive Detektiv pflanzt eine `pieceActiveMark`-Fahne
+  (`pieceFlag`/`pieceFlagPole` in `--color-map-accent`) samt
+  `pieceActiveBase`-Sockelring — Hervorhebung per Form + Farbe.
+- `MapLegend` und `DetectiveMapLegend` zeigen Miniaturen derselben
+  Figuren (`scale(0.5)`, ohne Ziffer); die Klassen `legendDetective`/
+  `legendGanove` und alle alten Marker-Regeln entfallen.
+- Tests: sechs neue „board pieces"-Tests + zwei Legenden-Tests in
+  `MapGraph.test.tsx`; ein E2E-Test in `e2e/design.spec.ts` (Computed
+  Styles, Transition, Reduced-Motion, Amber-Fahne, Legenden-Mirror).
+
+## 2026-10-15 — Orts-Tokens: Orte als geprägte Plaketten statt Punkte (Brettspiel-Redesign Schritt 3)
+
+- `MapGraph` rendert jeden Ort als `nodeToken`-Plakette:
+  `tokenShadow`-Schatten, eingefasster `tokenRim` (r=8), geprägte
+  `tokenFace` via neuem `radialGradient` `{defsId}-tokenFace` in `<defs>`
+  (`useId`-Muster) und gravierte `tokenInner`-Linie — der flache
+  `nodeDot`-Kreis entfällt.
+- Zustände als Form + Farbe: `nodeLegal`/`nodeSelectable` (inkl.
+  markierbarer Orte) perforieren die Fassung in Legal-Grün; der
+  gestrichelte `legalRing` gilt jetzt für jede wählbare Stelle;
+  `:focus-visible` und `nodeCurrentTarget` setzen den soliden
+  Amber-Fassungsring, `nodeGanoveHere` färbt die Token-Fläche.
+- Testvertrag unverändert: alle `data-*`-Attribute, Hit-Area r=14
+  (allein pointer-sensitiv), Overlay-Positionen und das
+  Pfeiltasten-Roaming bleiben erhalten.
+- Legenden spiegeln die Token-Form: `MapLegend`-Swatch zur
+  Mini-Plakette umgebaut, `DetectiveMapLegend` um das identische
+  Orts-Swatch (`legend.target`) erweitert.
+- Tests: sechs neue Vitest-Assertions (Token-Anatomie, Hit-Area,
+  Ring-Konsistenz, Gradient-Auflösung, Legenden-Spiegel beider
+  Perspektiven) und ein E2E-Test in `e2e/design.spec.ts` (geprägte
+  Plaketten im Browser inkl. `:focus-visible`-Ring).
+
+## 2026-10-15 — Brett-Materialität: Pergament-Fläche, Pappenrand, Tischschatten (Brettspiel-Redesign Schritt 2)
+
+- `MapGraph` erhält eine dekorative Brettfläche als erstes SVG-Kind:
+  `<defs>` mit `feTurbulence`-Papierkörnung und `radialGradient`-
+  Vignette plus `boardFace`-Gruppe (Papier, Körnung, Vignette,
+  Papierschnitt); `useId`-basierte IDs für die zwei Replay-Instanzen.
+- `.map` (`MapGraph.module.css`) wirkt als physisches Brett:
+  `--color-paper`-Grund, 7-px-`--color-cardboard`-Rand,
+  `--color-cardboard-edge`-Außenring und `--shadow-board`-Schlagschatten
+  via `box-shadow`; `box-sizing: border-box` gegen Überlauf.
+- Neue dunkle Karten-Tinten `--color-map-*` in `theme.css` (mit
+  dokumentierten Kontrasten gegen `--color-paper`); alle Kartenfarben —
+  Ortslabels, Kanten, Blockade-Kreuz, Kategorien, Zonen-Halos,
+  Kameras, Marker, Legenden — auf papier-taugliche Werte umgestellt;
+  `--color-feature-*`-Palette auf Vintage-Pergament-Geographie
+  umgetönt.
+- Legenden-Swatches beider Perspektiven auf Papier-Chips
+  (`.legendItem svg`) mit denselben Map-Tokens wie das Brett.
+- Tests: drei neue `MapGraph`-Assertions (Brettfläche/Layer-Position,
+  ID-Eindeutigkeit, `data-layer`-Reihenfolge) und ein E2E-Test in
+  `e2e/design.spec.ts` (Computed Styles + Label-Kontrast).
+
+## 2026-10-15 — Design-Fundament: Theme-Tokens und Schmuckschrift (Brettspiel-Redesign Schritt 1)
+
+- Neues globales Stylesheet `src/theme.css` (Import in `src/main.tsx`):
+  alle Farben als `:root`-Custom-Properties (`--color-*`), dazu neue
+  Brettspiel-Tokens für Papier, Pappe, Tisch und Schatten sowie
+  `--font-display`; dokumentierte WCAG-AA-Kontrastpaarungen.
+- Schmuckschrift „IM Fell English" (SIL OFL) lokal als WOFF2 unter
+  `src/assets/fonts/` eingebettet und auf alle Titel/Überschriften
+  angewendet — kein externer Font-Request; Lizenz in
+  `src/assets/ASSETS.md` dokumentiert.
+- Alle CSS-Module (Shared-Theme `GanoveScreen.module.css` plus neun
+  weitere) auf `var()` umgestellt — Klassennamen, Struktur und
+  `data-*`-Attribute unverändert.
+- Neue E2E-Suite `e2e/design.spec.ts`: Schmuckschrift auf Titeln,
+  keine externen Font-Requests, aktive `:root`-Tokens.
+
 ## 2026-10-14 — i18n final, Barrierefreiheit und Audio-Dramaturgie (Schritt 13)
 
 - Laufzeit-Sprachumschaltung: `src/state/uiPrefs.ts` hält die

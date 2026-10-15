@@ -9,6 +9,210 @@ Diese Seite dokumentiert den Anwendungsrahmen und beide Spielmodi.
 `dev`, `stats`, `resume` und `replay`. `?mode=ganove|detektiv` bleibt
 als Deep-Link-Einstieg direkt in die Bildschirme erhalten.
 
+## Design-Fundament (Theming, Schritt 1 des Brettspiel-Redesigns)
+
+- `src/theme.css` ist das einzige globale Stylesheet (Import in
+  `src/main.tsx`). Es definiert auf `:root` alle Farben als Custom
+  Properties (`--color-*`), die Alpha-Varianten, die neuen
+  Brettspiel-Tokens (Papier, Pappe, Tisch, Schatten) sowie
+  `--font-display`; der Kopfkommentar dokumentiert die gemessenen
+  WCAG-AA-Kontrastpaarungen.
+- Die Schmuckschrift **IM Fell English** (SIL OFL) liegt als WOFF2
+  unter `src/assets/fonts/` und wird per `@font-face` eingebettet —
+  kein externer Font-Request zur Laufzeit. Sie wirkt über
+  `var(--font-display)` nur auf Überschriften (`.title`,
+  `.panelHeading`, `.heading`, `.cardTitle`, `.statHeading`,
+  `.markerHeading`); Fließtext bleibt Systemschrift.
+- Alle CSS-Module (`GanoveScreen.module.css` als Shared-Theme plus
+  `Menu`, `DetektivScreen`, `MissionPanel`, `EventBanner`, `HeatBadge`,
+  `PursuitBadge`, `MapGraph`, `MapBackdrop`, `App`) konsumieren die
+  Tokens per `var()` — Klassennamen, Struktur und `data-*`-Attribute
+  bleiben unverändert. Herkunft und Lizenz des Fonts sind in
+  `src/assets/ASSETS.md` dokumentiert.
+
+## Brett-Materialität (Pergament-Brett, Schritt 2 des Redesigns)
+
+- `MapGraph` rendert als erste Kinder des `<svg>` einen `<defs>`-Block
+  (prozedurale Papierkörnung: `feTurbulence`-Fraktalrauschen →
+  `feColorMatrix` auf Tinten-Alpha → `feComposite` geclippt auf die
+  Fläche; Vignette als `radialGradient` in `--color-ink`) und eine
+  dekorative `boardFace`-Gruppe (`boardPaper`-Grundfläche,
+  `boardGrain`, `boardVignette`, `boardSeam` als innere Papierkante —
+  ein CSS-`inset`-Schatten läge unter dem SVG-Inhalt). Die IDs werden
+  per `useId` instanziiert, da `ReplayScreen` zwei Karten in einem
+  Dokument montiert. `data-layer`-Reihenfolge, `data-*`-Attribute,
+  Hit-Areas und Props bleiben unverändert; die Gruppe liegt vor
+  `MapBackdrop` (`data-layer="board"`), damit auch Karten ohne
+  Board-Features (`teststadt`) die Papierfläche erhalten.
+- `.map` trägt den physischen Rahmen: `border` in `--color-cardboard`,
+  Außenring `0 0 0 3px var(--color-cardboard-edge)` und Drop-Shadow
+  `var(--shadow-board)` via `box-shadow`, plus
+  `box-sizing: border-box`, damit der Rand in die 100 %-Breite zählt.
+- Kartenfarben: die hellen Shared-Tokens bleiben den dunklen Panels
+  vorbehalten; `MapGraph.module.css` nutzt die neuen dunklen
+  `--color-map-*`-Tinten (Glyphen ≥ ~3.8:1, Label `--color-ink`
+  11.6:1 gegen `--color-paper`; Kontrasttabelle im Kommentarblock von
+  `theme.css`). `MapBackdrop` bekommt die Pergament-Geographie über
+  die umgestellten `--color-feature-*`-Tokens. Zonen-Halos laufen auf
+  `hsl(zoneHue 55% 45%)` mit `fill-opacity: 0.22`.
+- Die Legenden-Swatches beider Perspektiven sitzen auf Papier-Chips
+  (`.legendItem svg` mit `--color-paper`-Hintergrund und
+  `--color-cardboard`-Rand) und verwenden dieselben
+  `--color-map-*`-Tokens wie die Karte — Legende und Brett stimmen
+  farblich überein.
+- `prefers-reduced-motion` unverändert; keine neuen Animationen.
+
+## Orts-Tokens (Plaketten, Schritt 3 des Redesigns)
+
+- Der flache `nodeDot`-Kreis (r=8) ist durch eine `nodeToken`-Gruppe in
+  `MapGraph` ersetzt: `tokenShadow`-Ellipse (Tinte, `fill-opacity` 0.22,
+  leicht nach unten versetzt), `tokenRim` (r=8, `--color-paper-aged`-
+  Füllung, `--color-ink`-Fassung), `tokenFace` (r=6.2,
+  `fill="url(#{defsId}-tokenFace)"`) und `tokenInner` (r=4, feine
+  `--color-ink-soft`-Gravurlinie). Die gesamte sichtbare Geometrie bleibt
+  kleiner als die unveränderte Hit-Area r=14; die Token-Gruppe ist
+  `aria-hidden` und pointer-inert (`.map :where(...)` deckt ab, explizit
+  `pointer-events: none` auf `.nodeToken`).
+- Die Prägung ist ein dritter `radialGradient` `{defsId}-tokenFace` im
+  bestehenden `<defs>`-Block (`useId`-ID-Präfix, Stops via
+  `style`-`stopColor` auf `var(--color-paper)` → `var(--color-paper-aged)`).
+  `tokenFace` trägt die `url()`-Füllung als **Attribut** (nicht als CSS) —
+  so können Zustandsregeln (`hover`, `nodeGanoveHere`) per CSS-`fill`
+  die Gradientenfüllung überlagern.
+- Zustände wandern von `nodeDot` auf die Fassung: `nodeLegal`/
+  `nodeSelectable` (inkl. `data-markable`) perforieren den Rand
+  (`stroke-dasharray`) in `--color-map-legal`; `nodeCurrentTarget` und
+  `:focus-visible` setzen den soliden `--color-map-accent`-Ring auf
+  `tokenRim`; `nodeGanoveHere` färbt `tokenFace`. Der gestrichelte
+  `legalRing` (r=12) gilt jetzt für jede wählbare Stelle (`interactive`:
+  legal, spawn, markierbar) — gleiche Form = gleiche Bedeutung.
+- `MapLegend` (Ganove) und `DetectiveMapLegend` (Detektiv) zeigen die
+  Miniatur-Plakette (`legendTargetRing` + `legendTargetDot` perforiert +
+  `legendTargetInner`); die Detektiv-Legende erhielt das Orts-Swatch neu
+  mit dem vorhandenen i18n-Key `legend.target`.
+- Testvertrag unverändert: alle `data-*`-Attribute, Hit-Area r=14,
+  Overlay-Positionen (`zoneHalo` r=13, `possibleRing`, `categoryBadge`,
+  `cameraGlyph`, `markerPin`, `escapeMarker`, `missionBadge`,
+  `nodeLabel`) und das Pfeiltasten-Roaming sind unberührt; neue Tests:
+  Token-Struktur/Hit-Area/Ring-Konsistenz/Gradient-Auflösung in
+  `MapGraph.test.tsx`, Legenden-Spiegel-Tests („Map legend swatches")
+  und ein E2E-Test in `e2e/design.spec.ts` (Browser-`url(#)`-Füllung,
+  Schatten, Swatch, `:focus-visible`-Ring via echter Tab-Fokussierung).
+
+## Spielfiguren (Meeple, Schritt 4 des Redesigns)
+
+- `src/components/boardPieces.tsx` liefert die Figuren-Glyphen nach
+  der `landmarks.tsx`-Konvention: lokale Glyph-Box mit Fußpunkt am
+  Ursprung, `aria-hidden`/`focusable="false"`, `data-piece`-Attribut.
+  `DetectivePiece` (`index?`, `active?`) zeichnet die aufrechte
+  Meeple-Silhouette (Torso + `pieceHead`-Kopf, Revers-`pieceDetail`,
+  `pieceIndex`-Ziffer) und `GanovePiece` die Mantel-A-Linie mit
+  Fedora (`pieceHat` Krone+Krempe, `pieceHatBand`) und
+  `pieceFace`-Schatten — ohne Ziffer. Jede Figur besteht aus
+  `pieceShadow`-Schlagschatten, `pieceBase`-Sockel und dem mit
+  `fill="url(#…-body)"` volumengefüllten `pieceBody`; die
+  `radialGradient`-IDs erzeugt `useId` je Instanz (eindeutig über
+  alle Detektive und Doppel-Mounts hinweg).
+- `MapGraph` rendert im `markers`-Layer weiterhin das Wrapper-`<g>`
+  mit Inline-`transform` (`translate(x, y - 16)`),
+  `markerMove`-Transition (480 ms, bei `prefers-reduced-motion`
+  abgeschaltet), `data-detective`/`data-active-detective`/
+  `data-ganove` und `aria-label` — darin sitzt jetzt die Figur statt
+  des flachen `rect`/der Raute; die alten Klassen (`detectiveShape`,
+  `ganoveShape`, `markerText`, `legendDetective`, `legendGanove`)
+  sind entfernt.
+- `active` auf `DetectivePiece` ergänzt die `pieceActiveMark`-Fahne
+  (`pieceFlagPole` + `pieceFlag` in `--color-map-accent`) und den
+  `pieceActiveBase`-Sockelring — Form + Amber-Akzent, nie nur Farbe.
+- `MapLegend` und `DetectiveMapLegend` betten dieselben Komponenten
+  skaliert (`scale(0.5)`) als Miniaturen ein — ohne Ziffer; die
+  Detektiv-Legende zeigt weiterhin keinen Ganoven.
+- Neue Tests: Suite „board pieces" in `MapGraph.test.tsx` (Anatomie,
+  Silhouetten-Unterschied, Fahne, `url(#…)`-Auflösung,
+  ID-Eindeutigkeit, `markerMove`) plus Legenden-Miniatur-Tests; ein
+  E2E-Test in `e2e/design.spec.ts` prüft Computed Styles, die
+  480-ms-Transition, Reduced-Motion und die Amber-Fahne.
+
+## Routen (Kartenwege, Schritt 5 des Redesigns)
+
+- Jede Kante in `<g data-edge>` rendert jetzt zwei übereinanderliegende
+  `<line>`: eine dekorative `edgeCasing`-Fassung (`aria-hidden`, vor der
+  Kern-Linie, breit, `stroke-linecap: round`) und darüber die
+  semantische Kern-Linie mit unverändertem `data-edge-type`/
+  `data-blocked`-Vertrag — die klassische „cased line"-Kartentechnik
+  (dunkler Tintenrand + heller Papierkern in `--color-paper`).
+- `weg`: Fassung in `--color-map-weg` (4.6 px) + durchgezogener
+  Papierkern (2.2 px) — eine befestigte Straße. `fahrt`: breitere
+  Fassung in `--color-map-fahrt` (6 px) + Papierkern als
+  `stroke-dasharray`-Schwellen mit `stroke-linecap: butt` — ein
+  eigenes Trassenmuster statt eines bloß anderen Strichelmusters.
+- Blockierte Kanten: `edgeCasingBlocked` bleicht die Fassung zu
+  `--color-map-blocked` (Opazität 0.55), `edgeBlocked` sprengt den Kern
+  zu kurzen Unterbrechungen (`1.6 3.2`, deklariert nach `.edgeFahrt`,
+  damit es das Schwellen-Muster übersteuert); das rote
+  `data-block-glyph`-Kreuz bleibt die Form-Kodierung.
+- `edgeFlash` bleibt unverändert auf der Kern-Linie
+  (`--color-map-accent`, Opazitäts-Puls 3400 ms,
+  `prefers-reduced-motion`-Abschaltung) — Amber auf dunkler Fassung
+  bleibt der Aufmerksamkeits-Cue.
+- `MapLegend` und `DetectiveMapLegend` spiegeln die Zweistrich-Anatomie:
+  `legendWegCasing`/`legendFahrtCasing` vor `legendWeg`/`legendFahrt`
+  auf dem Papierchip — keine neuen sichtbaren Strings.
+- Deterministisch und performant: kein `Math.random()`, kein
+  `feTurbulence`-Displacement; `pointer-events: none` der Karte bleibt.
+- Neue Tests: Casing-Struktur/Malreihenfolge/`aria-hidden`,
+  `edgeCasingFahrt`, blockierte Fassung in `MapGraph.test.tsx`;
+  Legenden-Zweilinien-Mirror in beiden Legenden; ein E2E-Test in
+  `e2e/design.spec.ts` prüft Computed Styles (Fassungs-Breite/-Farbe,
+  Kern, Schwellen-Dasharray, `butt`-Caps), den Legenden-Mirror und die
+  Reduced-Motion-Regel für `edgeFlash` via Stylesheet-Scan.
+
+## Panels & UI-Flächen (Edelkarten, Schritt 6 des Redesigns)
+
+- Alle UI-Flächen teilen jetzt die **Edelkarten-Anatomie** — die
+  zentralen Token-Listen `--card-face` und `--card-rim` in `theme.css`:
+  `--card-face` liefert die fünfschichtige Kartenfläche (dezente
+  Ecken-Prägung: Licht-Reflexe oben, Schattierung unten, plus
+  Karton-Schimmer-Gradient `--color-card-face-top` →
+  `--color-panel-bg`); `--card-rim` liefert den zweistufigen Rand
+  (gravierte Innenlinie `--color-card-line` + dunkle Schnittkante
+  `--color-cardboard-edge`). Verwendung überall gleich:
+  `border: 1px solid var(--color-cardboard)` +
+  `box-shadow: var(--card-rim), var(--shadow-card)` +
+  `border-radius: var(--radius-card)` (10 px — Einheitsradius der
+  Kartenfamilie; Controls bleiben 6 px, Badges bleiben 999-px-Pills).
+- Anatomie-Träger: `.panel`/`MissionPanel .panel`, `.card`, `.statBox`,
+  `.confirm`, `.notice` (behält die 4-px-Danger-Leiste als Form-Cue),
+  `.splash` (tieferer Floating-Schatten), `EventBanner .banner`
+  (`.tone_alarm` färbt weiter den Rand — später deklariert) sowie die
+  `role="status"`-Pills `HeatBadge`/`PursuitBadge` (kleinerer Schatten,
+  Level-Farbcodierung inkl. kritischer Randfärbung unverändert).
+- Buttons wirken metallisch/embossed: `linear-gradient`-Fläche +
+  `inset 0 1px 0`-Toplicht + `inset 0 -1px 0`-Bodenschatten +
+  Drop-Shadow (`primaryButton` Amber-Gradient bis `--color-amber-deep`,
+  `secondaryButton`/`choiceButton`/`removeButton` bis
+  `--color-surface-deep`, `dangerButton` bis
+  `--color-danger-surface-deep`). Farbcodierung, Text und alle
+  Hover-/`:focus-visible`-Regeln sind unverändert — die Kontrast-
+  Worst-Stops sind im `theme.css`-Header dokumentiert (≥ 5.6:1).
+- Inputs lesen sich als eingelassene Karten-Slots:
+  `.numberInput`/`.selectInput`/`.commentInput` auf `--color-inset-bg`
+  mit innerem Schatten; `.summaryTable` trägt Cardboard-Rand +
+  `--shadow-card` + Inset-Headerzeile; `.perspectiveToggle` bekommt
+  den Cardboard-Rahmen; `Menu .badge` eine Mini-Prägung.
+- Neue Tokens: `--color-card-face-top`, `--color-card-line`,
+  `--color-amber-deep`, `--color-surface-deep`,
+  `--color-danger-surface-deep`, `--shadow-card`, `--radius-card`,
+  `--card-face`, `--card-rim` — alle im `theme.css`-Kopf mit den neuen
+  Kontrastpaarungen dokumentiert.
+- Testvertrag unverändert: keine `.tsx`-Änderung, `data-*`-Attribute,
+  Klassennamen, `:focus-visible`-Outlines und alle
+  `prefers-reduced-motion`-Blöcke unberührt; Legenden-Swatches
+  (`.legendItem svg`, `legend*`) unverändert. Ein E2E-Test in
+  `e2e/design.spec.ts` prüft die Computed-Style-Anatomie (Rand, Radius,
+  mehrschichtiger Schatten mit `inset`-Linie), den Gradienten-Button,
+  die Badge-Pill und den Amber-Fokusring per echtem Tab-Fokus.
+
 ## Menüfluss (Komponenten)
 
 | Ansicht | Komponente | Aufgabe |

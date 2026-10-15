@@ -1,5 +1,7 @@
 .shell {
   margin: 0;
   min-height: 100vh;
-  background: #0c0f16;
+  /* The dark table edge — only visible as overscroll behind the
+     screens' own table surface (.screen). */
+  background: var(--color-table-edge);
 }

@@ -41,6 +41,7 @@ import { MissionGenerationError, type MissionKind } from "../logic/MissionSystem
 import { visibleEvents, type RadioHint } from "../logic/InformationSystem";
 import type { MapPack } from "../logic/mapPack";
 import { MapGraph } from "./MapGraph";
+import { DetectivePiece, GanovePiece } from "./boardPieces";
 import { HeatBadge } from "./HeatBadge";
 import { MissionPanel, currentMissionTarget } from "./MissionPanel";
 import { PursuitBadge } from "./PursuitBadge";
@@ -104,13 +105,17 @@ export function MapLegend() {
     <div className={styles.legend} data-testid="map-legend">
       <span className={styles.legendTitle}>{t("legend.title")}:</span>
       <span className={styles.legendItem}>
+        {/* Miniature of the board route: dark casing + paper core. */}
         <svg width="26" height="8" aria-hidden="true">
+          <line x1="0" y1="4" x2="26" y2="4" className={styles.legendWegCasing} />
           <line x1="0" y1="4" x2="26" y2="4" className={styles.legendWeg} />
         </svg>
         {t("legend.weg")}
       </span>
       <span className={styles.legendItem}>
+        {/* Miniature of the track route: wider casing + paper sleepers. */}
         <svg width="26" height="8" aria-hidden="true">
+          <line x1="0" y1="4" x2="26" y2="4" className={styles.legendFahrtCasing} />
           <line x1="0" y1="4" x2="26" y2="4" className={styles.legendFahrt} />
         </svg>
         {t("legend.fahrt")}
@@ -122,21 +127,30 @@ export function MapLegend() {
         {t("legend.escape")}
       </span>
       <span className={styles.legendItem}>
-        <svg width="12" height="12" aria-hidden="true">
-          <rect x="1" y="1" width="10" height="10" rx="2" className={styles.legendDetective} />
+        {/* Mini meeple — identical to the board's detective figure. */}
+        <svg width="14" height="18" aria-hidden="true">
+          <g transform="translate(7, 14) scale(0.5)">
+            <DetectivePiece />
+          </g>
         </svg>
         {t("legend.detective")}
       </span>
       <span className={styles.legendItem}>
-        <svg width="12" height="12" aria-hidden="true">
-          <path d="M 6 0 L 11 6 L 6 12 L 1 6 Z" className={styles.legendGanove} />
+        {/* Mini meeple — identical to the board's ganove figure. */}
+        <svg width="14" height="18" aria-hidden="true">
+          <g transform="translate(7, 14) scale(0.5)">
+            <GanovePiece />
+          </g>
         </svg>
         {t("legend.ganove")}
       </span>
       <span className={styles.legendItem}>
-        <svg width="12" height="12" aria-hidden="true">
-          <circle cx="6" cy="6" r="4" className={styles.legendTargetDot} />
-          <circle cx="6" cy="6" r="5.5" className={styles.legendTargetRing} />
+        {/* Mini plaque — same shape as the map's place tokens, so the
+            same form carries the same meaning. */}
+        <svg width="14" height="14" aria-hidden="true">
+          <circle cx="7" cy="7" r="6" className={styles.legendTargetRing} />
+          <circle cx="7" cy="7" r="4.4" className={styles.legendTargetDot} />
+          <circle cx="7" cy="7" r="2.9" className={styles.legendTargetInner} />
         </svg>
         {t("legend.target")}
       </span>

@@ -1,4 +1,8 @@
-/* Menu flow styles — reuses the noir theme of GanoveScreen.module.css. */
+/* Menu flow styles — reuses the noir theme of GanoveScreen.module.css.
+ * Step 6: cards and stat boxes share the Edelkarte anatomy (cardboard
+ * rim + cut edge + engraved inner line + --shadow-card + --radius-card);
+ * inputs read as recessed card slots. Contrast pairings stay the ones
+ * documented in theme.css / GanoveScreen.module.css (all ≥ WCAG AA). */
 
 .menuList {
   display: flex;
@@ -13,28 +17,33 @@
   gap: 12px;
 }
 
+/* Selectable Edelkarte — same rim anatomy as the shared .panel:
+   cardboard band, cut edge, engraved inner line, corner embossing and
+   table shadow. Hover/focus still swap the rim colour only. */
 .card {
   display: flex;
   flex-direction: column;
   gap: 6px;
   text-align: left;
-  background: #161b26;
-  border: 1px solid #2a3240;
-  border-radius: 8px;
+  background: var(--card-face);
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-cardboard);
+  border-radius: var(--radius-card);
   padding: 14px;
-  color: #eaf0f8;
+  color: var(--color-text);
   cursor: pointer;
   font: inherit;
+  box-shadow: var(--card-rim), var(--shadow-card);
 }
 
 .card:hover:not(:disabled),
 .card:focus-visible:not(:disabled) {
-  border-color: #e8b45a;
+  border-color: var(--color-amber);
 }
 
 /* Keyboard focus needs a stronger cue than the border recolour alone. */
 .card:focus-visible:not(:disabled) {
-  outline: 2px solid #f5d76e;
+  outline: 2px solid var(--color-amber-bright);
   outline-offset: 1px;
 }
 
@@ -44,22 +53,30 @@
 }
 
 .cardTitle {
+  font-family: var(--font-display);
   font-weight: 700;
-  color: #e8b45a;
+  color: var(--color-amber);
   letter-spacing: 0.03em;
 }
 
 .cardText {
   font-size: 0.85rem;
-  color: #9db8d9;
+  color: var(--color-detective-light);
 }
 
+/* Printed art plate — the title/map/case artwork gets the same rim
+   anatomy as the cards it sits on: cardboard band, dark cut edge and
+   a small table shadow. */
 .cardImage {
   width: 100%;
   border-radius: 6px;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  background: #0c0f16;
+  background: var(--color-inset-bg);
+  border: 1px solid var(--color-cardboard);
+  box-shadow:
+    0 0 0 1px var(--color-cardboard-edge),
+    0 4px 10px rgb(0 0 0 / 45%);
 }
 
 .badge {
@@ -67,11 +84,13 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #0c0f16;
-  background: #8a94a6;
+  color: var(--color-screen-bg);
+  background: var(--color-text-muted);
+  border: 1px solid var(--color-cardboard-edge);
   border-radius: 4px;
   padding: 1px 6px;
   width: fit-content;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 20%);
 }
 
 .fieldGrid {
@@ -83,40 +102,46 @@
 }
 
 .fieldLabel {
-  color: #c8d0dc;
+  color: var(--color-text-secondary);
 }
 
 .fieldHint {
   grid-column: 1 / -1;
   font-size: 0.75rem;
-  color: #8a94a6;
+  color: var(--color-text-muted);
   margin-top: -6px;
 }
 
+/* Recessed card slots — inputs sit IN the Edelkarte (darker inset face,
+   inner shadow), focus still flips the rim to amber. */
 .numberInput,
 .selectInput {
-  background: #0c0f16;
-  color: #eaf0f8;
-  border: 1px solid #2a3240;
+  background: var(--color-inset-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-cardboard-edge);
   border-radius: 6px;
   padding: 6px 10px;
   font: inherit;
   min-width: 90px;
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 45%),
+    inset 0 0 0 1px var(--color-card-line);
 }
 
 .numberInput:focus-visible,
 .selectInput:focus-visible {
-  border-color: #e8b45a;
-  outline: none;
+  border-color: var(--color-amber);
+  outline: 2px solid var(--color-amber-bright);
+  outline-offset: 1px;
 }
 
 .rangeInput {
-  accent-color: #e8b45a;
+  accent-color: var(--color-amber);
   width: 160px;
 }
 
 .rangeInput:focus-visible {
-  outline: 2px solid #f5d76e;
+  outline: 2px solid var(--color-amber-bright);
   outline-offset: 2px;
 }
 
@@ -129,33 +154,39 @@
 
 .story {
   font-size: 0.85rem;
-  color: #9db8d9;
+  color: var(--color-detective-light);
   font-style: italic;
 }
 
 .errorList {
-  color: #e88a7a;
+  color: var(--color-danger-error);
   font-size: 0.85rem;
   margin: 8px 0 0;
   padding-left: 18px;
 }
 
+/* Ledger table — framed like a card edge so it reads as printed
+   cardboard rather than a bare grid. */
 .summaryTable {
   border-collapse: collapse;
   margin-top: 8px;
+  border: 1px solid var(--color-cardboard);
+  background: var(--color-panel-bg);
+  box-shadow: var(--shadow-card);
 }
 
 .summaryTable th,
 .summaryTable td {
-  border: 1px solid #2a3240;
+  border: 1px solid var(--color-border);
   padding: 4px 12px;
   text-align: left;
   font-size: 0.85rem;
 }
 
 .summaryTable th {
-  color: #e8b45a;
+  color: var(--color-amber);
   font-weight: 600;
+  background: var(--color-inset-bg);
 }
 
 .statGrid {
@@ -165,17 +196,21 @@
   margin-top: 8px;
 }
 
+/* Stat tiles are small Edelkarten — same rim/shadow anatomy. */
 .statBox {
-  background: #161b26;
-  border: 1px solid #2a3240;
-  border-radius: 8px;
+  background: var(--card-face);
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-cardboard);
+  border-radius: var(--radius-card);
   padding: 10px 14px;
+  box-shadow: var(--card-rim), var(--shadow-card);
 }
 
 .statHeading {
   margin: 0 0 6px;
+  font-family: var(--font-display);
   font-size: 0.8rem;
-  color: #e8b45a;
+  color: var(--color-amber);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -189,12 +224,12 @@
 }
 
 .statList dt {
-  color: #c8d0dc;
+  color: var(--color-text-secondary);
 }
 
 .statList dd {
   margin: 0;
-  color: #eaf0f8;
+  color: var(--color-text);
   text-align: right;
 }
 
@@ -207,21 +242,29 @@
 }
 
 .replayPosition {
-  color: #9db8d9;
+  color: var(--color-detective-light);
   font-size: 0.85rem;
 }
 
+/* Segmented toggle as a recessed switch plate: the segments sit in a
+   dark inset slot, the pressed segment rises as an embossed brass
+   plate (same gradient anatomy as `.primaryButton`). */
 .perspectiveToggle {
   display: inline-flex;
   gap: 0;
-  border: 1px solid #2a3240;
-  border-radius: 6px;
+  border: 1px solid var(--color-cardboard);
+  border-radius: 8px;
   overflow: hidden;
+  background: var(--color-inset-bg);
+  box-shadow:
+    0 0 0 1px var(--color-cardboard-edge),
+    inset 0 1px 4px rgb(0 0 0 / 55%),
+    0 2px 5px rgb(0 0 0 / 40%);
 }
 
 .perspectiveToggle button {
-  background: #0c0f16;
-  color: #9db8d9;
+  background: transparent;
+  color: var(--color-text-muted);
   border: none;
   padding: 6px 12px;
   font: inherit;
@@ -229,6 +272,8 @@
 }
 
 .perspectiveToggle button[aria-pressed="true"] {
-  background: #e8b45a;
-  color: #0c0f16;
+  background: var(--brass-face);
+  color: var(--color-inset-bg);
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 40%);
 }
