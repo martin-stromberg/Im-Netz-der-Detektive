@@ -1,5 +1,31 @@
 # Änderungsprotokoll
 
+## 2026-10-15 — Endabnahme & Polishing des Brettspiel-Designs (Schritt 8)
+
+- Vollständiger Audit-Durchgang über alle Screens und Verträge:
+  Design-Konsistenz, A11y (`:focus-visible`, Tab-Reihenfolge, Form+Farbe),
+  Reduced Motion, `data-*`-Selektor-Vertrag, Perspektiven-Filter
+  (`MapGraph`), i18n-Parität, Build/`dist`-Hygiene und `ASSETS.md` —
+  ohne weitere Befunde.
+- Nachbesserungen: `:focus-visible` auf `.primaryButton`
+  (`GanoveScreen.module.css`), `.numberInput`/`.selectInput`
+  (`Menu.module.css`) und `.removeButton` (`DetektivScreen.module.css`)
+  zeigt jetzt einen sichtbaren 2-px-Ring in `--color-amber-bright`
+  statt nur eines Farbwechsels; die `box-shadow`-Transition der
+  Verfolgungs-Vignette (`.mapArea::after`) ist jetzt ebenfalls unter
+  `prefers-reduced-motion` abgeschaltet.
+- Kontrast-Dokumentation ergänzt: `--color-text` auf `--color-inset-bg`
+  (16,1:1, Inset-Eingabefelder) in den Header-Tabellen von `theme.css`
+  und `GanoveScreen.module.css`.
+- Neuer E2E-Test `focus rings stay visible on interactive controls` in
+  `e2e/design.spec.ts` — Tastaturfokus verifiziert die Ringe auf Button,
+  Select, Number-Input und Entfernen-Chip.
+- Alle Gates grün: 617/617 Vitest (Lines-Coverage 91,44 %, Threshold
+  70 %), 40/40 Playwright-E2E, Lint/Format/Typecheck sauber, alle sechs
+  Git-Hook-Checks im `--all --strict`-Modus ohne Befund, `npm run build`
+  grün und `dist` ohne externe Laufzeit-Referenzen (Font lokal als
+  WOFF2 ausgeliefert).
+
 ## 2026-10-15 — Spieltisch: alle Screens als gemeinsame Tisch-Komposition (Brettspiel-Redesign Schritt 7)
 
 - `.screen` (von allen zwölf Screens geteilt) ist jetzt die dunkle

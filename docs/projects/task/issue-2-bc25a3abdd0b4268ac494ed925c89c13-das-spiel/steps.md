@@ -11,4 +11,4 @@ Branch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 | 5 | Routen als gezeichnete Wege | 2 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-5-routen` | Fertig |
 | 6 | Kartenartige Panels und UI-Elemente | 1 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-6-panels` | Fertig |
 | 7 | Spieltisch-Komposition über alle Screens | 2, 6 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-7-spieltisch` | Fertig |
-| 8 | Konsistenz-Endabnahme und Polishing | 3, 4, 5, 7 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-8-polishing` | In Arbeit |
+| 8 | Konsistenz-Endabnahme und Polishing | 3, 4, 5, 7 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-8-polishing` | Fertig |

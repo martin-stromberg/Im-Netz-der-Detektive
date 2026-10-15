@@ -20,6 +20,7 @@
  *   --color-amber         on --color-panel-bg      →  9.1:1   amber headings on panel
  *   --color-screen-bg     on --color-amber         → 10.1:1   primary button label
  *   --color-text          on --color-surface-raised → 13.4:1  secondary button label
+ *   --color-text          on --color-inset-bg      → 16.1:1   text in inset inputs (number/select/comment)
  *   --color-danger-text   on --color-danger-surface →  8.9:1  danger button label
  *   --color-danger-error  on --color-panel-bg      →  6.9:1   error list on panel
  *   --color-danger        on --color-panel-bg      →  6.6:1   notice accent on panel

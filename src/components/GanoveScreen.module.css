@@ -21,6 +21,7 @@
  *   #e8b45a on #161b26 →  9.1:1   amber headings on panel
  *   #0c0f16 on #e8b45a → 10.1:1   primary button label
  *   #eaf0f8 on #1d2534 → 13.4:1   secondary button label
+ *   #eaf0f8 on #10141c → 16.1:1   text in inset inputs (number/select/comment)
  *   #f0c8c8 on #4a2326 →  8.9:1   danger button label
  *   #e88a7a on #161b26 →  6.9:1   error list on panel
  *   #d98c8c on #161b26 →  6.6:1   notice accent on panel
@@ -174,6 +175,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mapArea::after {
+    transition: none;
+  }
+
   .mapArea[data-pursuit="unmittelbar"]::after {
     animation: none;
   }
@@ -309,7 +314,13 @@
 .primaryButton:hover,
 .primaryButton:focus-visible {
   background: var(--color-amber-bright);
-  outline: none;
+}
+
+/* Keyboard focus needs the ring, not just the brighter brass face —
+   same cue as the secondary/danger buttons and the menu cards. */
+.primaryButton:focus-visible {
+  outline: 2px solid var(--color-amber-bright);
+  outline-offset: 1px;
 }
 
 .secondaryButton {

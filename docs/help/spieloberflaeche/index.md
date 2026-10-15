@@ -49,6 +49,16 @@ einer gerahmten Spieleinlage mit Kartenfach-Seitenleiste und
 Zählleiste; auf schmalen Bildschirmen stapelt die Einlage weiter
 vertikal.
 
+## Endabnahme (Schritt 8)
+
+Das Design wurde abschließend über alle Bildschirme und Verträge
+geprüft: Legenden, Figuren, Tokens und Routen spiegeln die finale
+Formensprache, jede Statusinformation ist Form *und* Farbe, jeder
+Tastaturfokus trägt einen sichtbaren Ring, sämtliche Bewegungen
+respektieren die Reduced-Motion-Einstellung, und alle Assets
+(Schriftart IM Fell English, Rasterbilder) sind lokal eingebettet —
+dokumentiert in `src/assets/ASSETS.md`.
+
 ## Inhalt
 
 - [Beschreibung](beschreibung.md)

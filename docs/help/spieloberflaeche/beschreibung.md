@@ -84,7 +84,16 @@ die Hitze-Stufe Symbolbalken plus Klartext, und alle Status-Texte
 erfüllen WCAG-AA-Kontraste. Alles ist per Tastatur steuerbar: Tab +
 Eingabe überall, Pfeiltasten zum geometrischen Wandern zwischen den
 wählbaren Orten auf der Karte; Hinweise und Phasen werden über
-`role="alert"`/`aria-live` auch für Screenreader angesagt.
+`role="alert"`/`aria-live` auch für Screenreader angesagt. Das
+fokussierte Element trägt auf **jedem** Bedienelement — Schaltflächen,
+Karten, Zahlen- und Auswahlfeldern, den kleinen Entfernen-Chips der
+Markerliste und den Orten auf der Karte — einen sichtbaren
+bernsteinfarbenen Ring bzw. Fassungsrahmen (Endabnahme Schritt 8:
+überall ein echter Fokus-Ring, nie nur ein Farbwechsel). Bei
+aktivierter Reduced-Motion-Einstellung des Systems bleiben sämtliche
+Animationen *und* Übergänge aus — Banner, Figuren-Gleiten,
+Kanten-Aufblitzen, Ergebnis-Ansage und die Verfolgungs-Vignette
+erscheinen sofort im Endzustand.
 
 # Ganove-Modus — Beschreibung
 
