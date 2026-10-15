@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/react";
 import { loadMap } from "../logic/MapLoader";
 import { MapGraph } from "./MapGraph";
+import { MapLegend } from "./GanoveScreen";
+import { DetectiveMapLegend } from "./DetektivScreen";
 import de from "../i18n/de.json";
 
 const map = loadMap("teststadt");
@@ -256,6 +258,68 @@ describe("MapGraph — detective perspective props", () => {
     expect(a).toHaveFocus();
   });
 
+  it("renders each place as a framed plaque token, not a flat dot", () => {
+    const { container } = render(<MapGraph map={map} />);
+    const nodes = container.querySelectorAll("[data-node-id]");
+    expect(nodes).toHaveLength(map.nodes.length);
+    for (const node of nodes) {
+      const token = node.querySelector("[class*='nodeToken']") as Element;
+      expect(token).not.toBeNull();
+      expect(token.getAttribute("aria-hidden")).toBe("true");
+      expect(token.querySelector("[class*='tokenRim']")).not.toBeNull();
+      expect(token.querySelector("[class*='tokenFace']")).not.toBeNull();
+      expect(token.querySelector("[class*='tokenInner']")).not.toBeNull();
+      expect(token.querySelector("[class*='tokenShadow']")).not.toBeNull();
+      // The whole visible plaque stays inside the r=14 hit area.
+      for (const el of token.querySelectorAll("circle, ellipse")) {
+        const r = Number(el.getAttribute("r") ?? el.getAttribute("rx"));
+        expect(r).toBeLessThan(14);
+      }
+    }
+    // The flat ink pip is gone.
+    expect(container.querySelectorAll("[class*='nodeDot']")).toHaveLength(0);
+  });
+
+  it("keeps the invisible hit area at r=14 around the token", () => {
+    const { container } = render(
+      <MapGraph map={map} legalTargets={[{ nodeId: "h", edgeType: "weg" }]} />,
+    );
+    const hitArea = container.querySelector("[data-node-id='h'] [class*='hitArea']");
+    expect(hitArea).not.toBeNull();
+    expect(hitArea).toHaveAttribute("r", "14");
+    // Non-interactive nodes never get a pointer-catching hit area.
+    expect(container.querySelector("[data-node-id='a'] [class*='hitArea']")).toBeNull();
+  });
+
+  it("marks legal and selectable places with the dashed ring", () => {
+    const { container } = render(
+      <MapGraph
+        map={map}
+        legalTargets={[{ nodeId: "h", edgeType: "weg" }]}
+        selectableNodeIds={["f"]}
+        markableNodeIds={["g"]}
+      />,
+    );
+    // Same shape = same meaning: legal targets, spawn choices and
+    // markable nodes all wear the dashed ring plus the perforated rim
+    // (rim styling is CSS-only, asserted via class presence).
+    for (const id of ["h", "f", "g"]) {
+      const node = container.querySelector(`[data-node-id="${id}"]`) as Element;
+      expect(node.querySelector("[class*='legalRing']")).not.toBeNull();
+      expect(node.querySelector("[class*='nodeToken'] [class*='tokenRim']")).not.toBeNull();
+    }
+    expect(container.querySelector("[data-node-id='a'] [class*='legalRing']")).toBeNull();
+  });
+
+  it("embosses the token face with a defs gradient that resolves", () => {
+    const { container } = render(<MapGraph map={map} />);
+    const grad = container.querySelector("radialGradient[id$='-tokenFace']");
+    expect(grad).not.toBeNull();
+    const face = container.querySelector("[class*='tokenFace']") as Element;
+    const ref = (face.getAttribute("fill") ?? "").match(/url\(#([^)]+)\)/)?.[1];
+    expect(ref).toBe(grad?.id);
+  });
+
   it("renders a parchment board face beneath every data layer", () => {
     const { container } = render(<MapGraph map={map} />);
     const svg = container.querySelector('[data-testid="map-graph"]') as SVGSVGElement;
@@ -336,5 +400,34 @@ describe("MapGraph — detective perspective props", () => {
     expect(
       container.querySelector('[data-layer="landmarks"]')?.getAttribute("pointer-events"),
     ).toBe("none");
+  });
+});
+
+describe("Map legend swatches", () => {
+  // Same shape = same meaning: both legends render the place token as a
+  // miniature plaque (dashed ring + perforated rim + inner line) so the
+  // swatch matches what `nodeLegal`/`nodeSelectable` tokens look like.
+  const plaqueSwatch = (container: HTMLElement) => {
+    const legend = container.querySelector('[data-testid="map-legend"]') as HTMLElement;
+    const rings = legend.querySelectorAll("[class*='legendTargetRing']");
+    const dots = legend.querySelectorAll("[class*='legendTargetDot']");
+    const inners = legend.querySelectorAll("[class*='legendTargetInner']");
+    return { rings, dots, inners };
+  };
+
+  it("the ganove legend shows the plaque token swatch", () => {
+    const { container } = render(<MapLegend />);
+    const { rings, dots, inners } = plaqueSwatch(container);
+    expect(rings).toHaveLength(1);
+    expect(dots).toHaveLength(1);
+    expect(inners).toHaveLength(1);
+  });
+
+  it("the detective legend shows the identical plaque token swatch", () => {
+    const { container } = render(<DetectiveMapLegend map={map} />);
+    const { rings, dots, inners } = plaqueSwatch(container);
+    expect(rings).toHaveLength(1);
+    expect(dots).toHaveLength(1);
+    expect(inners).toHaveLength(1);
   });
 });

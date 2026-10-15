@@ -29,9 +29,13 @@ von einer kräftigen Pappenkante mit Schlagschatten. Die städtische
 Geographie (Wasser, Parks, Schienen, Straßen, Häuserblöcke) bleibt in
 gedeckten Vintage-Farben lesbar; Ortsnamen, Wege, Sperrzeichen,
 Figuren und alle Markierungen sind in dunklen Tintenfarben gesetzt
-und bleiben damit auf dem hellen Papier kontraststark. Die Legende
-unter der Karte zeigt jedes Zeichen auf einem kleinen Papierchip, der
-exakt die Brettfarben wiedergibt.
+und bleiben damit auf dem hellen Papier kontraststark. Jeder Ort ist
+eine kleine geprägte Plakette mit eingefasstem Rand, Volumenprägung
+und dezentem Schatten — wie eine gedruckte Kartenplakette auf dem
+Brett. Wählbare Orte erkennst du am perforierten grünen Rand plus
+gestricheltem Ring, den Tastaturfokus am soliden bernsteinfarbenen
+Fassungsring. Die Legende unter der Karte zeigt jedes Zeichen auf
+einem kleinen Papierchip, der exakt die Brettfarben wiedergibt.
 
 **Barrierefreiheit:** Farbe ist nirgends die einzige Information —
 Kantentypen tragen Strichmuster, Sperrungen ein Sperr-Glyph,

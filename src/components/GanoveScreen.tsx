@@ -134,9 +134,12 @@ export function MapLegend() {
         {t("legend.ganove")}
       </span>
       <span className={styles.legendItem}>
-        <svg width="12" height="12" aria-hidden="true">
-          <circle cx="6" cy="6" r="4" className={styles.legendTargetDot} />
-          <circle cx="6" cy="6" r="5.5" className={styles.legendTargetRing} />
+        {/* Mini plaque — same shape as the map's place tokens, so the
+            same form carries the same meaning. */}
+        <svg width="14" height="14" aria-hidden="true">
+          <circle cx="7" cy="7" r="6" className={styles.legendTargetRing} />
+          <circle cx="7" cy="7" r="4.4" className={styles.legendTargetDot} />
+          <circle cx="7" cy="7" r="2.9" className={styles.legendTargetInner} />
         </svg>
         {t("legend.target")}
       </span>

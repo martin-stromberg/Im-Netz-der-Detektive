@@ -101,4 +101,60 @@ test.describe("design fundament", () => {
     const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
     expect(luminance).toBeLessThan(0.4);
   });
+
+  test("places render as embossed plaque tokens with legend mirror", async ({ page }) => {
+    await page.goto("/?mode=ganove&map=muenster&seed=7&mission=none");
+    await page.getByRole("button", { name: "Neue Partie" }).click();
+    await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "pickSpawn");
+    const board = page.getByTestId("map-graph");
+    await expect(board).toBeVisible();
+
+    const token = await board
+      .locator("[data-node-id]")
+      .first()
+      .evaluate((el) => {
+        const group = el.querySelector("g[class*='nodeToken']");
+        const rim = el.querySelector("[class*='tokenRim']");
+        const face = el.querySelector("[class*='tokenFace']");
+        const shadow = el.querySelector("[class*='tokenShadow']");
+        const rimStyle = rim ? getComputedStyle(rim) : null;
+        return {
+          hasToken: group !== null,
+          rimStroke: rimStyle?.stroke ?? null,
+          rimWidth: rimStyle ? Number.parseFloat(rimStyle.strokeWidth) : 0,
+          faceFill: face?.getAttribute("fill") ?? null,
+          shadowOpacity: shadow ? Number.parseFloat(getComputedStyle(shadow).fillOpacity) : 1,
+          hasFlatDot: el.querySelector("[class*='nodeDot']") !== null,
+        };
+      });
+
+    // Plaque anatomy: framed rim, gradient-embossed face, soft shadow,
+    // and no leftover flat dot.
+    expect(token.hasToken).toBe(true);
+    expect(token.rimWidth).toBeGreaterThanOrEqual(1);
+    expect(token.faceFill).toMatch(/url\(#.*tokenFace\)/);
+    expect(token.shadowOpacity).toBeLessThan(1);
+    expect(token.hasFlatDot).toBe(false);
+
+    // The legend swatch mirrors the plaque: same ring+rim+inner anatomy.
+    const legend = page.getByTestId("map-legend");
+    await expect(legend.locator("[class*='legendTargetDot']")).toHaveCount(1);
+    await expect(legend.locator("[class*='legendTargetRing']")).toHaveCount(1);
+    await expect(legend.locator("[class*='legendTargetInner']")).toHaveCount(1);
+
+    // Keyboard focus keeps the amber ring — now on the token rim.
+    // Tabbing in (not .focus()) guarantees :focus-visible applies.
+    let focused = false;
+    for (let i = 0; i < 60 && !focused; i += 1) {
+      await page.keyboard.press("Tab");
+      focused = await page.evaluate(
+        () => document.activeElement?.getAttribute("data-selectable") === "true",
+      );
+    }
+    expect(focused).toBe(true);
+    const focusStroke = await page.evaluate(
+      () => getComputedStyle(document.activeElement!.querySelector("[class*='tokenRim']")!).stroke,
+    );
+    expect(focusStroke).toBe("rgb(125, 82, 16)"); // --color-map-accent
+  });
 });

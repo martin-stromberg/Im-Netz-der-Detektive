@@ -379,8 +379,20 @@
   stroke-width: 1.2;
 }
 
+/* The target swatch is a miniature of the map's place token: framed
+   plaque with perforated legal rim, paper face and engraved inner ring
+   — same shape, same meaning. */
 .legendTargetDot {
-  fill: var(--color-map-legal);
+  fill: var(--color-paper-aged);
+  stroke: var(--color-map-legal);
+  stroke-width: 1.4;
+  stroke-dasharray: 1.8 0.9;
+}
+
+.legendTargetInner {
+  fill: var(--color-paper);
+  stroke: var(--color-ink-soft);
+  stroke-width: 0.7;
 }
 
 .legendTargetRing {

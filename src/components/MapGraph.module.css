@@ -104,12 +104,38 @@
   stroke-linecap: round;
 }
 
-/* Node dot = printed ink pip; the paper-coloured ring knocks out the
-   route lines running underneath, like an old map's location stamp. */
-.nodeDot {
+/* Place token = printed plaque: a soft drop shadow, a framed rim
+   (Fassung), an embossed face (radial gradient from <defs>, applied as
+   a fill attribute so state rules below can override it) and an
+   engraved inner ring — reads like a card medallion on the board.
+   The token never catches input itself — the invisible hit area owns
+   pointer events (`.map :where` covers the children too). */
+.nodeToken {
+  pointer-events: none;
+}
+
+.tokenShadow {
   fill: var(--color-ink);
-  stroke: var(--color-paper);
-  stroke-width: 1.5;
+  fill-opacity: 0.22;
+}
+
+.tokenRim {
+  fill: var(--color-paper-aged);
+  stroke: var(--color-ink);
+  stroke-width: 1.6;
+}
+
+/* Base fill is the url(#…-tokenFace) attribute in the markup — no CSS
+   fill here, or it would always win over the gradient. */
+.tokenFace {
+  stroke: none;
+}
+
+.tokenInner {
+  fill: none;
+  stroke: var(--color-ink-soft);
+  stroke-width: 0.9;
+  stroke-opacity: 0.7;
 }
 
 .nodeLabel {
@@ -131,17 +157,24 @@
   cursor: pointer;
 }
 
-.nodeInteractive:focus-visible .nodeDot {
+/* Focused place: solid amber ring on the rim (form + colour). */
+.nodeInteractive:focus-visible .tokenRim {
   stroke: var(--color-map-accent);
   stroke-width: 3;
+  stroke-dasharray: none;
 }
 
-.nodeLegal .nodeDot,
-.nodeSelectable .nodeDot {
-  fill: var(--color-map-legal);
+/* Legal/selectable places: perforated stamp-edge rim in legal green —
+   shape (dash) + colour together, mirroring the dashed legalRing and
+   the legend swatch. */
+.nodeLegal .tokenRim,
+.nodeSelectable .tokenRim {
+  stroke: var(--color-map-legal);
+  stroke-width: 2;
+  stroke-dasharray: 2.4 1.2;
 }
 
-.nodeInteractive:hover .nodeDot {
+.nodeInteractive:hover .tokenFace {
   fill: var(--color-map-legal-hover);
 }
 
@@ -152,13 +185,17 @@
   stroke-dasharray: 3 3;
 }
 
-.nodeCurrentTarget .nodeDot {
+.nodeCurrentTarget .tokenRim {
   stroke: var(--color-map-accent);
   stroke-width: 3;
 }
 
-.nodeGanoveHere .nodeDot {
+.nodeGanoveHere .tokenFace {
   fill: var(--color-map-ganove);
+}
+
+.nodeGanoveHere .tokenInner {
+  stroke: var(--color-paper);
 }
 
 .escapeMarker {

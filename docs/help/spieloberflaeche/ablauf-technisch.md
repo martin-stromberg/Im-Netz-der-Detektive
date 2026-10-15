@@ -62,6 +62,43 @@ als Deep-Link-Einstieg direkt in die Bildschirme erhalten.
   farblich überein.
 - `prefers-reduced-motion` unverändert; keine neuen Animationen.
 
+## Orts-Tokens (Plaketten, Schritt 3 des Redesigns)
+
+- Der flache `nodeDot`-Kreis (r=8) ist durch eine `nodeToken`-Gruppe in
+  `MapGraph` ersetzt: `tokenShadow`-Ellipse (Tinte, `fill-opacity` 0.22,
+  leicht nach unten versetzt), `tokenRim` (r=8, `--color-paper-aged`-
+  Füllung, `--color-ink`-Fassung), `tokenFace` (r=6.2,
+  `fill="url(#{defsId}-tokenFace)"`) und `tokenInner` (r=4, feine
+  `--color-ink-soft`-Gravurlinie). Die gesamte sichtbare Geometrie bleibt
+  kleiner als die unveränderte Hit-Area r=14; die Token-Gruppe ist
+  `aria-hidden` und pointer-inert (`.map :where(...)` deckt ab, explizit
+  `pointer-events: none` auf `.nodeToken`).
+- Die Prägung ist ein dritter `radialGradient` `{defsId}-tokenFace` im
+  bestehenden `<defs>`-Block (`useId`-ID-Präfix, Stops via
+  `style`-`stopColor` auf `var(--color-paper)` → `var(--color-paper-aged)`).
+  `tokenFace` trägt die `url()`-Füllung als **Attribut** (nicht als CSS) —
+  so können Zustandsregeln (`hover`, `nodeGanoveHere`) per CSS-`fill`
+  die Gradientenfüllung überlagern.
+- Zustände wandern von `nodeDot` auf die Fassung: `nodeLegal`/
+  `nodeSelectable` (inkl. `data-markable`) perforieren den Rand
+  (`stroke-dasharray`) in `--color-map-legal`; `nodeCurrentTarget` und
+  `:focus-visible` setzen den soliden `--color-map-accent`-Ring auf
+  `tokenRim`; `nodeGanoveHere` färbt `tokenFace`. Der gestrichelte
+  `legalRing` (r=12) gilt jetzt für jede wählbare Stelle (`interactive`:
+  legal, spawn, markierbar) — gleiche Form = gleiche Bedeutung.
+- `MapLegend` (Ganove) und `DetectiveMapLegend` (Detektiv) zeigen die
+  Miniatur-Plakette (`legendTargetRing` + `legendTargetDot` perforiert +
+  `legendTargetInner`); die Detektiv-Legende erhielt das Orts-Swatch neu
+  mit dem vorhandenen i18n-Key `legend.target`.
+- Testvertrag unverändert: alle `data-*`-Attribute, Hit-Area r=14,
+  Overlay-Positionen (`zoneHalo` r=13, `possibleRing`, `categoryBadge`,
+  `cameraGlyph`, `markerPin`, `escapeMarker`, `missionBadge`,
+  `nodeLabel`) und das Pfeiltasten-Roaming sind unberührt; neue Tests:
+  Token-Struktur/Hit-Area/Ring-Konsistenz/Gradient-Auflösung in
+  `MapGraph.test.tsx`, Legenden-Spiegel-Tests („Map legend swatches")
+  und ein E2E-Test in `e2e/design.spec.ts` (Browser-`url(#)`-Füllung,
+  Schatten, Swatch, `:focus-visible`-Ring via echter Tab-Fokussierung).
+
 ## Menüfluss (Komponenten)
 
 | Ansicht | Komponente | Aufgabe |
