@@ -5,8 +5,8 @@ Branch: `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel`
 | # | Titel | Abhängigkeiten | Branch | Status |
 |---|-------|----------------|--------|--------|
 | 1 | Design-Fundament: Theme, Schmuckschrift, Farbvariablen | Keine | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-1-design-fundament` | Fertig |
-| 2 | Brett-Materialität: Pergament, Papprand, Tischschatten | 1 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-2-brett-materialitaet` | In Arbeit |
-| 3 | Orts-Tokens: Knoten als geprägte Plaketten | 2 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-3-orts-tokens` | Offen |
+| 2 | Brett-Materialität: Pergament, Papprand, Tischschatten | 1 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-2-brett-materialitaet` | Fertig |
+| 3 | Orts-Tokens: Knoten als geprägte Plaketten | 2 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-3-orts-tokens` | In Arbeit |
 | 4 | Spielfiguren als Meeple-Spielsteine | 2 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-4-spielfiguren` | Offen |
 | 5 | Routen als gezeichnete Wege | 2 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-5-routen` | Offen |
 | 6 | Kartenartige Panels und UI-Elemente | 1 | `task/issue-2-bc25a3abdd0b4268ac494ed925c89c13-das-spiel-schritt-6-panels` | Offen |
