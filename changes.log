@@ -1,5 +1,27 @@
 # Änderungsprotokoll
 
+## 2026-10-15 — Brett-Materialität: Pergament-Fläche, Pappenrand, Tischschatten (Brettspiel-Redesign Schritt 2)
+
+- `MapGraph` erhält eine dekorative Brettfläche als erstes SVG-Kind:
+  `<defs>` mit `feTurbulence`-Papierkörnung und `radialGradient`-
+  Vignette plus `boardFace`-Gruppe (Papier, Körnung, Vignette,
+  Papierschnitt); `useId`-basierte IDs für die zwei Replay-Instanzen.
+- `.map` (`MapGraph.module.css`) wirkt als physisches Brett:
+  `--color-paper`-Grund, 7-px-`--color-cardboard`-Rand,
+  `--color-cardboard-edge`-Außenring und `--shadow-board`-Schlagschatten
+  via `box-shadow`; `box-sizing: border-box` gegen Überlauf.
+- Neue dunkle Karten-Tinten `--color-map-*` in `theme.css` (mit
+  dokumentierten Kontrasten gegen `--color-paper`); alle Kartenfarben —
+  Ortslabels, Kanten, Blockade-Kreuz, Kategorien, Zonen-Halos,
+  Kameras, Marker, Legenden — auf papier-taugliche Werte umgestellt;
+  `--color-feature-*`-Palette auf Vintage-Pergament-Geographie
+  umgetönt.
+- Legenden-Swatches beider Perspektiven auf Papier-Chips
+  (`.legendItem svg`) mit denselben Map-Tokens wie das Brett.
+- Tests: drei neue `MapGraph`-Assertions (Brettfläche/Layer-Position,
+  ID-Eindeutigkeit, `data-layer`-Reihenfolge) und ein E2E-Test in
+  `e2e/design.spec.ts` (Computed Styles + Label-Kontrast).
+
 ## 2026-10-15 — Design-Fundament: Theme-Tokens und Schmuckschrift (Brettspiel-Redesign Schritt 1)
 
 - Neues globales Stylesheet `src/theme.css` (Import in `src/main.tsx`):

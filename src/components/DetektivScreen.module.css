@@ -140,29 +140,29 @@
 
 /* Legend swatches — the same glyph shapes MapGraph renders. */
 .legendCameraBody {
-  fill: var(--color-surface-hover);
-  stroke: var(--color-detective-light);
+  fill: var(--color-detective);
+  stroke: var(--color-map-detective-stroke);
   stroke-width: 1.2;
 }
 
 .legendCameraLens {
-  fill: var(--color-detective-light);
+  fill: var(--color-map-detective-stroke);
 }
 
 .legendPin {
-  fill: var(--color-pin);
-  stroke: var(--color-inset-bg);
+  fill: var(--color-map-pin);
+  stroke: var(--color-ink);
   stroke-width: 1;
 }
 
 .legendDiamond {
   fill: none;
-  stroke: var(--color-possible);
+  stroke: var(--color-map-possible);
   stroke-width: 1.8;
 }
 
 .legendCategory {
   fill: none;
-  stroke: var(--color-amber);
+  stroke: var(--color-map-ganove);
   stroke-width: 1.6;
 }

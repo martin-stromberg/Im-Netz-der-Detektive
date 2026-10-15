@@ -15,7 +15,7 @@
  * the geometrically nearest interactive node in the pressed direction
  * (spec `02-technisches-konzept.md` section 11: full keyboard play).
  */
-import type { KeyboardEvent } from "react";
+import { useId, type KeyboardEvent } from "react";
 import type { Camera } from "../logic/InformationSystem";
 import type { MissionKind } from "../logic/MissionSystem";
 import { isEdgeBlocked, type BlockedEdge, type MoveTarget } from "../logic/Movement";
@@ -202,6 +202,14 @@ export function MapGraph({
 
   const ganoveNode = ganovePosition !== null ? nodeById(map, ganovePosition) : undefined;
 
+  // Parchment board materiality: the svg face reads as printed paper
+  // (grain + vignette from <defs>), framed by the cardboard rim and the
+  // table shadow styled on `.map`. Pure decor — painted beneath every
+  // data layer, so it works on map packs without board features too.
+  // `useId` keeps the def ids unique when several maps render side by
+  // side (ReplayScreen mounts two instances into one document).
+  const defsId = `mapboard-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+
   return (
     <svg
       className={styles.map}
@@ -210,6 +218,50 @@ export function MapGraph({
       aria-label={t("map.ariaLabel", { name: map.name })}
       data-testid="map-graph"
     >
+      <defs aria-hidden="true">
+        {/* Procedural paper grain: fractal noise tinted ink-dark at low
+            alpha, clipped to the face via the source alpha. */}
+        <filter id={`${defsId}-grain`} x="-2%" y="-2%" width="104%" height="104%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.045"
+            numOctaves="3"
+            seed="11"
+            stitchTiles="stitch"
+          />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0.17 0 0 0 0 0.13 0 0 0 0 0.08 0 0 0 0.35 0"
+          />
+          <feComposite in2="SourceAlpha" operator="in" />
+        </filter>
+        {/* Subtle vignette — aged edges darkening toward the rim.
+            `stopColor` goes through style so the ink token resolves. */}
+        <radialGradient id={`${defsId}-vignette`} cx="50%" cy="46%" r="72%">
+          <stop offset="58%" style={{ stopColor: "var(--color-ink)", stopOpacity: 0 }} />
+          <stop offset="100%" style={{ stopColor: "var(--color-ink)", stopOpacity: 0.22 }} />
+        </radialGradient>
+      </defs>
+      <g className={styles.boardFace} aria-hidden="true" pointerEvents="none">
+        <rect className={styles.boardPaper} x="0" y="0" width="100%" height="100%" />
+        <rect
+          className={styles.boardGrain}
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          filter={`url(#${defsId}-grain)`}
+        />
+        <rect
+          className={styles.boardVignette}
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          fill={`url(#${defsId}-vignette)`}
+        />
+        <rect className={styles.boardSeam} x="0" y="0" width="100%" height="100%" />
+      </g>
       <MapBackdrop board={map.board} />
       <g data-layer="edges">
         {map.edges.map((edge) => {
@@ -311,7 +363,7 @@ export function MapGraph({
                 <circle
                   r={NODE_RADIUS + 5}
                   className={styles.zoneHalo}
-                  style={{ fill: `hsl(${zoneHue(node.zone)} 55% 60%)` }}
+                  style={{ fill: `hsl(${zoneHue(node.zone)} 55% 45%)` }}
                   data-zone={node.zone}
                   aria-hidden="true"
                 />

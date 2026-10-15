@@ -59,4 +59,46 @@ test.describe("design fundament", () => {
     expect(tokens.ink).toBe("#2b2115");
     expect(tokens.fontDisplay).toContain("IM Fell English");
   });
+
+  test("map renders as a parchment board with rim and drop shadow", async ({ page }) => {
+    // muenster ships board features, so data-layer="board" renders too.
+    await page.goto("/?mode=ganove&map=muenster&seed=7&mission=none");
+    await page.getByRole("button", { name: "Neue Partie" }).click();
+    await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "pickSpawn");
+    const board = page.getByTestId("map-graph");
+    await expect(board).toBeVisible();
+
+    const face = await board.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return {
+        background: style.backgroundColor,
+        shadow: style.boxShadow,
+        borderWidth: Number.parseFloat(style.borderTopWidth),
+        radius: Number.parseFloat(style.borderTopLeftRadius),
+        hasGrain: el.querySelector("filter feTurbulence") !== null,
+        hasVignette: el.querySelector("radialGradient") !== null,
+        hasBoardLayer: el.querySelector('[data-layer="board"]') !== null,
+      };
+    });
+
+    // Paper face in --color-paper (#e8dcc0), cardboard rim, table shadow.
+    expect(face.background).toBe("rgb(232, 220, 192)");
+    expect(face.shadow).not.toBe("none");
+    expect(face.borderWidth).toBeGreaterThanOrEqual(5);
+    expect(face.radius).toBeGreaterThan(0);
+    expect(face.hasGrain).toBe(true);
+    expect(face.hasVignette).toBe(true);
+    expect(face.hasBoardLayer).toBe(true);
+
+    // Place labels must be dark ink on the light paper (WCAG AA).
+    const labelFill = await board
+      .locator("text")
+      .first()
+      .evaluate((el) => getComputedStyle(el).fill);
+    const channel = labelFill.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    expect(channel).not.toBeNull();
+    const [r, g, b] = [Number(channel?.[1]), Number(channel?.[2]), Number(channel?.[3])];
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    expect(luminance).toBeLessThan(0.4);
+  });
 });

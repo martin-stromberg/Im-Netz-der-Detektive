@@ -1,12 +1,41 @@
-/* Dark detective-noir theme for the shared SVG map. Shapes, glyphs and
- * stroke patterns carry the semantics — colour is never the only cue. */
+/* Parchment board theme for the shared SVG map — a vintage city plan
+ * printed on paper, framed by cardboard and lying on the dark table.
+ * Shapes, glyphs and stroke patterns carry the semantics — colour is
+ * never the only cue. All inks are the dark `--color-map-*` tokens from
+ * theme.css, calibrated for WCAG AA against `--color-paper`. */
 .map {
   display: block;
   width: 100%;
   height: auto;
-  background: var(--color-inset-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  box-sizing: border-box; /* the 7px cardboard rim counts into the width */
+  background: var(--color-paper);
+  /* Multi-stage rim: dark outer edge ring, cardboard band, and the
+     paper seam drawn inside the svg (`boardSeam`). */
+  border: 7px solid var(--color-cardboard);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 3px var(--color-cardboard-edge),
+    var(--shadow-board);
+}
+
+/* Board face layers — painted beneath every data layer, decor only. */
+.boardFace {
+  pointer-events: none;
+}
+
+.boardPaper {
+  fill: var(--color-paper);
+}
+
+.boardGrain {
+  fill: #fff; /* opaque source alpha so the noise clips to the face */
+}
+
+.boardSeam {
+  fill: none;
+  stroke: var(--color-cardboard);
+  stroke-width: 2.5;
+  stroke-opacity: 0.55;
 }
 
 /* Nothing inside the map may intercept pointer events except the
@@ -19,32 +48,32 @@
 }
 
 .edge {
-  stroke: var(--color-edge-route);
+  stroke: var(--color-map-weg);
   stroke-width: 2;
 }
 
 .edgeWeg {
-  stroke: var(--color-edge-route);
+  stroke: var(--color-map-weg);
 }
 
 /* fahrt: thicker, dashed — a fast but predictable axis. */
 .edgeFahrt {
-  stroke: var(--color-route-fahrt);
+  stroke: var(--color-map-fahrt);
   stroke-width: 3.5;
   stroke-dasharray: 10 5;
 }
 
-/* Blocked edges are greyed AND shape-marked by a crossed barrier. */
+/* Blocked edges are faded AND shape-marked by a crossed barrier. */
 .edgeBlocked {
-  stroke: var(--color-edge-blocked);
-  stroke-opacity: 0.5;
+  stroke: var(--color-map-blocked);
+  stroke-opacity: 0.55;
   stroke-dasharray: 4 4;
 }
 
-/* Fresh block flashes amber so the umwelt event is seen, not just
-   read in the intel feed. */
+/* Fresh block flashes in dark amber so the umwelt event is seen, not
+   just read in the intel feed. */
 .edgeFlash {
-  stroke: var(--color-amber-bright);
+  stroke: var(--color-map-accent);
   stroke-width: 3.5;
   animation: edge-flash 3400ms ease-out;
 }
@@ -70,19 +99,21 @@
 }
 
 .blockGlyph line {
-  stroke: var(--color-danger);
+  stroke: var(--color-map-danger);
   stroke-width: 2.5;
   stroke-linecap: round;
 }
 
+/* Node dot = printed ink pip; the paper-coloured ring knocks out the
+   route lines running underneath, like an old map's location stamp. */
 .nodeDot {
-  fill: var(--color-text-secondary);
-  stroke: var(--color-inset-bg);
+  fill: var(--color-ink);
+  stroke: var(--color-paper);
   stroke-width: 1.5;
 }
 
 .nodeLabel {
-  fill: var(--color-text-muted);
+  fill: var(--color-ink);
   font-size: 10px;
   pointer-events: none;
   user-select: none;
@@ -101,38 +132,38 @@
 }
 
 .nodeInteractive:focus-visible .nodeDot {
-  stroke: var(--color-amber-bright);
+  stroke: var(--color-map-accent);
   stroke-width: 3;
 }
 
 .nodeLegal .nodeDot,
 .nodeSelectable .nodeDot {
-  fill: var(--color-green);
+  fill: var(--color-map-legal);
 }
 
 .nodeInteractive:hover .nodeDot {
-  fill: var(--color-green-bright);
+  fill: var(--color-map-legal-hover);
 }
 
 .legalRing {
   fill: none;
-  stroke: var(--color-green);
+  stroke: var(--color-map-legal);
   stroke-width: 1.5;
   stroke-dasharray: 3 3;
 }
 
 .nodeCurrentTarget .nodeDot {
-  stroke: var(--color-amber-bright);
+  stroke: var(--color-map-accent);
   stroke-width: 3;
 }
 
 .nodeGanoveHere .nodeDot {
-  fill: var(--color-amber);
+  fill: var(--color-map-ganove);
 }
 
 .escapeMarker {
   fill: none;
-  stroke: var(--color-escape);
+  stroke: var(--color-map-escape);
   stroke-width: 1.6;
 }
 
@@ -142,19 +173,19 @@
 }
 
 .mission_diebstahl {
-  stroke: var(--color-amber);
+  stroke: var(--color-map-ganove);
 }
 
 .mission_kontakt {
-  stroke: var(--color-pin);
+  stroke: var(--color-map-pin);
 }
 
 .mission_sabotage {
-  stroke: var(--color-danger);
+  stroke: var(--color-map-danger);
 }
 
 .mission_flucht {
-  stroke: var(--color-escape);
+  stroke: var(--color-map-escape);
 }
 
 /* Positions are placed via inline CSS `transform` so piece movement
@@ -172,22 +203,22 @@
 
 .detectiveMarker .detectiveShape {
   fill: var(--color-detective);
-  stroke: var(--color-detective-light);
+  stroke: var(--color-map-detective-stroke);
   stroke-width: 1.4;
 }
 
-/* The detective currently on the move — brighter fill plus an amber
+/* The detective currently on the move — deeper fill plus an amber
    outline (form and colour both change). */
 .detectiveActive .detectiveShape {
-  fill: var(--color-detective-active);
-  stroke: var(--color-amber-bright);
+  fill: var(--color-map-detective-active);
+  stroke: var(--color-map-accent);
   stroke-width: 2.2;
 }
 
 /* Zone halo behind the node dot — a soft fill ring per zone; the
    legend names each zone so colour is not the only cue. */
 .zoneHalo {
-  fill-opacity: 0.16;
+  fill-opacity: 0.22;
   stroke: none;
 }
 
@@ -202,38 +233,38 @@
    still occupy — distinct shape from the dashed legal-target circle. */
 .possibleRing {
   fill: none;
-  stroke: var(--color-possible);
+  stroke: var(--color-map-possible);
   stroke-width: 1.8;
 }
 
 /* Squad camera glyph — only rendered in the detective perspective.
    Inactive cameras are shown struck through (form, not just colour). */
 .cameraBody {
-  fill: var(--color-surface-hover);
-  stroke: var(--color-detective-light);
+  fill: var(--color-detective);
+  stroke: var(--color-map-detective-stroke);
   stroke-width: 1.2;
 }
 
 .cameraLens {
-  fill: var(--color-detective-light);
+  fill: var(--color-map-detective-stroke);
 }
 
 .cameraStrike {
-  stroke: var(--color-danger);
+  stroke: var(--color-map-danger);
   stroke-width: 1.8;
   stroke-linecap: round;
 }
 
 /* Player-set marker pin (detective deduction tool). */
 .markerPin path {
-  fill: var(--color-pin);
-  stroke: var(--color-inset-bg);
+  fill: var(--color-map-pin);
+  stroke: var(--color-ink);
   stroke-width: 1;
 }
 
 .ganoveMarker .ganoveShape {
-  fill: var(--color-amber);
-  stroke: var(--color-inset-bg);
+  fill: var(--color-map-ganove);
+  stroke: var(--color-ink);
   stroke-width: 1.4;
 }
 
