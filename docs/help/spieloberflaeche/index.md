@@ -39,6 +39,16 @@ komplettes Löschen).
 `?mode=ganove`/`?mode=detektiv` bleiben als direkte Entwickler-Einstiege
 erhalten.
 
+## Spieltisch (Schritt 7)
+
+Alle Bildschirme — Hauptmenü, Karten-, Modus-, Einstellungs- und
+Missionswahl, Dev-Modus, Statistiken, Fortsetzen, Replay,
+Anwendungs-Einstellungen und beide Spielbretter — ruhen auf
+derselben dunklen Tischfläche. In der Partie liegt das Brett in
+einer gerahmten Spieleinlage mit Kartenfach-Seitenleiste und
+Zählleiste; auf schmalen Bildschirmen stapelt die Einlage weiter
+vertikal.
+
 ## Inhalt
 
 - [Beschreibung](beschreibung.md)

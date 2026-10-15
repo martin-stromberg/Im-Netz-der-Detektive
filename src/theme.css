@@ -140,6 +140,12 @@
   --color-table: #191411;
   --color-table-edge: #0e0b09;
 
+  /* Alpha-Schleier der Tischfläche über der bg-noir-Textur (gleiche
+     Konvention wie --color-screen-overlay-soft/strong): Filz-Ton in
+     der Mitte → Tischkante am Rand. */
+  --color-table-veil: rgb(25 20 17 / 90%);
+  --color-table-veil-edge: rgb(14 11 9 / 95%);
+
   /* ── Karten-Tinte auf Papier ──
    * Dunkle Pendants der UI-Statusfarben für die helle Brettfläche
    * (--color-paper, L ≈ 0.72). Die hellen Shared-Tokens oben bleiben
@@ -192,6 +198,15 @@
 
   /* Einheitsradius aller Kartenflächen; Controls bleiben bei 6px. */
   --radius-card: 10px;
+
+  /* Geprägte Messing-Fläche der Primary-Aktionen (Button-Face und
+     gedrücktes Segment der Schalterplatten teilen sich das Rezept). */
+  --brass-face: linear-gradient(
+    180deg,
+    var(--color-amber-bright) 0%,
+    var(--color-amber) 55%,
+    var(--color-amber-deep) 100%
+  );
 
   /* Komplette Edelkarten-Anatomie als wiederverwendbare Token-Listen:
    * `--card-face` ist der fünfschichtige Kartengrund (dezente
