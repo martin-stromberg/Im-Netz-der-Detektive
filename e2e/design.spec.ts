@@ -157,4 +157,90 @@ test.describe("design fundament", () => {
     );
     expect(focusStroke).toBe("rgb(125, 82, 16)"); // --color-map-accent
   });
+
+  test("game pieces stand as shaded meeples with distinct silhouettes", async ({ page }) => {
+    // Ganove spawn choice already shows the placed detective squad.
+    await page.goto("/?mode=ganove&map=muenster&seed=7&mission=none");
+    await page.getByRole("button", { name: "Neue Partie" }).click();
+    await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "pickSpawn");
+    const board = page.getByTestId("map-graph");
+    await expect(board).toBeVisible();
+
+    // Detective piece anatomy: gradient body, soft shadow, pedestal,
+    // head, index numeral — readable ink on the parchment.
+    const detective = await board
+      .locator("[data-detective='0']")
+      .first()
+      .evaluate((el) => {
+        const body = el.querySelector("[class*='pieceBody']");
+        const shadow = el.querySelector("[class*='pieceShadow']");
+        const index = el.querySelector("[class*='pieceIndex']");
+        const wrapper = getComputedStyle(el);
+        return {
+          piece: el.querySelector("[data-piece='detective']") !== null,
+          bodyFill: body?.getAttribute("fill") ?? null,
+          head: el.querySelector("[class*='pieceHead']") !== null,
+          base: el.querySelector("[class*='pieceBase']") !== null,
+          shadowOpacity: shadow ? Number.parseFloat(getComputedStyle(shadow).fillOpacity) : 1,
+          indexText: index?.textContent ?? null,
+          indexFill: index ? getComputedStyle(index).fill : null,
+          transitionProperty: wrapper.transitionProperty,
+          transitionDuration: wrapper.transitionDuration,
+        };
+      });
+    expect(detective.piece).toBe(true);
+    expect(detective.bodyFill).toMatch(/url\(#.*body\)/);
+    expect(detective.head).toBe(true);
+    expect(detective.base).toBe(true);
+    expect(detective.shadowOpacity).toBeLessThan(1);
+    expect(detective.indexText).toBe("1");
+    expect(detective.indexFill).toBe("rgb(234, 240, 248)"); // --color-text
+    // The glide transition lives on the moving wrapper.
+    expect(detective.transitionProperty).toContain("transform");
+    expect(detective.transitionDuration).toBe("0.48s");
+
+    // The legend mirrors the pieces — same silhouettes, scaled down.
+    const legend = page.getByTestId("map-legend");
+    await expect(legend.locator("[data-piece='detective']")).toHaveCount(1);
+    await expect(legend.locator("[data-piece='ganove']")).toHaveCount(1);
+
+    // After the spawn pick the ganove stands as coat + fedora — a
+    // silhouette distinct from the detective (hat, no head, no index).
+    await page.locator("[data-selectable]").first().dispatchEvent("click");
+    await expect(page.getByTestId("ganove-screen")).toHaveAttribute("data-view", "playing");
+    const ganove = await page.locator("[data-ganove]").evaluate((el) => ({
+      piece: el.querySelector("[data-piece='ganove']") !== null,
+      hat: el.querySelector("[class*='pieceHat']") !== null,
+      head: el.querySelector("[class*='pieceHead']") !== null,
+      index: el.querySelector("[class*='pieceIndex']") !== null,
+    }));
+    expect(ganove.piece).toBe(true);
+    expect(ganove.hat).toBe(true);
+    expect(ganove.head).toBe(false);
+    expect(ganove.index).toBe(false);
+
+    // The active detective plants an amber pennant (shape + colour).
+    await page.goto("/?mode=detektiv&map=teststadt&seed=42&mission=random");
+    await page.getByRole("button", { name: "Neue Partie" }).click();
+    await expect(page.getByTestId("detektiv-screen")).toHaveAttribute("data-view", "pickSpawns");
+    await page.locator("[data-selectable]").first().dispatchEvent("click");
+    const flag = await page.locator("[data-active-detective='true']").evaluate((el) => {
+      // `path`, not `line` — `pieceFlagPole` shares the class prefix.
+      const pennant = el.querySelector("path[class*='pieceFlag']");
+      return {
+        mark: el.querySelector("[class*='pieceActiveMark']") !== null,
+        flagFill: pennant ? getComputedStyle(pennant).fill : null,
+      };
+    });
+    expect(flag.mark).toBe(true);
+    expect(flag.flagFill).toBe("rgb(125, 82, 16)"); // --color-map-accent
+
+    // Reduced motion switches the glide off.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const reduced = await page
+      .locator("[data-detective]")
+      .first()
+      .evaluate((el) => getComputedStyle(el).transitionDuration);
+    expect(reduced).toBe("0s");
+  });
 });

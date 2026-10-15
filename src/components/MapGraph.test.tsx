@@ -403,6 +403,93 @@ describe("MapGraph — detective perspective props", () => {
   });
 });
 
+describe("MapGraph — board pieces", () => {
+  // The markers are standing meeple figures (boardPieces.tsx): volume
+  // gradient body, drop shadow, pedestal — anchored inside the same
+  // moving wrapper that carries data-* and the markerMove transition.
+  it("renders detective markers as standing figures with volume, shadow and a base", () => {
+    const { container } = render(<MapGraph map={map} detectivePositions={["a", "i"]} />);
+    const markers = container.querySelectorAll("[data-detective]");
+    expect(markers).toHaveLength(2);
+    markers.forEach((marker, i) => {
+      const piece = marker.querySelector("[data-piece='detective']") as Element;
+      expect(piece).not.toBeNull();
+      expect(piece.getAttribute("aria-hidden")).toBe("true");
+      expect(piece.querySelector("[class*='pieceShadow']")).not.toBeNull();
+      expect(piece.querySelector("[class*='pieceBase']")).not.toBeNull();
+      expect(piece.querySelector("[class*='pieceBody']")).not.toBeNull();
+      expect(piece.querySelector("[class*='pieceHead']")).not.toBeNull();
+      expect(piece.querySelector("[class*='pieceIndex']")?.textContent).toBe(String(i + 1));
+    });
+    // The flat rect chip is gone.
+    expect(container.querySelectorAll("[class*='detectiveShape']")).toHaveLength(0);
+  });
+
+  it("renders the ganove as its own silhouette — coat and hat, not a diamond", () => {
+    const { container } = render(<MapGraph map={map} ganovePosition="g" />);
+    const piece = container.querySelector("[data-ganove] [data-piece='ganove']") as Element;
+    expect(piece).not.toBeNull();
+    expect(piece.querySelector("[class*='pieceHat']")).not.toBeNull();
+    expect(piece.querySelector("[class*='pieceBody']")).not.toBeNull();
+    // Distinct by label too: no head circle, no index numeral.
+    expect(piece.querySelector("[class*='pieceHead']")).toBeNull();
+    expect(piece.querySelector("[class*='pieceIndex']")).toBeNull();
+    // The flat diamond is gone.
+    expect(container.querySelectorAll("[class*='ganoveShape']")).toHaveLength(0);
+  });
+
+  it("marks the active detective with a pennant, not colour alone", () => {
+    const { container } = render(
+      <MapGraph map={map} detectivePositions={["a", "i"]} activeDetectiveIndex={1} />,
+    );
+    const active = container.querySelector('[data-detective="1"]') as Element;
+    expect(active).toHaveAttribute("data-active-detective", "true");
+    expect(active.querySelector("[class*='pieceActiveMark']")).not.toBeNull();
+    expect(active.querySelector("[class*='pieceFlag']")).not.toBeNull();
+    expect(active.querySelector("[class*='pieceActiveBase']")).not.toBeNull();
+    const idle = container.querySelector('[data-detective="0"]') as Element;
+    expect(idle.querySelector("[class*='pieceActiveMark']")).toBeNull();
+    expect(idle.querySelector("[class*='pieceActiveBase']")).toBeNull();
+  });
+
+  it("fills every piece body with a defs gradient that resolves", () => {
+    const { container } = render(
+      <MapGraph map={map} detectivePositions={["a"]} ganovePosition="g" />,
+    );
+    const bodies = container.querySelectorAll("[class*='pieceBody']");
+    expect(bodies.length).toBeGreaterThanOrEqual(2);
+    for (const body of bodies) {
+      const ref = (body.getAttribute("fill") ?? "").match(/url\(#([^)]+)\)/)?.[1];
+      expect(ref).toBeDefined();
+      expect(container.querySelector(`radialGradient[id='${ref}']`)).not.toBeNull();
+    }
+  });
+
+  it("keeps piece gradient ids unique across pieces and maps", () => {
+    const { container } = render(
+      <>
+        <MapGraph map={map} detectivePositions={["a", "i"]} ganovePosition="g" />
+        <MapGraph map={map} detectivePositions={["b"]} ganovePosition="h" />
+      </>,
+    );
+    const ids = [...container.querySelectorAll("radialGradient[id]")].map((el) => el.id);
+    expect(ids.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("keeps the glide transition on the marker wrapper", () => {
+    const { container } = render(
+      <MapGraph map={map} detectivePositions={["a"]} ganovePosition="g" />,
+    );
+    const markers = container.querySelectorAll("[data-detective], [data-ganove]");
+    expect(markers).toHaveLength(2);
+    for (const marker of markers) {
+      expect(marker.getAttribute("class")).toContain("markerMove");
+      expect((marker as HTMLElement).style.transform).toContain("translate(");
+    }
+  });
+});
+
 describe("Map legend swatches", () => {
   // Same shape = same meaning: both legends render the place token as a
   // miniature plaque (dashed ring + perforated rim + inner line) so the
@@ -421,6 +508,25 @@ describe("Map legend swatches", () => {
     expect(rings).toHaveLength(1);
     expect(dots).toHaveLength(1);
     expect(inners).toHaveLength(1);
+  });
+
+  it("the ganove legend shows both piece miniatures", () => {
+    const { container } = render(<MapLegend />);
+    const legend = container.querySelector('[data-testid="map-legend"]') as HTMLElement;
+    // Same glyph = same meaning: the swatches are the very pieces
+    // rendered on the board, scaled down.
+    expect(legend.querySelectorAll("[data-piece='detective']")).toHaveLength(1);
+    expect(legend.querySelectorAll("[data-piece='ganove']")).toHaveLength(1);
+    // Hat parts (crown, brim, band) — `pieceHat`/`pieceHatBand`.
+    expect(legend.querySelectorAll("[class*='pieceHat']").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("the detective legend shows only the detective miniature", () => {
+    const { container } = render(<DetectiveMapLegend map={map} />);
+    const legend = container.querySelector('[data-testid="map-legend"]') as HTMLElement;
+    expect(legend.querySelectorAll("[data-piece='detective']")).toHaveLength(1);
+    // Asymmetry holds in the legend too — no ganove glyph here.
+    expect(legend.querySelectorAll("[data-piece='ganove']")).toHaveLength(0);
   });
 
   it("the detective legend shows the identical plaque token swatch", () => {

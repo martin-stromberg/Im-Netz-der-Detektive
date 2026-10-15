@@ -367,17 +367,9 @@
   stroke-width: 1.6;
 }
 
-.legendDetective {
-  fill: var(--color-detective);
-  stroke: var(--color-map-detective-stroke);
-  stroke-width: 1.4;
-}
-
-.legendGanove {
-  fill: var(--color-map-ganove);
-  stroke: var(--color-ink);
-  stroke-width: 1.2;
-}
+/* The piece swatches are true miniatures of the board figures — the
+   glyphs style themselves (boardPieces.module.css), no local rules
+   needed. */
 
 /* The target swatch is a miniature of the map's place token: framed
    plaque with perforated legal rim, paper face and engraved inner ring

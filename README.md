@@ -15,9 +15,21 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-**Brettspiel-Redesign — Schritt 3: Orts-Tokens** (Projekt
-„Finales Brettspiel-Design"): Jeder Ort auf der `MapGraph`-Karte ist
-jetzt eine geprägte Plakette statt eines flachen Punktes —
+**Brettspiel-Redesign — Schritt 4: Spielfiguren** (Projekt
+„Finales Brettspiel-Design"): Aus den flachen Positionsmarkern sind
+greifbare Meeple-Spielsteine geworden — das neue Modul
+`src/components/boardPieces.tsx` zeichnet stehende Figuren mit
+Körper-`radialGradient`, Schlagschatten und Sockel-Ellipse auf den
+Orts-Plaketten. Detektiv (aufrechte Silhouette + Index-Ziffer + Blau)
+und Ganove (Mantel-A-Linie + Fedora, ohne Ziffer) unterscheiden sich
+über Form, Farbe und Beschriftung; der aktive Detektiv pflanzt eine
+bernsteinfarbene Fahne auf seinen Sockel. `data-*`-Vertrag,
+`markerMove`-Gleiten (480 ms, respektiert `prefers-reduced-motion`)
+und die `translate`-Ankerung bleiben unverändert; beide Legenden
+zeigen Miniaturen derselben Figuren.
+
+Zuvor — **Schritt 3: Orts-Tokens**: Jeder Ort auf der `MapGraph`-Karte
+ist eine geprägte Plakette statt eines flachen Punktes —
 Schlagschatten, gefasster Rand, `radialGradient`-Volumenprägung und
 gravierte Innenlinie wie eine Kartenplakette auf dem Pergament-Brett.
 Wählbare Orte tragen einen perforierten grünen Rand plus gestrichelten

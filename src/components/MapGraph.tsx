@@ -22,6 +22,7 @@ import { isEdgeBlocked, type BlockedEdge, type MoveTarget } from "../logic/Movem
 import type { MapNode, MapPack } from "../logic/mapPack";
 import { t } from "../i18n";
 import { LandmarkGlyph } from "./landmarks";
+import { DetectivePiece, GanovePiece } from "./boardPieces";
 import { MapBackdrop } from "./MapBackdrop";
 import styles from "./MapGraph.module.css";
 
@@ -469,17 +470,12 @@ export function MapGraph({
             <g
               key={`detective-${index}`}
               style={{ transform: `translate(${node.x}px, ${node.y - NODE_RADIUS - 8}px)` }}
-              className={`${styles.detectiveMarker} ${styles.markerMove} ${
-                index === activeDetectiveIndex ? styles.detectiveActive : ""
-              }`}
+              className={styles.markerMove}
               data-detective={index}
               data-active-detective={index === activeDetectiveIndex ? "true" : undefined}
               aria-label={t("marker.detective", { index: index + 1 })}
             >
-              <rect x={-6} y={-6} width={12} height={12} rx={2} className={styles.detectiveShape} />
-              <text className={styles.markerText} y={3.5} textAnchor="middle">
-                {index + 1}
-              </text>
+              <DetectivePiece index={index + 1} active={index === activeDetectiveIndex} />
             </g>
           );
         })}
@@ -488,11 +484,11 @@ export function MapGraph({
             style={{
               transform: `translate(${ganoveNode.x}px, ${ganoveNode.y - NODE_RADIUS - 8}px)`,
             }}
-            className={`${styles.ganoveMarker} ${styles.markerMove}`}
+            className={styles.markerMove}
             data-ganove="true"
             aria-label={t("marker.ganove")}
           >
-            <path d="M 0 -7 L 6 0 L 0 7 L -6 0 Z" className={styles.ganoveShape} />
+            <GanovePiece />
             <title>{t("marker.ganove")}</title>
           </g>
         ) : null}

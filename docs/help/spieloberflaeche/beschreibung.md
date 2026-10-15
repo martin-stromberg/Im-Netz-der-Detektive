@@ -32,7 +32,12 @@ Figuren und alle Markierungen sind in dunklen Tintenfarben gesetzt
 und bleiben damit auf dem hellen Papier kontraststark. Jeder Ort ist
 eine kleine geprägte Plakette mit eingefasstem Rand, Volumenprägung
 und dezentem Schatten — wie eine gedruckte Kartenplakette auf dem
-Brett. Wählbare Orte erkennst du am perforierten grünen Rand plus
+Brett. Die Spielfiguren stehen als greifbare Meeple mit
+Körpervolumen, Schlagschatten und Sockel auf den Plaketten: Detektive
+als blaue Stehendfiguren mit Trupp-Ziffer, der Ganove als
+Mantel-und-Fedora-Silhouette — Form, Farbe und Beschriftung wirken
+immer zusammen. Der jeweils ziehende Detektiv pflanzt eine
+bernsteinfarbene Fahne auf seinen Sockel. Wählbare Orte erkennst du am perforierten grünen Rand plus
 gestricheltem Ring, den Tastaturfokus am soliden bernsteinfarbenen
 Fassungsring. Die Legende unter der Karte zeigt jedes Zeichen auf
 einem kleinen Papierchip, der exakt die Brettfarben wiedergibt.
@@ -63,8 +68,9 @@ anhand ihrer Hinweise einkreisen.
 - **Karte:** Die Stadtkarte zeigt alle Orte mit Klarnamen, Wege als
   Linien und schnelle „Fahrten" als gestrichelte Linien, gesperrte
   Straßen ausgegraut mit Sperrzeichen, die Detektive als nummerierte
-  Marker, deine eigene Position und deine Missionsziele als
-  Form-Symbole. Eine Legende unter der Karte erklärt alle Zeichen.
+  Meeple-Figuren, deine eigene Mantel-und-Fedora-Figur und deine
+  Missionsziele als Form-Symbole. Eine Legende unter der Karte erklärt
+  alle Zeichen.
 - **Ziehen:** In deinem Zug wählst du einen grün markierten
   Nachbarort — pro Zug genau eine Kante, Stehenbleiben ist nicht
   erlaubt. Danach ziehen die Detektive automatisch.
@@ -136,7 +142,8 @@ und den unsichtbaren Gegner deduktiv eingrenzen.
   Klarnamen und Ortskategorien (Diebstahl-/Kontakt-/Flucht-/Sabotage-
   Pool als Flaggensymbol), Zonen als farbige Grundflächen (Legende
   nennt die Zonennamen), Wege und Fahrten, gesperrte Straßen mit
-  Sperrzeichen, deine Detektive als nummerierte Marker und alle
+  Sperrzeichen, deine Detektive als nummerierte Meeple-Figuren (der
+  ziehende trägt eine Fahne) und alle
   Kameras — aktive als gefülltes Symbol, sabotierte gestrichen. Den
   Ganoven siehst du **nie**.
 - **Ziehen:** Die Detektive ziehen in fester Reihenfolge D1 → Dn;
