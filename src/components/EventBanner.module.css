@@ -20,11 +20,11 @@
   margin: 0;
   padding: 7px 14px;
   border-radius: 8px;
-  border: 1px solid #2a3240;
-  background: rgb(16 20 28 / 92%);
-  color: #c8d0dc;
+  border: 1px solid var(--color-border);
+  background: var(--color-banner-bg);
+  color: var(--color-text-secondary);
   font-size: 0.85rem;
-  box-shadow: 0 4px 16px rgb(0 0 0 / 45%);
+  box-shadow: 0 4px 16px var(--color-shadow-soft);
   animation: banner-in 220ms ease-out;
 }
 
@@ -52,21 +52,21 @@
 }
 
 .tone_info .icon {
-  color: #7fb8d4;
+  color: var(--color-escape);
 }
 
 .tone_warn .icon {
-  color: #f5d76e;
+  color: var(--color-amber-bright);
 }
 
 .tone_alarm {
-  border-color: #d98c8c;
+  border-color: var(--color-danger);
 }
 
 .tone_alarm .icon {
-  color: #d98c8c;
+  color: var(--color-danger);
 }
 
 .tone_good .icon {
-  color: #7fd4a8;
+  color: var(--color-green);
 }

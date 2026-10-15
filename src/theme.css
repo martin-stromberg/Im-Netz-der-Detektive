@@ -1,0 +1,137 @@
+/* Global design tokens — dark detective-noir palette plus board-game
+ * (Brettspiel) tokens for the upcoming materiality steps. Every module
+ * stylesheet consumes these custom properties via var(); values are the
+ * exact colours that used to be hardcoded in GanoveScreen.module.css.
+ *
+ * Colour-blind safety (spec `02-technisches-konzept.md` section 11):
+ * colour is never the only cue — every status/type distinction also
+ * carries shape, icon, label or pattern.
+ *
+ * Measured WCAG contrast ratios of the text palette (WCAG AA needs
+ * ≥ 4.5:1 for normal text):
+ *
+ *   --color-text          on --color-screen-bg     → 16.7:1   main text on screen background
+ *   --color-text          on --color-panel-bg      → 15.0:1   main text on panel
+ *   --color-text-secondary on --color-panel-bg     → 11.1:1   secondary text on panel
+ *   --color-text-muted    on --color-screen-bg     →  6.3:1   hint/subtitle on screen background
+ *   --color-text-muted    on --color-panel-bg      →  5.6:1   hint on panel
+ *   --color-detective-light on --color-panel-bg    →  8.4:1   card text / phase on panel
+ *   --color-amber         on --color-screen-bg     → 10.1:1   amber title/headings on screen
+ *   --color-amber         on --color-panel-bg      →  9.1:1   amber headings on panel
+ *   --color-screen-bg     on --color-amber         → 10.1:1   primary button label
+ *   --color-text          on --color-surface-raised → 13.4:1  secondary button label
+ *   --color-danger-text   on --color-danger-surface →  8.9:1  danger button label
+ *   --color-danger-error  on --color-panel-bg      →  6.9:1   error list on panel
+ *   --color-danger        on --color-panel-bg      →  6.6:1   notice accent on panel
+ *   --color-danger-text   on --color-surface-raised → 10.1:1  notice text on its background
+ *   --color-green         on --color-panel-bg      →  9.8:1   success/heat "ruhig" on panel
+ *   --color-amber-bright  on --color-panel-bg      → 12.2:1   current status / focus accents
+ *
+ * Board-game tokens (parchment board on a dark table — the light paper
+ * is reserved for card faces in later steps; the surroundings stay dark):
+ *
+ *   --color-ink           on --color-paper         → 11.6:1   body text on parchment card
+ *   --color-ink-soft      on --color-paper         →  6.6:1   secondary text on parchment card
+ *   --color-ink           on --color-paper-aged    →  9.3:1   text on aged paper edge
+ *   --color-paper         on --color-cardboard     →  5.3:1   paper label on board rim
+ *   --color-paper         on --color-cardboard-edge →  6.5:1  paper label on board edge
+ *   --color-text          on --color-table         → 15.9:1   text on table surface
+ *   --color-text-secondary on --color-table        → 11.8:1   secondary text on table
+ *   --color-text-muted    on --color-table         →  6.0:1   hint on table surface
+ *   --color-amber         on --color-table         →  9.7:1   amber heading on table
+ *   --color-paper         on --color-table         → 13.4:1   parchment card on table
+ */
+
+@font-face {
+  font-family: "IM Fell English";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/imfellenglish-regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "IM Fell English";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/imfellenglish-italic.woff2") format("woff2");
+}
+
+:root {
+  /* ── Bestandspalette (Werte unverändert aus den CSS-Modulen) ── */
+  --color-screen-bg: #0c0f16;
+  --color-panel-bg: #161b26;
+  --color-inset-bg: #10141c;
+  --color-surface-raised: #1d2534;
+  --color-surface-hover: #243050;
+  --color-border: #2a3240;
+
+  --color-text: #eaf0f8;
+  --color-text-secondary: #c8d0dc;
+  --color-text-muted: #8a94a6;
+
+  --color-amber: #e8b45a;
+  --color-amber-bright: #f5d76e;
+  --color-green: #7fd4a8;
+  --color-green-bright: #a8e8c8;
+  --color-heat-raised: #e8a05a;
+
+  --color-danger: #d98c8c;
+  --color-danger-surface: #4a2326;
+  --color-danger-surface-hover: #5c2c30;
+  --color-danger-text: #f0c8c8;
+  --color-danger-error: #e88a7a;
+
+  --color-detective: #3d5a80;
+  --color-detective-light: #9db8d9;
+  --color-detective-active: #5a7db0;
+
+  --color-edge-route: #4a5568;
+  --color-edge-blocked: #3a3f4a;
+  --color-route-fahrt: #7a6a4f;
+  --color-escape: #7fb8d4;
+  --color-pin: #b48ad4;
+  --color-possible: #d4a94f;
+  --color-bar-dim: #3a4152;
+
+  /* MapBackdrop-Features (Comic-Board-Geografie) */
+  --color-feature-water: #1d3247;
+  --color-feature-water-stroke: #2d4a66;
+  --color-feature-park: #1f3328;
+  --color-feature-park-stroke: #2f4a3a;
+  --color-feature-rail: #5a5148;
+  --color-feature-street: #323a48;
+  --color-feature-block: #202835;
+  --color-feature-block-stroke: #2e3a4d;
+
+  /* Alpha-Varianten der Bestandspalette */
+  --color-screen-overlay-soft: rgb(12 15 22 / 93%);
+  --color-screen-overlay-strong: rgb(12 15 22 / 97%);
+  --color-pursuit-near: rgb(232 160 90 / 55%);
+  --color-pursuit-close: rgb(217 140 140 / 70%);
+  --color-pursuit-close-glow: rgb(217 140 140 / 35%);
+  --color-pursuit-close-strong: rgb(217 140 140 / 90%);
+  --color-pursuit-close-glow-strong: rgb(217 140 140 / 55%);
+  --color-splash-good-bg: rgb(20 28 22 / 90%);
+  --color-splash-bad-bg: rgb(28 18 20 / 90%);
+  --color-splash-draw-bg: rgb(20 24 32 / 90%);
+  --color-banner-bg: rgb(16 20 28 / 92%);
+  --color-shadow-soft: rgb(0 0 0 / 45%);
+
+  /* ── Brettspiel-Tokens (Pergament-Brett auf dunklem Tisch) ── */
+  --color-paper: #e8dcc0;
+  --color-paper-aged: #d6c6a0;
+  --color-ink: #2b2115;
+  --color-ink-soft: #57462e;
+  --color-cardboard: #6b5335;
+  --color-cardboard-edge: #4a3823;
+  --color-table: #191411;
+  --color-table-edge: #0e0b09;
+
+  --shadow-panel: 0 2px 8px rgb(0 0 0 / 40%);
+  --shadow-board: 0 12px 40px rgb(0 0 0 / 55%);
+
+  /* Schmuckschrift für Titel/Überschriften; Fließtext bleibt Systemschrift. */
+  --font-display: "IM Fell English", "Iowan Old Style", Georgia, "Times New Roman", serif;
+}

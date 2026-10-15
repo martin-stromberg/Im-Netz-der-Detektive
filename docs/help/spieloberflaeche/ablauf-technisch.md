@@ -9,6 +9,27 @@ Diese Seite dokumentiert den Anwendungsrahmen und beide Spielmodi.
 `dev`, `stats`, `resume` und `replay`. `?mode=ganove|detektiv` bleibt
 als Deep-Link-Einstieg direkt in die Bildschirme erhalten.
 
+## Design-Fundament (Theming, Schritt 1 des Brettspiel-Redesigns)
+
+- `src/theme.css` ist das einzige globale Stylesheet (Import in
+  `src/main.tsx`). Es definiert auf `:root` alle Farben als Custom
+  Properties (`--color-*`), die Alpha-Varianten, die neuen
+  Brettspiel-Tokens (Papier, Pappe, Tisch, Schatten) sowie
+  `--font-display`; der Kopfkommentar dokumentiert die gemessenen
+  WCAG-AA-Kontrastpaarungen.
+- Die Schmuckschrift **IM Fell English** (SIL OFL) liegt als WOFF2
+  unter `src/assets/fonts/` und wird per `@font-face` eingebettet —
+  kein externer Font-Request zur Laufzeit. Sie wirkt über
+  `var(--font-display)` nur auf Überschriften (`.title`,
+  `.panelHeading`, `.heading`, `.cardTitle`, `.statHeading`,
+  `.markerHeading`); Fließtext bleibt Systemschrift.
+- Alle CSS-Module (`GanoveScreen.module.css` als Shared-Theme plus
+  `Menu`, `DetektivScreen`, `MissionPanel`, `EventBanner`, `HeatBadge`,
+  `PursuitBadge`, `MapGraph`, `MapBackdrop`, `App`) konsumieren die
+  Tokens per `var()` — Klassennamen, Struktur und `data-*`-Attribute
+  bleiben unverändert. Herkunft und Lizenz des Fonts sind in
+  `src/assets/ASSETS.md` dokumentiert.
+
 ## Menüfluss (Komponenten)
 
 | Ansicht | Komponente | Aufgabe |

@@ -1,4 +1,7 @@
 /* Dark detective-noir theme: deep blues/graphite with amber accents.
+ * All colours are design tokens defined in `src/theme.css` (`:root`);
+ * the measured WCAG ratios below document the pairings those tokens
+ * produce — see theme.css for the authoritative, extended list.
  *
  * Colour-blind safety (spec `02-technisches-konzept.md` section 11):
  * colour is never the only cue — every status/type distinction also
@@ -32,10 +35,10 @@
      contrast ratios (≥92 % flat overlay keeps effective background
      within the measured range). */
   background:
-    linear-gradient(rgba(12, 15, 22, 0.93), rgba(12, 15, 22, 0.97)),
+    linear-gradient(var(--color-screen-overlay-soft), var(--color-screen-overlay-strong)),
     url("../assets/bg-noir.jpg") center / cover fixed no-repeat;
-  background-color: #0c0f16;
-  color: #eaf0f8;
+  background-color: var(--color-screen-bg);
+  color: var(--color-text);
   padding: 16px 24px;
   box-sizing: border-box;
 }
@@ -46,14 +49,15 @@
 
 .title {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 1.4rem;
   letter-spacing: 0.06em;
-  color: #e8b45a;
+  color: var(--color-amber);
 }
 
 .subtitle {
   margin: 2px 0 0;
-  color: #8a94a6;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
@@ -67,12 +71,12 @@
 
 .round {
   font-variant-numeric: tabular-nums;
-  color: #c8d0dc;
+  color: var(--color-text-secondary);
   font-weight: 600;
 }
 
 .phase {
-  color: #9db8d9;
+  color: var(--color-detective-light);
   font-size: 0.9rem;
 }
 
@@ -101,13 +105,13 @@
 }
 
 .mapArea[data-pursuit="nah"]::after {
-  box-shadow: inset 0 0 0 3px rgb(232 160 90 / 55%);
+  box-shadow: inset 0 0 0 3px var(--color-pursuit-near);
 }
 
 .mapArea[data-pursuit="unmittelbar"]::after {
   box-shadow:
-    inset 0 0 0 4px rgb(217 140 140 / 70%),
-    inset 0 0 60px rgb(217 140 140 / 35%);
+    inset 0 0 0 4px var(--color-pursuit-close),
+    inset 0 0 60px var(--color-pursuit-close-glow);
   animation: pursuit-pulse 1100ms ease-in-out infinite;
 }
 
@@ -115,14 +119,14 @@
   0%,
   100% {
     box-shadow:
-      inset 0 0 0 4px rgb(217 140 140 / 70%),
-      inset 0 0 60px rgb(217 140 140 / 35%);
+      inset 0 0 0 4px var(--color-pursuit-close),
+      inset 0 0 60px var(--color-pursuit-close-glow);
   }
 
   50% {
     box-shadow:
-      inset 0 0 0 5px rgb(217 140 140 / 90%),
-      inset 0 0 80px rgb(217 140 140 / 55%);
+      inset 0 0 0 5px var(--color-pursuit-close-strong),
+      inset 0 0 80px var(--color-pursuit-close-glow-strong);
   }
 }
 
@@ -177,23 +181,23 @@
 }
 
 .splash_escaped {
-  color: #7fd4a8;
-  background: rgb(20 28 22 / 90%);
-  border: 2px solid #7fd4a8;
+  color: var(--color-green);
+  background: var(--color-splash-good-bg);
+  border: 2px solid var(--color-green);
 }
 
 .splash_caught,
 .splash_surrounded,
 .splash_timeout {
-  color: #d98c8c;
-  background: rgb(28 18 20 / 90%);
-  border: 2px solid #d98c8c;
+  color: var(--color-danger);
+  background: var(--color-splash-bad-bg);
+  border: 2px solid var(--color-danger);
 }
 
 .splash_draw {
-  color: #c8d0dc;
-  background: rgb(20 24 32 / 90%);
-  border: 2px solid #4a5568;
+  color: var(--color-text-secondary);
+  background: var(--color-splash-draw-bg);
+  border: 2px solid var(--color-edge-route);
 }
 
 .sidebar {
@@ -204,16 +208,17 @@
 }
 
 .panel {
-  background: #161b26;
-  border: 1px solid #2a3240;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 14px;
 }
 
 .panelHeading {
   margin: 0 0 8px;
+  font-family: var(--font-display);
   font-size: 0.95rem;
-  color: #e8b45a;
+  color: var(--color-amber);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -221,10 +226,10 @@
 .primaryButton {
   display: inline-block;
   padding: 9px 16px;
-  border: 1px solid #e8b45a;
+  border: 1px solid var(--color-amber);
   border-radius: 6px;
-  background: #e8b45a;
-  color: #10141c;
+  background: var(--color-amber);
+  color: var(--color-inset-bg);
   font-weight: 700;
   cursor: pointer;
   font-size: 0.95rem;
@@ -232,25 +237,25 @@
 
 .primaryButton:hover,
 .primaryButton:focus-visible {
-  background: #f5d76e;
+  background: var(--color-amber-bright);
   outline: none;
 }
 
 .secondaryButton {
   display: inline-block;
   padding: 8px 14px;
-  border: 1px solid #3d5a80;
+  border: 1px solid var(--color-detective);
   border-radius: 6px;
-  background: #1d2534;
-  color: #eaf0f8;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
   cursor: pointer;
   font-size: 0.85rem;
 }
 
 .secondaryButton:hover:not(:disabled),
 .secondaryButton:focus-visible:not(:disabled) {
-  background: #243050;
-  outline: 2px solid #f5d76e;
+  background: var(--color-surface-hover);
+  outline: 2px solid var(--color-amber-bright);
   outline-offset: 1px;
 }
 
@@ -263,23 +268,23 @@
   display: inline-block;
   padding: 8px 14px;
   margin-right: 8px;
-  border: 1px solid #d98c8c;
+  border: 1px solid var(--color-danger);
   border-radius: 6px;
-  background: #4a2326;
-  color: #f0c8c8;
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
   cursor: pointer;
   font-size: 0.85rem;
 }
 
 .dangerButton:hover,
 .dangerButton:focus-visible {
-  background: #5c2c30;
-  outline: 2px solid #d98c8c;
+  background: var(--color-danger-surface-hover);
+  outline: 2px solid var(--color-danger);
   outline-offset: 1px;
 }
 
 .confirm {
-  border: 1px dashed #d98c8c;
+  border: 1px dashed var(--color-danger);
   border-radius: 6px;
   padding: 10px;
 }
@@ -288,7 +293,7 @@
   margin: 0;
   padding-left: 18px;
   font-size: 0.85rem;
-  color: #c8d0dc;
+  color: var(--color-text-secondary);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -302,15 +307,15 @@
 .hint {
   margin: 4px 0;
   font-size: 0.8rem;
-  color: #8a94a6;
+  color: var(--color-text-muted);
 }
 
 .notice {
   margin: 8px 0 0;
   padding: 8px 10px;
-  border-left: 3px solid #d98c8c;
-  background: #1d2534;
-  color: #f0c8c8;
+  border-left: 3px solid var(--color-danger);
+  background: var(--color-surface-raised);
+  color: var(--color-danger-text);
   font-size: 0.85rem;
 }
 
@@ -321,12 +326,12 @@
   align-items: center;
   margin-top: 8px;
   font-size: 0.75rem;
-  color: #8a94a6;
+  color: var(--color-text-muted);
 }
 
 .legendTitle {
   font-weight: 600;
-  color: #c8d0dc;
+  color: var(--color-text-secondary);
 }
 
 .legendItem {
@@ -337,41 +342,41 @@
 }
 
 .legendWeg {
-  stroke: #4a5568;
+  stroke: var(--color-edge-route);
   stroke-width: 2;
 }
 
 .legendFahrt {
-  stroke: #7a6a4f;
+  stroke: var(--color-route-fahrt);
   stroke-width: 3.5;
   stroke-dasharray: 7 4;
 }
 
 .legendEscape {
   fill: none;
-  stroke: #7fb8d4;
+  stroke: var(--color-escape);
   stroke-width: 1.6;
 }
 
 .legendDetective {
-  fill: #3d5a80;
-  stroke: #9db8d9;
+  fill: var(--color-detective);
+  stroke: var(--color-detective-light);
   stroke-width: 1.4;
 }
 
 .legendGanove {
-  fill: #e8b45a;
-  stroke: #10141c;
+  fill: var(--color-amber);
+  stroke: var(--color-inset-bg);
   stroke-width: 1.2;
 }
 
 .legendTargetDot {
-  fill: #7fd4a8;
+  fill: var(--color-green);
 }
 
 .legendTargetRing {
   fill: none;
-  stroke: #7fd4a8;
+  stroke: var(--color-green);
   stroke-width: 1;
   stroke-dasharray: 2 2;
 }

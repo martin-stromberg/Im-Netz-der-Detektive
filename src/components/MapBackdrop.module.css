@@ -2,33 +2,33 @@
    night theme, with a darker outline for the hand-drawn feel. */
 
 .feature_water {
-  fill: #1d3247;
-  stroke: #2d4a66;
+  fill: var(--color-feature-water);
+  stroke: var(--color-feature-water-stroke);
   stroke-width: 2;
 }
 
 .feature_park {
-  fill: #1f3328;
-  stroke: #2f4a3a;
+  fill: var(--color-feature-park);
+  stroke: var(--color-feature-park-stroke);
   stroke-width: 2;
 }
 
 .feature_rail {
   fill: none;
-  stroke: #5a5148;
+  stroke: var(--color-feature-rail);
   stroke-width: 2.5;
   stroke-dasharray: 8 4;
 }
 
 .feature_street {
   fill: none;
-  stroke: #323a48;
+  stroke: var(--color-feature-street);
   stroke-width: 4;
   stroke-linecap: round;
 }
 
 .feature_block {
-  fill: #202835;
-  stroke: #2e3a4d;
+  fill: var(--color-feature-block);
+  stroke: var(--color-feature-block-stroke);
   stroke-width: 1.5;
 }

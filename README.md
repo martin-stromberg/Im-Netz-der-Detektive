@@ -15,6 +15,18 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
+**Brettspiel-Redesign — Schritt 1: Design-Fundament** (Projekt „Finales
+Brettspiel-Design"): Ein globales `src/theme.css` führt die komplette
+Noir-Palette als `:root`-Design-Tokens (`--color-*`) und ergänzt neue
+Brettspiel-Tokens für Pergament, Pappe, Tisch und Schatten — Grundlage
+für das „Pergament-Brett auf dunklem Tisch". Titel und Überschriften
+aller Bildschirme laufen in der lokal eingebetteten Schmuckschrift
+**IM Fell English** (SIL OFL, WOFF2 unter `src/assets/fonts/`,
+`src/assets/ASSETS.md`) — kein externer Font-Request zur Laufzeit;
+Fließtext bleibt Systemschrift. Alle CSS-Module konsumieren die Tokens
+per `var()`, die WCAG-AA-Kontrastpaarungen sind in `theme.css`
+dokumentiert.
+
 **Endabnahme & Polishing — ausbalanciert, vollständig illustriert, E2E in CI**
 (Entwicklungsschritt 14): Das Spiel ist nach KI-vs.-KI-Kalibrierung
 auf Münster **ausgewogen** (~48 % Ganoven-Siege über 400 Seeds, ~50 %
