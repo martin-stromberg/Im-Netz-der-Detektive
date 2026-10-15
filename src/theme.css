@@ -95,15 +95,16 @@
   --color-possible: #d4a94f;
   --color-bar-dim: #3a4152;
 
-  /* MapBackdrop-Features (Comic-Board-Geografie) */
-  --color-feature-water: #1d3247;
-  --color-feature-water-stroke: #2d4a66;
-  --color-feature-park: #1f3328;
-  --color-feature-park-stroke: #2f4a3a;
-  --color-feature-rail: #5a5148;
-  --color-feature-street: #323a48;
-  --color-feature-block: #202835;
-  --color-feature-block-stroke: #2e3a4d;
+  /* MapBackdrop-Features (Vintage-Pergament-Geografie auf der hellen
+     Brettfläche: gedeckte Füllungen, Sepia-/Tinten-Outlines) */
+  --color-feature-water: #a8bcc6;
+  --color-feature-water-stroke: #5f7f92;
+  --color-feature-park: #aeb98a;
+  --color-feature-park-stroke: #74855a;
+  --color-feature-rail: #8a6f4d;
+  --color-feature-street: #a68e5c;
+  --color-feature-block: #d9c49a;
+  --color-feature-block-stroke: #9a7f52;
 
   /* Alpha-Varianten der Bestandspalette */
   --color-screen-overlay-soft: rgb(12 15 22 / 93%);
@@ -128,6 +129,41 @@
   --color-cardboard-edge: #4a3823;
   --color-table: #191411;
   --color-table-edge: #0e0b09;
+
+  /* ── Karten-Tinte auf Papier ──
+   * Dunkle Pendants der UI-Statusfarben für die helle Brettfläche
+   * (--color-paper, L ≈ 0.72). Die hellen Shared-Tokens oben bleiben
+   * den dunklen Panels vorbehalten. Kontraste gegen --color-paper:
+   *
+   *   --color-map-weg              →  4.7:1   Weg-Kanten / Legende
+   *   --color-map-fahrt            →  4.9:1   Fahrt-Achse / Legende
+   *   --color-map-legal            →  3.8:1   legale/selektierbare Ziele
+   *   --color-map-legal-hover      →  5.5:1   Hover auf Zielen
+   *   --color-map-accent           →  4.8:1   Fokusring, aktuelles Ziel, Kanten-Flash
+   *   --color-map-danger           →  4.7:1   Blockade-Kreuz, Sabotage, Kamera-Strike
+   *   --color-map-escape           →  4.8:1   Flucht-Marker
+   *   --color-map-pin              →  4.5:1   Marker-Pin, Kontakt-Kategorie
+   *   --color-map-possible         →  3.8:1   Deduktions-Diamantring
+   *   --color-map-ganove           →  4.6:1   Ganove-Figur, Diebstahl-Kategorie
+   *   --color-map-detective-stroke → 11.0:1   Outlines für Figuren/Kamera
+   *   --color-map-detective-active →  4.6:1   aktiver Detektiv
+   *   --color-map-blocked          →  ~2.5:1  gesperrte Kante — bewusst
+   *     ausgebleicht: „gesperrt" ist formkodiert (Dash + X-Glyph),
+   *     Farbe ist hier nur Sekundärcue.
+   */
+  --color-map-weg: #6b5b43;
+  --color-map-fahrt: #7a5228;
+  --color-map-blocked: #8f8060;
+  --color-map-legal: #2e7a54;
+  --color-map-legal-hover: #1f5c3d;
+  --color-map-accent: #7d5210;
+  --color-map-danger: #a03a30;
+  --color-map-escape: #2a6280;
+  --color-map-pin: #7a4d9e;
+  --color-map-possible: #8f6a1e;
+  --color-map-ganove: #8a5f12;
+  --color-map-detective-stroke: #22334d;
+  --color-map-detective-active: #46648f;
 
   --shadow-panel: 0 2px 8px rgb(0 0 0 / 40%);
   --shadow-board: 0 12px 40px rgb(0 0 0 / 55%);

@@ -15,8 +15,20 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-**Brettspiel-Redesign — Schritt 1: Design-Fundament** (Projekt „Finales
-Brettspiel-Design"): Ein globales `src/theme.css` führt die komplette
+**Brettspiel-Redesign — Schritt 2: Brett-Materialität** (Projekt
+„Finales Brettspiel-Design"): Die SVG-Stadtkarte (`MapGraph`) liegt
+jetzt wie ein gedrucktes Spielbrett auf dem dunklen Tisch —
+Pergament-Grundfläche mit prozeduraler Papierkörnung
+(`feTurbulence`) und Vignette (`radialGradient`), kräftiger
+mehrstufiger Pappenrand und Schlagschatten. Alle Kartenfarben laufen
+über neue, auf das helle Papier kalibrierte `--color-map-*`-Tinten
+(WCAG AA); die Board-Geographie nutzt eine Vintage-Pergament-Palette;
+die Legenden zeigen ihre Zeichen auf Papier-Chips in exakt den
+Brettfarben. `data-*`-Struktur, `viewBox` und Props bleiben
+unverändert — wirkt automatisch auf beiden Perspektiven, im Replay
+und im Missions-Picker.
+
+**Brettspiel-Redesign — Schritt 1: Design-Fundament**: Ein globales `src/theme.css` führt die komplette
 Noir-Palette als `:root`-Design-Tokens (`--color-*`) und ergänzt neue
 Brettspiel-Tokens für Pergament, Pappe, Tisch und Schatten — Grundlage
 für das „Pergament-Brett auf dunklem Tisch". Titel und Überschriften

@@ -30,6 +30,38 @@ als Deep-Link-Einstieg direkt in die Bildschirme erhalten.
   bleiben unverändert. Herkunft und Lizenz des Fonts sind in
   `src/assets/ASSETS.md` dokumentiert.
 
+## Brett-Materialität (Pergament-Brett, Schritt 2 des Redesigns)
+
+- `MapGraph` rendert als erste Kinder des `<svg>` einen `<defs>`-Block
+  (prozedurale Papierkörnung: `feTurbulence`-Fraktalrauschen →
+  `feColorMatrix` auf Tinten-Alpha → `feComposite` geclippt auf die
+  Fläche; Vignette als `radialGradient` in `--color-ink`) und eine
+  dekorative `boardFace`-Gruppe (`boardPaper`-Grundfläche,
+  `boardGrain`, `boardVignette`, `boardSeam` als innere Papierkante —
+  ein CSS-`inset`-Schatten läge unter dem SVG-Inhalt). Die IDs werden
+  per `useId` instanziiert, da `ReplayScreen` zwei Karten in einem
+  Dokument montiert. `data-layer`-Reihenfolge, `data-*`-Attribute,
+  Hit-Areas und Props bleiben unverändert; die Gruppe liegt vor
+  `MapBackdrop` (`data-layer="board"`), damit auch Karten ohne
+  Board-Features (`teststadt`) die Papierfläche erhalten.
+- `.map` trägt den physischen Rahmen: `border` in `--color-cardboard`,
+  Außenring `0 0 0 3px var(--color-cardboard-edge)` und Drop-Shadow
+  `var(--shadow-board)` via `box-shadow`, plus
+  `box-sizing: border-box`, damit der Rand in die 100 %-Breite zählt.
+- Kartenfarben: die hellen Shared-Tokens bleiben den dunklen Panels
+  vorbehalten; `MapGraph.module.css` nutzt die neuen dunklen
+  `--color-map-*`-Tinten (Glyphen ≥ ~3.8:1, Label `--color-ink`
+  11.6:1 gegen `--color-paper`; Kontrasttabelle im Kommentarblock von
+  `theme.css`). `MapBackdrop` bekommt die Pergament-Geographie über
+  die umgestellten `--color-feature-*`-Tokens. Zonen-Halos laufen auf
+  `hsl(zoneHue 55% 45%)` mit `fill-opacity: 0.22`.
+- Die Legenden-Swatches beider Perspektiven sitzen auf Papier-Chips
+  (`.legendItem svg` mit `--color-paper`-Hintergrund und
+  `--color-cardboard`-Rand) und verwenden dieselben
+  `--color-map-*`-Tokens wie die Karte — Legende und Brett stimmen
+  farblich überein.
+- `prefers-reduced-motion` unverändert; keine neuen Animationen.
+
 ## Menüfluss (Komponenten)
 
 | Ansicht | Komponente | Aufgabe |

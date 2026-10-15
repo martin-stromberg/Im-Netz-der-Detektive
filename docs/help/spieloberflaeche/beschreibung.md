@@ -22,6 +22,17 @@ erscheinen in einer historisch angehauchten Schmuckschrift
 Schriften aus dem Internet nachgeladen); der übrige Text bleibt in
 der gut lesbaren Systemschrift.
 
+**Spielbrett-Optik:** Die Stadtkarte liegt wie ein gedrucktes
+Brett auf dem dunklen Tisch — helle Pergamentfläche mit feiner
+Papierkörnung und dezent abgedunkelten, gealterten Rändern, eingerahmt
+von einer kräftigen Pappenkante mit Schlagschatten. Die städtische
+Geographie (Wasser, Parks, Schienen, Straßen, Häuserblöcke) bleibt in
+gedeckten Vintage-Farben lesbar; Ortsnamen, Wege, Sperrzeichen,
+Figuren und alle Markierungen sind in dunklen Tintenfarben gesetzt
+und bleiben damit auf dem hellen Papier kontraststark. Die Legende
+unter der Karte zeigt jedes Zeichen auf einem kleinen Papierchip, der
+exakt die Brettfarben wiedergibt.
+
 **Barrierefreiheit:** Farbe ist nirgends die einzige Information —
 Kantentypen tragen Strichmuster, Sperrungen ein Sperr-Glyph,
 Missionsarten verschiedene Formen, Kameras eine Durchstreichung,

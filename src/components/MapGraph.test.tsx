@@ -256,6 +256,63 @@ describe("MapGraph — detective perspective props", () => {
     expect(a).toHaveFocus();
   });
 
+  it("renders a parchment board face beneath every data layer", () => {
+    const { container } = render(<MapGraph map={map} />);
+    const svg = container.querySelector('[data-testid="map-graph"]') as SVGSVGElement;
+    // Procedural grain + vignette come from <defs>.
+    const defs = svg.querySelector("defs");
+    expect(defs).not.toBeNull();
+    expect(defs?.querySelector("filter feTurbulence")).not.toBeNull();
+    expect(defs?.querySelector("radialGradient")).not.toBeNull();
+    // The board face group is painted before the first data layer.
+    const face = svg.querySelector("g[class*='boardFace']");
+    expect(face).not.toBeNull();
+    expect(face?.querySelector("rect[class*='boardPaper']")).not.toBeNull();
+    expect(face?.getAttribute("aria-hidden")).toBe("true");
+    const edges = svg.querySelector('[data-layer="edges"]') as Element;
+    expect(
+      face !== null &&
+        (face.compareDocumentPosition(edges) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+    ).toBe(true);
+  });
+
+  it("keeps defs ids unique when several maps share a document", () => {
+    const { container } = render(
+      <>
+        <MapGraph map={map} />
+        <MapGraph map={map} />
+      </>,
+    );
+    const ids = [...container.querySelectorAll("filter[id], radialGradient[id]")].map(
+      (el) => el.id,
+    );
+    expect(ids.length).toBeGreaterThanOrEqual(4);
+    expect(new Set(ids).size).toBe(ids.length);
+    // Every url(#…) reference resolves to a def inside the same document.
+    const idSet = new Set(ids);
+    for (const ref of container.querySelectorAll("[filter^='url('], [fill^='url(']")) {
+      const target = (ref.getAttribute("filter") ?? ref.getAttribute("fill") ?? "").match(
+        /url\(#([^)]+)\)/,
+      )?.[1];
+      expect(target !== undefined && idSet.has(target)).toBe(true);
+    }
+  });
+
+  it("keeps the data-layer order intact", () => {
+    const illustrated = {
+      ...map,
+      board: {
+        features: [{ kind: "shape" as const, style: "water" as const, d: "M 0 0 L 10 10 Z" }],
+      },
+    };
+    const { container } = render(<MapGraph map={illustrated} />);
+    const svg = container.querySelector('[data-testid="map-graph"]') as SVGSVGElement;
+    const layers = [...svg.querySelectorAll(":scope > g[data-layer]")].map((g) =>
+      g.getAttribute("data-layer"),
+    );
+    expect(layers).toEqual(["board", "edges", "landmarks", "nodes", "markers"]);
+  });
+
   it("renders the comic board layer and landmark glyphs when the pack provides them", () => {
     const illustrated = {
       ...map,

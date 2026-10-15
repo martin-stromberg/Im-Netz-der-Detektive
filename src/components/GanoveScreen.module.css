@@ -341,42 +341,51 @@
   white-space: nowrap;
 }
 
+/* Swatches are little paper chips cut from the board — the parchment
+   background keeps the dark board inks readable on the dark panel. */
+.legendItem svg {
+  flex: none;
+  background: var(--color-paper);
+  border: 1px solid var(--color-cardboard);
+  border-radius: 3px;
+}
+
 .legendWeg {
-  stroke: var(--color-edge-route);
+  stroke: var(--color-map-weg);
   stroke-width: 2;
 }
 
 .legendFahrt {
-  stroke: var(--color-route-fahrt);
+  stroke: var(--color-map-fahrt);
   stroke-width: 3.5;
   stroke-dasharray: 7 4;
 }
 
 .legendEscape {
   fill: none;
-  stroke: var(--color-escape);
+  stroke: var(--color-map-escape);
   stroke-width: 1.6;
 }
 
 .legendDetective {
   fill: var(--color-detective);
-  stroke: var(--color-detective-light);
+  stroke: var(--color-map-detective-stroke);
   stroke-width: 1.4;
 }
 
 .legendGanove {
-  fill: var(--color-amber);
-  stroke: var(--color-inset-bg);
+  fill: var(--color-map-ganove);
+  stroke: var(--color-ink);
   stroke-width: 1.2;
 }
 
 .legendTargetDot {
-  fill: var(--color-green);
+  fill: var(--color-map-legal);
 }
 
 .legendTargetRing {
   fill: none;
-  stroke: var(--color-green);
+  stroke: var(--color-map-legal);
   stroke-width: 1;
   stroke-dasharray: 2 2;
 }
