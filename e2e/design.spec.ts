@@ -434,4 +434,112 @@ test.describe("design fundament", () => {
     const headingFont = await missionHeading.evaluate((el) => getComputedStyle(el).fontFamily);
     expect(headingFont).toContain("IM Fell English");
   });
+
+  test("all screens share the same table surface and card controls", async ({ page }) => {
+    // Menu screen: the table is the noir texture under the table veil —
+    // --color-table as the solid fallback colour.
+    await page.goto("/");
+    const menuSurface = await page.getByTestId("main-menu").evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { image: style.backgroundImage, color: style.backgroundColor };
+    });
+    expect(menuSurface.image).toContain("bg-noir");
+    expect(menuSurface.color).toBe("rgb(25, 20, 17)"); // --color-table
+
+    // Game screen family: the identical table surface.
+    await page.goto("/?mode=ganove&map=teststadt&seed=7&mission=none");
+    const gameSurface = await page.getByTestId("ganove-screen").evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { image: style.backgroundImage, color: style.backgroundColor };
+    });
+    expect(gameSurface.image).toContain("bg-noir");
+    expect(gameSurface.color).toBe("rgb(25, 20, 17)");
+
+    // The perspective toggle is a recessed switch plate — inset slot
+    // shadow, and the pressed segment is an embossed brass gradient.
+    await page.goto("/");
+    await page.getByTestId("menu-settings").click();
+    const toggle = page.getByTestId("language-toggle");
+    const toggleStyle = await toggle.evaluate((el) => {
+      const style = getComputedStyle(el);
+      const pressed = el.querySelector("button[aria-pressed='true']");
+      return {
+        shadow: style.boxShadow,
+        pressedImage: pressed ? getComputedStyle(pressed).backgroundImage : null,
+      };
+    });
+    expect(toggleStyle.shadow).toContain("inset");
+    expect(toggleStyle.pressedImage).toContain("gradient");
+  });
+
+  test("the board sits in a framed table inset with card well and intact overlay stack", async ({
+    page,
+  }) => {
+    await page.goto("/?mode=ganove&map=teststadt&seed=7&mission=none");
+    const screen = page.getByTestId("ganove-screen");
+    await page.getByRole("button", { name: "Neue Partie" }).click();
+    await expect(screen).toHaveAttribute("data-view", "pickSpawn");
+    await page.locator("[data-selectable='true']").first().dispatchEvent("click");
+    await expect(screen).toHaveAttribute("data-view", "playing");
+
+    // The layout is a framed unit: cardboard rim band + recessed inlay.
+    const layout = screen.locator("[class*='layout']").first();
+    const layoutStyle = await layout.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return {
+        borderColor: style.borderTopColor,
+        borderWidth: Number.parseFloat(style.borderTopWidth),
+        shadow: style.boxShadow,
+      };
+    });
+    expect(layoutStyle.borderColor).toBe("rgb(107, 83, 53)"); // --color-cardboard
+    expect(layoutStyle.borderWidth).toBeGreaterThanOrEqual(2);
+    expect(layoutStyle.shadow).toContain("inset");
+
+    // The sidebar is a recessed card well for the panel stack.
+    const sidebarShadow = await screen
+      .locator("aside")
+      .evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(sidebarShadow).toContain("inset");
+
+    // Overlay stack intact: the map area keeps its ::after vignette
+    // element, and the banner stack's z-index rule stays above it.
+    const mapArea = screen.locator("[class*='mapArea']");
+    const vignetteContent = await mapArea.evaluate((el) => getComputedStyle(el, "::after").content);
+    expect(vignetteContent).not.toBe("none");
+    const bannerStackedAbove = await page.evaluate(() => {
+      for (const sheet of document.styleSheets) {
+        try {
+          for (const rule of sheet.cssRules) {
+            if (
+              rule instanceof CSSStyleRule &&
+              rule.selectorText.includes("stack") &&
+              rule.style.zIndex === "5"
+            ) {
+              return true;
+            }
+          }
+        } catch {
+          // cross-origin sheets are not readable — skip
+        }
+      }
+      return false;
+    });
+    expect(bannerStackedAbove).toBe(true);
+
+    // The responsive stacking contract holds: below 900 px the inset
+    // turns into a vertical stack, the card well takes full width.
+    await page.setViewportSize({ width: 800, height: 900 });
+    const stacked = await layout.evaluate((el) => {
+      const direction = getComputedStyle(el).flexDirection;
+      const aside = el.querySelector("aside");
+      return {
+        direction,
+        sidebarWidth: aside ? Math.round(aside.getBoundingClientRect().width) : 0,
+        layoutWidth: Math.round(el.getBoundingClientRect().width),
+      };
+    });
+    expect(stacked.direction).toBe("column");
+    expect(stacked.sidebarWidth).toBeGreaterThan(stacked.layoutWidth * 0.9);
+  });
 });

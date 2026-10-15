@@ -15,7 +15,20 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-**Brettspiel-Redesign — Schritt 6: Edelkarten-Panels** (Projekt
+**Brettspiel-Redesign — Schritt 7: Spieltisch** (Projekt
+„Finales Brettspiel-Design"): Alle zwölf Screens ruhen jetzt auf
+derselben dunklen Tischfläche — die `bg-noir`-Textur unter dem
+Tisch-Schleier (`--color-table-veil`/`--color-table-veil-edge`) mit
+Filz-Schimmer und Tischkanten-Vignette. In der Partie liegt das
+Geschehen in einer gerahmten Spieleinlage: Das Pergament-Brett steht
+mit seinem Schatten auf der vertieften Fläche, die Seitenleiste ist
+ein Kartenfach für die Edelkarten-Panels, die Rundenanzeige eine
+eingelassene Zählleiste. `.perspectiveToggle` ist jetzt eine
+Schalterplatte mit Messing-Segment (`--brass-face`), alle
+Bildflächen tragen den Kartenrand. Rein CSS — DOM, `data-*` und die
+900-px-Stapelung unverändert.
+
+Zuvor — **Schritt 6: Edelkarten-Panels** (Projekt
 „Finales Brettspiel-Design"): Alle UI-Flächen — Seitenleisten-Panels,
 Menü-Auswahlkarten, Statistik-Kacheln, Hinweis-/Bestätigungsboxen,
 Splash-Ansagen, Event-Banner und die `role="status"`-Pills für Hitze

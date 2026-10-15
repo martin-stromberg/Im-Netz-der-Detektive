@@ -1,5 +1,30 @@
 # Änderungsprotokoll
 
+## 2026-10-15 — Spieltisch: alle Screens als gemeinsame Tisch-Komposition (Brettspiel-Redesign Schritt 7)
+
+- `.screen` (von allen zwölf Screens geteilt) ist jetzt die dunkle
+  Tischfläche: `bg-noir`-Textur unter einem ~90 %-deckenden Schleier
+  aus den neuen Tokens `--color-table-veil`/`--color-table-veil-edge`,
+  dazu warmer Filz-Schimmer und Tischkanten-Vignette;
+  `background-color: var(--color-table)`, `.shell` (Overscroll) in
+  `--color-table-edge`.
+- `.layout` (`.mapArea` + `.sidebar`) ist eine gerahmte Spieleinlage:
+  Pappenrand, dunkle Schnittkante, vertiefte Fläche — das
+  Pergament-Brett wirft seinen Brettschatten auf die Einlage;
+  `.sidebar` liest als vertieftes Kartenfach für die
+  Edelkarten-Panels, `.statusBar` als eingelassene Zählleiste.
+- Flache Reste entfernt: `.perspectiveToggle` ist eine eingelassene
+  Schalterplatte mit geprägtem Messing-Segment (neue Composite-Token
+  `--brass-face`, mit `.primaryButton` geteilt); `.cardImage` trägt
+  den Kartenrand (Titelbild, Karten- und Fallbilder).
+- Rein CSS (`theme.css`, `App.module.css`, `GanoveScreen.module.css`,
+  `Menu.module.css`): DOM-Hierarchie, `data-view`/`data-testid` und
+  die 900-px-Stapelung unverändert; Overlay-Stack
+  (EventBanner > Verfolgungs-Vignette > Splash > Brett) intakt.
+- Tests: zwei neue E2E-Tests in `e2e/design.spec.ts` (Tischfläche und
+  Controls sowie Einlage/Kartenfach/Overlay-Stack/Responsivität) —
+  617/617 Vitest, 39/39 Playwright grün.
+
 ## 2026-10-15 — Edelkarten: Panels & UI-Flächen mit Kartenhaptik (Brettspiel-Redesign Schritt 6)
 
 - Alle UI-Flächen teilen die neue Edelkarten-Anatomie aus `theme.css`:

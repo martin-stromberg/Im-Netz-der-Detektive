@@ -64,12 +64,19 @@
   color: var(--color-detective-light);
 }
 
+/* Printed art plate — the title/map/case artwork gets the same rim
+   anatomy as the cards it sits on: cardboard band, dark cut edge and
+   a small table shadow. */
 .cardImage {
   width: 100%;
   border-radius: 6px;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  background: var(--color-screen-bg);
+  background: var(--color-inset-bg);
+  border: 1px solid var(--color-cardboard);
+  box-shadow:
+    0 0 0 1px var(--color-cardboard-edge),
+    0 4px 10px rgb(0 0 0 / 45%);
 }
 
 .badge {
@@ -238,22 +245,25 @@
   font-size: 0.85rem;
 }
 
-/* Segmented toggle in a card frame — the rim wraps the whole control,
-   buttons keep their aria-pressed colour coding unchanged. */
+/* Segmented toggle as a recessed switch plate: the segments sit in a
+   dark inset slot, the pressed segment rises as an embossed brass
+   plate (same gradient anatomy as `.primaryButton`). */
 .perspectiveToggle {
   display: inline-flex;
   gap: 0;
   border: 1px solid var(--color-cardboard);
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
+  background: var(--color-inset-bg);
   box-shadow:
     0 0 0 1px var(--color-cardboard-edge),
-    0 2px 5px rgb(0 0 0 / 45%);
+    inset 0 1px 4px rgb(0 0 0 / 55%),
+    0 2px 5px rgb(0 0 0 / 40%);
 }
 
 .perspectiveToggle button {
-  background: var(--color-screen-bg);
-  color: var(--color-detective-light);
+  background: transparent;
+  color: var(--color-text-muted);
   border: none;
   padding: 6px 12px;
   font: inherit;
@@ -261,6 +271,8 @@
 }
 
 .perspectiveToggle button[aria-pressed="true"] {
-  background: var(--color-amber);
-  color: var(--color-screen-bg);
+  background: var(--brass-face);
+  color: var(--color-inset-bg);
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 40%);
 }

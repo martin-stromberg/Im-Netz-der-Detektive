@@ -63,6 +63,20 @@ Schmuckschrift. Farb-Codierungen (Gefahrenrot, Stufenampel der
 Status-Pillen) und die Form-Sprache bleiben unverändert — Zustände
 sind weiterhin über Form *und* Farbe erkennbar, nie nur über Farbe.
 
+**Spieltisch-Optik:** Jeder Bildschirm ruht auf derselben dunklen
+Tischfläche — die vorhandene Nachtstadt-Textur unter einem warmen
+Filz-Schleier, der zum Rand hin in eine dunkle Tischkante
+vignettiert. In der Partie liegt das Spielgeschehen in einer
+gerahmten Spieleinlage: Das Pergament-Brett steht mit seinem
+Schlagschatten auf der vertieften Fläche, die Seitenleiste ist ein
+flaches Kartenfach, in dem die Edelkarten-Panels wie ein Stapel
+liegen, und die Runden-/Phasen-Anzeige sitzt als eingelassene
+Zählleiste auf dem Tischrand. Die kleinen Umschalter (z. B. Sprache,
+Replay-Perspektive) sind vertiefte Schalterplatten mit einem
+geprägten Messing-Segment, und alle Bildflächen (Titelbild,
+Karten- und Fallbilder) tragen den Kartenrand. Unter 900 px Breite
+stapelt die Einlage Brett und Kartenfach weiterhin übereinander.
+
 **Barrierefreiheit:** Farbe ist nirgends die einzige Information —
 Kantentypen tragen Strichmuster, Sperrungen ein Sperr-Glyph,
 Missionsarten verschiedene Formen, Kameras eine Durchstreichung,
