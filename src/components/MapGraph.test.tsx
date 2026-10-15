@@ -37,7 +37,7 @@ describe("MapGraph", () => {
       const lines = group.querySelectorAll(":scope > line");
       expect(lines).toHaveLength(2);
       const [casing, core] = [...lines];
-      expect(casing.className.baseVal).toContain("edgeCasing");
+      expect(casing.getAttribute("class")).toContain("edgeCasing");
       expect(casing.getAttribute("aria-hidden")).toBe("true");
       expect(core.getAttribute("data-edge-type")).not.toBeNull();
       expect((casing.compareDocumentPosition(core) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(
@@ -46,7 +46,9 @@ describe("MapGraph", () => {
     }
     // The fahrt edge f–g rides on the wider track-bed casing.
     const fahrt = container.querySelector('[data-edge="f-g"]');
-    expect(fahrt?.querySelector(":scope > line")?.className.baseVal).toContain("edgeCasingFahrt");
+    expect(fahrt?.querySelector(":scope > line")?.getAttribute("class")).toContain(
+      "edgeCasingFahrt",
+    );
   });
 
   it("greys out blocked edges and marks them with a barrier glyph", () => {
@@ -60,8 +62,8 @@ describe("MapGraph", () => {
     // broken core — the cross glyph stays the shape cue.
     const group = container.querySelector('[data-edge="f-g"]') as Element;
     const casing = group.querySelector(":scope > line") as Element;
-    expect(casing.className.baseVal).toContain("edgeCasingBlocked");
-    expect((edge as Element).className.baseVal).toContain("edgeBlocked");
+    expect(casing.getAttribute("class")).toContain("edgeCasingBlocked");
+    expect((edge as Element).getAttribute("class")).toContain("edgeBlocked");
     // An expired block is not rendered as blocked.
     const expired = render(
       <MapGraph map={map} round={5} blockedEdges={[{ a: "f", b: "g", untilRound: 3 }]} />,
