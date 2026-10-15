@@ -27,6 +27,20 @@
  *   #f0c8c8 on #1d2534 → 10.1:1   notice text on its background
  *   #7fd4a8 on #161b26 →  9.8:1   success/heat "ruhig" on panel
  *   #f5d76e on #161b26 → 12.2:1   current status / focus accents
+ *
+ * Edelkarte anatomy (step 6): every surface below shares the dark-card
+ * rim — `border` in --color-cardboard, an outer cut edge via
+ * `0 0 0 1px` --color-cardboard-edge, an engraved inner line via
+ * `inset 0 0 0 1px` --color-card-line, a two-stage table shadow
+ * (--shadow-card) and the unified --radius-card. Buttons read as
+ * embossed metal (gradient + inner top light + drop shadow); their
+ * colour coding and text stay unchanged. New contrast pairings:
+ *
+ *   #eaf0f8 on #1b2332 → 13.7:1   card text on the sheen top of a panel
+ *   #10141c on #b8852f →  5.6:1   primary label on the gradient's darkest stop
+ *   #eaf0f8 on #151b28 → 14.8:1   secondary label on the gradient's darkest stop
+ *   #f0c8c8 on #381b1e → 10.1:1   danger label on the gradient's darkest stop
+ *   #eaf0f8 on #4a2326 → 11.7:1   confirm-card text on danger surface
  */
 .screen {
   min-height: 100vh;
@@ -144,13 +158,19 @@
   left: 50%;
   transform: translate(-50%, -50%);
   padding: 18px 34px;
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   white-space: nowrap;
   pointer-events: none;
   animation: splash-in 2600ms ease forwards;
+  /* Floating announcement card — deeper shadow than a lying card,
+     the outcome-coloured border stays the level cue. */
+  box-shadow:
+    inset 0 0 0 1px var(--color-card-line),
+    0 0 0 1px var(--color-table-edge),
+    0 10px 32px rgb(0 0 0 / 60%);
 }
 
 @keyframes splash-in {
@@ -207,11 +227,17 @@
   gap: 12px;
 }
 
+/* Edelkarte — the dark premium card lying on the table: a faint
+   cardboard-sheen face with subtle corner embossing (--card-face), a
+   cardboard rim band, an engraved inner line, a dark cut edge
+   (--card-rim) and a two-stage table shadow (--shadow-card). */
 .panel {
-  background: var(--color-panel-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  background: var(--card-face);
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-cardboard);
+  border-radius: var(--radius-card);
   padding: 14px;
+  box-shadow: var(--card-rim), var(--shadow-card);
 }
 
 .panelHeading {
@@ -223,16 +249,28 @@
   text-transform: uppercase;
 }
 
+/* Embossed brass button — amber gradient face, deep amber cut edge,
+   inner top light and a small drop shadow. Colour coding and label
+   contrast are unchanged (worst gradient stop still ≥ AA). */
 .primaryButton {
   display: inline-block;
   padding: 9px 16px;
-  border: 1px solid var(--color-amber);
+  border: 1px solid var(--color-amber-deep);
   border-radius: 6px;
-  background: var(--color-amber);
+  background: linear-gradient(
+    180deg,
+    var(--color-amber-bright) 0%,
+    var(--color-amber) 55%,
+    var(--color-amber-deep) 100%
+  );
   color: var(--color-inset-bg);
   font-weight: 700;
   cursor: pointer;
   font-size: 0.95rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 40%),
+    inset 0 -1px 0 rgb(0 0 0 / 20%),
+    0 2px 4px rgb(0 0 0 / 45%);
 }
 
 .primaryButton:hover,
@@ -246,10 +284,19 @@
   padding: 8px 14px;
   border: 1px solid var(--color-detective);
   border-radius: 6px;
-  background: var(--color-surface-raised);
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-hover) 0%,
+    var(--color-surface-raised) 60%,
+    var(--color-surface-deep) 100%
+  );
   color: var(--color-text);
   cursor: pointer;
   font-size: 0.85rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 9%),
+    inset 0 -1px 0 rgb(0 0 0 / 25%),
+    0 2px 4px rgb(0 0 0 / 40%);
 }
 
 .secondaryButton:hover:not(:disabled),
@@ -270,10 +317,19 @@
   margin-right: 8px;
   border: 1px solid var(--color-danger);
   border-radius: 6px;
-  background: var(--color-danger-surface);
+  background: linear-gradient(
+    180deg,
+    var(--color-danger-surface-hover) 0%,
+    var(--color-danger-surface) 60%,
+    var(--color-danger-surface-deep) 100%
+  );
   color: var(--color-danger-text);
   cursor: pointer;
   font-size: 0.85rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 10%),
+    inset 0 -1px 0 rgb(0 0 0 / 25%),
+    0 2px 4px rgb(0 0 0 / 40%);
 }
 
 .dangerButton:hover,
@@ -283,10 +339,15 @@
   outline-offset: 1px;
 }
 
+/* Danger confirm card — a smaller Edelkarte in warning colour: solid
+   danger rim (form + colour still say "destructive"), danger-tinted
+   face, engraved inner line and table shadow. */
 .confirm {
-  border: 1px dashed var(--color-danger);
-  border-radius: 6px;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-card);
   padding: 10px;
+  background: var(--color-danger-surface);
+  box-shadow: var(--card-rim), var(--shadow-card);
 }
 
 .intelList {
@@ -310,13 +371,21 @@
   color: var(--color-text-muted);
 }
 
+/* Alert notice — a mini Edelkarte with a reinforced danger spine:
+   the thick left bar stays the shape cue, the rest of the rim plus
+   inner line and shadow matches the card family. */
 .notice {
   margin: 8px 0 0;
   padding: 8px 10px;
-  border-left: 3px solid var(--color-danger);
-  background: var(--color-surface-raised);
+  border: 1px solid var(--color-cardboard);
+  border-left: 4px solid var(--color-danger);
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, var(--color-card-face-top), var(--color-surface-raised) 75%);
   color: var(--color-danger-text);
   font-size: 0.85rem;
+  box-shadow:
+    inset 0 0 0 1px var(--color-card-line),
+    0 1px 4px rgb(0 0 0 / 40%);
 }
 
 .legend {

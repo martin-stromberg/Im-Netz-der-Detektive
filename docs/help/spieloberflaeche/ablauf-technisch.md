@@ -167,6 +167,52 @@ als Deep-Link-Einstieg direkt in die Bildschirme erhalten.
   Kern, Schwellen-Dasharray, `butt`-Caps), den Legenden-Mirror und die
   Reduced-Motion-Regel für `edgeFlash` via Stylesheet-Scan.
 
+## Panels & UI-Flächen (Edelkarten, Schritt 6 des Redesigns)
+
+- Alle UI-Flächen teilen jetzt die **Edelkarten-Anatomie** — die
+  zentralen Token-Listen `--card-face` und `--card-rim` in `theme.css`:
+  `--card-face` liefert die fünfschichtige Kartenfläche (dezente
+  Ecken-Prägung: Licht-Reflexe oben, Schattierung unten, plus
+  Karton-Schimmer-Gradient `--color-card-face-top` →
+  `--color-panel-bg`); `--card-rim` liefert den zweistufigen Rand
+  (gravierte Innenlinie `--color-card-line` + dunkle Schnittkante
+  `--color-cardboard-edge`). Verwendung überall gleich:
+  `border: 1px solid var(--color-cardboard)` +
+  `box-shadow: var(--card-rim), var(--shadow-card)` +
+  `border-radius: var(--radius-card)` (10 px — Einheitsradius der
+  Kartenfamilie; Controls bleiben 6 px, Badges bleiben 999-px-Pills).
+- Anatomie-Träger: `.panel`/`MissionPanel .panel`, `.card`, `.statBox`,
+  `.confirm`, `.notice` (behält die 4-px-Danger-Leiste als Form-Cue),
+  `.splash` (tieferer Floating-Schatten), `EventBanner .banner`
+  (`.tone_alarm` färbt weiter den Rand — später deklariert) sowie die
+  `role="status"`-Pills `HeatBadge`/`PursuitBadge` (kleinerer Schatten,
+  Level-Farbcodierung inkl. kritischer Randfärbung unverändert).
+- Buttons wirken metallisch/embossed: `linear-gradient`-Fläche +
+  `inset 0 1px 0`-Toplicht + `inset 0 -1px 0`-Bodenschatten +
+  Drop-Shadow (`primaryButton` Amber-Gradient bis `--color-amber-deep`,
+  `secondaryButton`/`choiceButton`/`removeButton` bis
+  `--color-surface-deep`, `dangerButton` bis
+  `--color-danger-surface-deep`). Farbcodierung, Text und alle
+  Hover-/`:focus-visible`-Regeln sind unverändert — die Kontrast-
+  Worst-Stops sind im `theme.css`-Header dokumentiert (≥ 5.6:1).
+- Inputs lesen sich als eingelassene Karten-Slots:
+  `.numberInput`/`.selectInput`/`.commentInput` auf `--color-inset-bg`
+  mit innerem Schatten; `.summaryTable` trägt Cardboard-Rand +
+  `--shadow-card` + Inset-Headerzeile; `.perspectiveToggle` bekommt
+  den Cardboard-Rahmen; `Menu .badge` eine Mini-Prägung.
+- Neue Tokens: `--color-card-face-top`, `--color-card-line`,
+  `--color-amber-deep`, `--color-surface-deep`,
+  `--color-danger-surface-deep`, `--shadow-card`, `--radius-card`,
+  `--card-face`, `--card-rim` — alle im `theme.css`-Kopf mit den neuen
+  Kontrastpaarungen dokumentiert.
+- Testvertrag unverändert: keine `.tsx`-Änderung, `data-*`-Attribute,
+  Klassennamen, `:focus-visible`-Outlines und alle
+  `prefers-reduced-motion`-Blöcke unberührt; Legenden-Swatches
+  (`.legendItem svg`, `legend*`) unverändert. Ein E2E-Test in
+  `e2e/design.spec.ts` prüft die Computed-Style-Anatomie (Rand, Radius,
+  mehrschichtiger Schatten mit `inset`-Linie), den Gradienten-Button,
+  die Badge-Pill und den Amber-Fokusring per echtem Tab-Fokus.
+
 ## Menüfluss (Komponenten)
 
 | Ansicht | Komponente | Aufgabe |

@@ -48,6 +48,21 @@ gestricheltem Ring, den Tastaturfokus am soliden bernsteinfarbenen
 Fassungsring. Die Legende unter der Karte zeigt jedes Zeichen auf
 einem kleinen Papierchip, der exakt die Brettfarben wiedergibt.
 
+**Edelkarten-Optik:** Alle Begleitflächen des Spiels — die
+Seitenleisten-Panels, die Auswahl-Karten im Menü, die
+Statistik-Kacheln, Hinweis- und Bestätigungsboxen, die
+Ergebnis-Ansage und selbst die kleinen Status-Pillen für Hitze und
+Verfolgungsdruck — sehen aus wie dunkle, edle Spielkarten, die auf dem
+Tisch um das helle Brett herum liegen: ein Kartonband-Rand mit
+gravierter Innenlinie und dunkler Schnittkante, dezente Ecken-Prägung
+und ein weicher Schatten, als läge die Karte wirklich auf dem Tisch.
+Schaltflächen wirken wie geprägte Messing-Plättchen (leichter Glanz
+von oben, Schatten nach unten), Eingabefelder wie in die Karte
+eingelassene Vertiefungen. Überschriften stehen überall in der
+Schmuckschrift. Farb-Codierungen (Gefahrenrot, Stufenampel der
+Status-Pillen) und die Form-Sprache bleiben unverändert — Zustände
+sind weiterhin über Form *und* Farbe erkennbar, nie nur über Farbe.
+
 **Barrierefreiheit:** Farbe ist nirgends die einzige Information —
 Kantentypen tragen Strichmuster, Sperrungen ein Sperr-Glyph,
 Missionsarten verschiedene Formen, Kameras eine Durchstreichung,

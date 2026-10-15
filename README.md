@@ -15,7 +15,21 @@ Singleplayer: Mensch als Ganove gegen KI-Detektive — oder umgekehrt.
 
 ## Status
 
-**Brettspiel-Redesign — Schritt 5: Routen** (Projekt
+**Brettspiel-Redesign — Schritt 6: Edelkarten-Panels** (Projekt
+„Finales Brettspiel-Design"): Alle UI-Flächen — Seitenleisten-Panels,
+Menü-Auswahlkarten, Statistik-Kacheln, Hinweis-/Bestätigungsboxen,
+Splash-Ansagen, Event-Banner und die `role="status"`-Pills für Hitze
+und Verfolgungsdruck — tragen jetzt dieselbe dunkle Spielkarten-
+Haptik: Kartonband-Rand (`--color-cardboard`), gravierte Innenlinie,
+dunkle Schnittkante, dezente Ecken-Prägung und zweistufiger
+Tischschatten — zentral definiert über die neuen Token-Listen
+`--card-face`/`--card-rim` in `src/theme.css`. Buttons wirken
+metallisch/embossed (Gradient + Innenlicht + Schatten), Eingabefelder
+als eingelassene Karten-Slots; Farbcodierungen, `data-*`-Attribute,
+Hover- und `:focus-visible`-Zustände bleiben unverändert —
+ausschließlich CSS-Änderungen, Kontraste ≥ WCAG AA dokumentiert.
+
+Zuvor — **Schritt 5: Routen** (Projekt
 „Finales Brettspiel-Design"): Die Verbindungen auf der `MapGraph`-Karte
 lesen jetzt wie gezeichnete Kartenwege — die klassische
 „cased line"-Technik legt eine dunkle Tinten-Fassung (`edgeCasing`)
