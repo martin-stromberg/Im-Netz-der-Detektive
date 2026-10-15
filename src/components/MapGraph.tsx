@@ -252,14 +252,7 @@ export function MapGraph({
           height="100%"
           filter={`url(#${defsId}-grain)`}
         />
-        <rect
-          className={styles.boardVignette}
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill={`url(#${defsId}-vignette)`}
-        />
+        <rect x="0" y="0" width="100%" height="100%" fill={`url(#${defsId}-vignette)`} />
         <rect className={styles.boardSeam} x="0" y="0" width="100%" height="100%" />
       </g>
       <MapBackdrop board={map.board} />
