@@ -101,7 +101,7 @@ export async function resolveReleaseVersion(deps) {
   // "0.1.0") belongs to staging prereleases (vX.Y.Z-rc.N) until the
   // promotion ships a manual tag. Final release then goes through the
   // manual tag path, not semantic-release's computed default.
-  const pinned = deps.readReleaseSeries ? deps.readReleaseSeries() : readReleaseSeries();
+  const pinned = deps.readReleaseSeries?.() ?? null;
   if (pinned) {
     return {
       released: false,
@@ -262,6 +262,7 @@ async function main() {
     getGitHubRelease: (tag) => Promise.resolve(getGitHubRelease({ repo, tag })),
     listGitHubReleases: () => Promise.resolve(listGitHubReleases({ repo })),
     runSemanticReleaseDryRun,
+    readReleaseSeries,
   });
   writeOutputs(outputs);
 }
