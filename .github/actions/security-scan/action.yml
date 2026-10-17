@@ -1,0 +1,39 @@
+name: Security scan
+description: Scans npm dependencies for known vulnerabilities. Blocking gate on production dependencies; the full tree (including devDependencies) is reported for information.
+
+inputs:
+  artifact-name:
+    description: Name of the uploaded audit report artifact.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Scan for vulnerable packages
+      shell: bash
+      run: |
+        set -o pipefail
+        # The full audit (incl. devDependencies such as the semantic-release
+        # tool chain) is captured for the report. Dev-only findings do not
+        # ship in the release asset (a static bundle), so the blocking gate
+        # is the production scope below.
+        npm audit 2>&1 | tee npm-audit-full.txt || true
+
+        # Blocking gate: production dependencies must be clean.
+        output="$(npm audit --omit=dev 2>&1 | tee npm-audit-prod.txt)"
+        status=${PIPESTATUS[0]}
+        if [ "$status" -ne 0 ]; then
+          echo "::error::Vulnerable production dependencies detected - see the uploaded report."
+          exit 1
+        fi
+        echo "Production dependency audit clean."
+
+    - name: Upload report
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: |
+          npm-audit-full.txt
+          npm-audit-prod.txt
+        retention-days: 14

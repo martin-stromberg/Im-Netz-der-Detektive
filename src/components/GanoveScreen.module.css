@@ -1,0 +1,541 @@
+/* Dark detective-noir theme: deep blues/graphite with amber accents.
+ * All colours are design tokens defined in `src/theme.css` (`:root`);
+ * the measured WCAG ratios below document the pairings those tokens
+ * produce — see theme.css for the authoritative, extended list.
+ *
+ * Colour-blind safety (spec `02-technisches-konzept.md` section 11):
+ * colour is never the only cue — every status/type distinction also
+ * carries shape, icon, label or pattern (edge types by stroke pattern,
+ * blocked edges by a crossed glyph, mission kinds by badge shape,
+ * cameras by strikethrough, heat level by icon bars + text, step
+ * status by marker + text). Measured WCAG contrast ratios of the text
+ * palette (WCAG AA needs ≥ 4.5:1 for normal text):
+ *
+ *   #eaf0f8 on #0c0f16 → 16.7:1   main text on screen background
+ *   #eaf0f8 on #161b26 → 15.0:1   main text on panel
+ *   #c8d0dc on #161b26 → 11.1:1   secondary text on panel
+ *   #8a94a6 on #0c0f16 →  6.3:1   hint/subtitle on screen background
+ *   #8a94a6 on #161b26 →  5.6:1   hint on panel
+ *   #9db8d9 on #161b26 →  8.4:1   card text / phase on panel
+ *   #e8b45a on #0c0f16 → 10.1:1   amber title/headings on screen
+ *   #e8b45a on #161b26 →  9.1:1   amber headings on panel
+ *   #0c0f16 on #e8b45a → 10.1:1   primary button label
+ *   #eaf0f8 on #1d2534 → 13.4:1   secondary button label
+ *   #eaf0f8 on #10141c → 16.1:1   text in inset inputs (number/select/comment)
+ *   #f0c8c8 on #4a2326 →  8.9:1   danger button label
+ *   #e88a7a on #161b26 →  6.9:1   error list on panel
+ *   #d98c8c on #161b26 →  6.6:1   notice accent on panel
+ *   #f0c8c8 on #1d2534 → 10.1:1   notice text on its background
+ *   #7fd4a8 on #161b26 →  9.8:1   success/heat "ruhig" on panel
+ *   #f5d76e on #161b26 → 12.2:1   current status / focus accents
+ *
+ * Edelkarte anatomy (step 6): every surface below shares the dark-card
+ * rim — `border` in --color-cardboard, an outer cut edge via
+ * `0 0 0 1px` --color-cardboard-edge, an engraved inner line via
+ * `inset 0 0 0 1px` --color-card-line, a two-stage table shadow
+ * (--shadow-card) and the unified --radius-card. Buttons read as
+ * embossed metal (gradient + inner top light + drop shadow); their
+ * colour coding and text stay unchanged. New contrast pairings:
+ *
+ *   #eaf0f8 on #1b2332 → 13.7:1   card text on the sheen top of a panel
+ *   #10141c on #b8852f →  5.6:1   primary label on the gradient's darkest stop
+ *   #eaf0f8 on #151b28 → 14.8:1   secondary label on the gradient's darkest stop
+ *   #f0c8c8 on #381b1e → 10.1:1   danger label on the gradient's darkest stop
+ *   #eaf0f8 on #4a2326 → 11.7:1   confirm-card text on danger surface
+ */
+.screen {
+  min-height: 100vh;
+  /* Spieltisch (step 7): the generated noir texture stays the base,
+     now under the table veil — a warm felt sheen over the centre of
+     the table and a dark vignette that falls off towards the table
+     edge (--color-table-edge). The ~90 %+ opaque veil keeps the
+     effective background inside the measured --color-table contrast
+     pairings documented in theme.css. */
+  background:
+    radial-gradient(115% 85% at 50% 0%, rgb(139 110 70 / 16%), transparent 60%),
+    radial-gradient(150% 115% at 50% 55%, transparent 52%, rgb(0 0 0 / 55%) 100%),
+    linear-gradient(var(--color-table-veil), var(--color-table-veil-edge)),
+    url("../assets/bg-noir.jpg") center / cover fixed no-repeat;
+  background-color: var(--color-table);
+  color: var(--color-text);
+  padding: 16px 24px;
+  box-sizing: border-box;
+}
+
+.header {
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.06em;
+  color: var(--color-amber);
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Scoring rail — a shallow recessed strip on the table rim that the
+   round/phase counters and badges sit in, instead of floating bare on
+   the felt. */
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgb(0 0 0 / 28%), rgb(0 0 0 / 14%));
+  box-shadow:
+    inset 0 1px 5px rgb(0 0 0 / 50%),
+    inset 0 0 0 1px rgb(255 255 255 / 4%);
+}
+
+.round {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.phase {
+  color: var(--color-detective-light);
+  font-size: 0.9rem;
+}
+
+/* Framed game inset — the playing surface sits recessed into the
+   table like an insert in a game box: cardboard-coloured rim band,
+   dark cut edge, a deep inner shadow that reads as the lowered felt
+   and an engraved inner line. The parchment board's --shadow-board
+   drops onto this inlay, so the board visibly stands on the table. */
+.layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 3px solid var(--color-cardboard);
+  border-radius: 16px;
+  background:
+    linear-gradient(165deg, rgb(255 244 214 / 4%), transparent 42%),
+    linear-gradient(180deg, rgb(16 13 10), rgb(11 9 7));
+  box-shadow:
+    0 0 0 2px var(--color-cardboard-edge),
+    inset 0 2px 12px rgb(0 0 0 / 55%),
+    inset 0 0 0 1px var(--color-card-line);
+}
+
+.mapArea {
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+}
+
+/* Pursuit vignette — an inset glow that tightens with the nearest
+   detective; shape (border thickness) changes with the level so the
+   state is not colour-only. */
+.mapArea::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  transition: box-shadow 400ms ease;
+}
+
+.mapArea[data-pursuit="nah"]::after {
+  box-shadow: inset 0 0 0 3px var(--color-pursuit-near);
+}
+
+.mapArea[data-pursuit="unmittelbar"]::after {
+  box-shadow:
+    inset 0 0 0 4px var(--color-pursuit-close),
+    inset 0 0 60px var(--color-pursuit-close-glow);
+  animation: pursuit-pulse 1100ms ease-in-out infinite;
+}
+
+@keyframes pursuit-pulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 4px var(--color-pursuit-close),
+      inset 0 0 60px var(--color-pursuit-close-glow);
+  }
+
+  50% {
+    box-shadow:
+      inset 0 0 0 5px var(--color-pursuit-close-strong),
+      inset 0 0 80px var(--color-pursuit-close-glow-strong);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapArea::after {
+    transition: none;
+  }
+
+  .mapArea[data-pursuit="unmittelbar"]::after {
+    animation: none;
+  }
+}
+
+/* One-shot outcome splash — a big center announcement that fades into
+   the existing outcome panel. */
+.splash {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 18px 34px;
+  border-radius: var(--radius-card);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: splash-in 2600ms ease forwards;
+  /* Floating announcement card — deeper shadow than a lying card,
+     the outcome-coloured border stays the level cue. */
+  box-shadow:
+    inset 0 0 0 1px var(--color-card-line),
+    0 0 0 1px var(--color-table-edge),
+    0 10px 32px rgb(0 0 0 / 60%);
+}
+
+@keyframes splash-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
+.splash_escaped {
+  color: var(--color-green);
+  background: var(--color-splash-good-bg);
+  border: 2px solid var(--color-green);
+}
+
+.splash_caught,
+.splash_surrounded,
+.splash_timeout {
+  color: var(--color-danger);
+  background: var(--color-splash-bad-bg);
+  border: 2px solid var(--color-danger);
+}
+
+.splash_draw {
+  color: var(--color-text-secondary);
+  background: var(--color-splash-draw-bg);
+  border: 2px solid var(--color-edge-route);
+}
+
+/* Card well — a shallow recessed tray inside the game inset that the
+   Edelkarte panels pile into, so the sidebar reads as a stack of
+   cards in its compartment. */
+.sidebar {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, rgb(0 0 0 / 26%), rgb(0 0 0 / 14%));
+  box-shadow:
+    inset 0 1px 8px rgb(0 0 0 / 55%),
+    inset 0 0 0 1px rgb(255 255 255 / 4%);
+}
+
+/* Edelkarte — the dark premium card lying on the table: a faint
+   cardboard-sheen face with subtle corner embossing (--card-face), a
+   cardboard rim band, an engraved inner line, a dark cut edge
+   (--card-rim) and a two-stage table shadow (--shadow-card). */
+.panel {
+  background: var(--card-face);
+  background-color: var(--color-panel-bg);
+  border: 1px solid var(--color-cardboard);
+  border-radius: var(--radius-card);
+  padding: 14px;
+  box-shadow: var(--card-rim), var(--shadow-card);
+}
+
+.panelHeading {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--color-amber);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Embossed brass button — amber gradient face, deep amber cut edge,
+   inner top light and a small drop shadow. Colour coding and label
+   contrast are unchanged (worst gradient stop still ≥ AA). */
+.primaryButton {
+  display: inline-block;
+  padding: 9px 16px;
+  border: 1px solid var(--color-amber-deep);
+  border-radius: 6px;
+  background: var(--brass-face);
+  color: var(--color-inset-bg);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 40%),
+    inset 0 -1px 0 rgb(0 0 0 / 20%),
+    0 2px 4px rgb(0 0 0 / 45%);
+}
+
+.primaryButton:hover,
+.primaryButton:focus-visible {
+  background: var(--color-amber-bright);
+}
+
+/* Keyboard focus needs the ring, not just the brighter brass face —
+   same cue as the secondary/danger buttons and the menu cards. */
+.primaryButton:focus-visible {
+  outline: 2px solid var(--color-amber-bright);
+  outline-offset: 1px;
+}
+
+.secondaryButton {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid var(--color-detective);
+  border-radius: 6px;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-hover) 0%,
+    var(--color-surface-raised) 60%,
+    var(--color-surface-deep) 100%
+  );
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 9%),
+    inset 0 -1px 0 rgb(0 0 0 / 25%),
+    0 2px 4px rgb(0 0 0 / 40%);
+}
+
+.secondaryButton:hover:not(:disabled),
+.secondaryButton:focus-visible:not(:disabled) {
+  background: var(--color-surface-hover);
+  outline: 2px solid var(--color-amber-bright);
+  outline-offset: 1px;
+}
+
+.secondaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dangerButton {
+  display: inline-block;
+  padding: 8px 14px;
+  margin-right: 8px;
+  border: 1px solid var(--color-danger);
+  border-radius: 6px;
+  background: linear-gradient(
+    180deg,
+    var(--color-danger-surface-hover) 0%,
+    var(--color-danger-surface) 60%,
+    var(--color-danger-surface-deep) 100%
+  );
+  color: var(--color-danger-text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 10%),
+    inset 0 -1px 0 rgb(0 0 0 / 25%),
+    0 2px 4px rgb(0 0 0 / 40%);
+}
+
+.dangerButton:hover,
+.dangerButton:focus-visible {
+  background: var(--color-danger-surface-hover);
+  outline: 2px solid var(--color-danger);
+  outline-offset: 1px;
+}
+
+/* Danger confirm card — a smaller Edelkarte in warning colour: solid
+   danger rim (form + colour still say "destructive"), danger-tinted
+   face, engraved inner line and table shadow. */
+.confirm {
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-card);
+  padding: 10px;
+  background: var(--color-danger-surface);
+  box-shadow: var(--card-rim), var(--shadow-card);
+}
+
+.intelList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.intelList ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+
+.hint {
+  margin: 4px 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* Alert notice — a mini Edelkarte with a reinforced danger spine:
+   the thick left bar stays the shape cue, the rest of the rim plus
+   inner line and shadow matches the card family. */
+.notice {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--color-cardboard);
+  border-left: 4px solid var(--color-danger);
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, var(--color-card-face-top), var(--color-surface-raised) 75%);
+  color: var(--color-danger-text);
+  font-size: 0.85rem;
+  box-shadow:
+    inset 0 0 0 1px var(--color-card-line),
+    0 1px 4px rgb(0 0 0 / 40%);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.legendTitle {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Swatches are little paper chips cut from the board — the parchment
+   background keeps the dark board inks readable on the dark panel. */
+.legendItem svg {
+  flex: none;
+  background: var(--color-paper);
+  border: 1px solid var(--color-cardboard);
+  border-radius: 3px;
+}
+
+/* Route swatches mirror the board's cased-line anatomy: a dark casing
+   line behind the bright core — same shape, same meaning. */
+.legendWegCasing {
+  stroke: var(--color-map-weg);
+  stroke-width: 4.6;
+  stroke-linecap: round;
+}
+
+.legendWeg {
+  stroke: var(--color-paper);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.legendFahrtCasing {
+  stroke: var(--color-map-fahrt);
+  stroke-width: 5.6;
+  stroke-linecap: round;
+}
+
+.legendFahrt {
+  stroke: var(--color-paper);
+  stroke-width: 3.2;
+  stroke-dasharray: 2.4 3.6;
+  stroke-linecap: butt;
+}
+
+.legendEscape {
+  fill: none;
+  stroke: var(--color-map-escape);
+  stroke-width: 1.6;
+}
+
+/* The piece swatches are true miniatures of the board figures — the
+   glyphs style themselves (boardPieces.module.css), no local rules
+   needed. */
+
+/* The target swatch is a miniature of the map's place token: framed
+   plaque with perforated legal rim, paper face and engraved inner ring
+   — same shape, same meaning. */
+.legendTargetDot {
+  fill: var(--color-paper-aged);
+  stroke: var(--color-map-legal);
+  stroke-width: 1.4;
+  stroke-dasharray: 1.8 0.9;
+}
+
+.legendTargetInner {
+  fill: var(--color-paper);
+  stroke: var(--color-ink-soft);
+  stroke-width: 0.7;
+}
+
+.legendTargetRing {
+  fill: none;
+  stroke: var(--color-map-legal);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.outcomeText {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 6px 0;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}

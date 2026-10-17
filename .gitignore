@@ -1,1 +1,40 @@
 issue.md
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+dist-sim/
+*.local
+
+# Test coverage and test artifacts
+coverage/
+test-results/
+playwright-report/
+*.lcov
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+!changes.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor directories
+.vscode/
+.idea/
+*.sw?
+
+# Agent tooling (local, not committed)
+.agents/

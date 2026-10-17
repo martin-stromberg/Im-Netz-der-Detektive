@@ -1,0 +1,586 @@
+{
+  "id": "luebeck",
+  "name": "Lübeck",
+  "tagline": "Flucht über die Brücken der Altstadtinsel",
+  "taglineKey": "map.tagline.luebeck",
+  "viewBox": "0 0 800 600",
+  "nodes": [
+    {
+      "id": "hbf",
+      "name": "Lübeck Hauptbahnhof",
+      "x": 40,
+      "y": 230,
+      "categories": [
+        "flucht",
+        "kontakt"
+      ],
+      "zone": "westend",
+      "landmark": "bahnhof"
+    },
+    {
+      "id": "puppenbruecke",
+      "name": "Puppenbrücke",
+      "x": 110,
+      "y": 290,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "westend"
+    },
+    {
+      "id": "holstentor",
+      "name": "Holstentor",
+      "x": 140,
+      "y": 250,
+      "categories": [
+        "flucht"
+      ],
+      "zone": "westend",
+      "landmark": "holstentor"
+    },
+    {
+      "id": "salzspeicher",
+      "name": "Salzspeicher",
+      "x": 175,
+      "y": 275,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "westend",
+      "landmark": "speicher"
+    },
+    {
+      "id": "petrikirche",
+      "name": "St.-Petri-Kirche",
+      "x": 230,
+      "y": 240,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "nord",
+      "landmark": "kirche"
+    },
+    {
+      "id": "jakobikirche",
+      "name": "St.-Jakobi-Kirche",
+      "x": 330,
+      "y": 185,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "nord",
+      "landmark": "kirche"
+    },
+    {
+      "id": "burgkloster",
+      "name": "Burgkloster",
+      "x": 360,
+      "y": 120,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "nord"
+    },
+    {
+      "id": "burgtor",
+      "name": "Burgtor",
+      "x": 390,
+      "y": 65,
+      "categories": [
+        "flucht"
+      ],
+      "zone": "nord",
+      "landmark": "tor"
+    },
+    {
+      "id": "wallhalbinsel",
+      "name": "Wallhalbinsel",
+      "x": 430,
+      "y": 150,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "nord"
+    },
+    {
+      "id": "obertrave",
+      "name": "An der Obertrave",
+      "x": 455,
+      "y": 280,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "mitte"
+    },
+    {
+      "id": "marienkirche",
+      "name": "Marienkirche",
+      "x": 330,
+      "y": 295,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "mitte",
+      "landmark": "kirche"
+    },
+    {
+      "id": "rathaus",
+      "name": "Lübecker Rathaus",
+      "x": 280,
+      "y": 315,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "mitte",
+      "landmark": "rathaus"
+    },
+    {
+      "id": "breite_strasse",
+      "name": "Breite Straße",
+      "x": 240,
+      "y": 350,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "mitte"
+    },
+    {
+      "id": "buddenbrookhaus",
+      "name": "Buddenbrookhaus",
+      "x": 275,
+      "y": 375,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "mitte",
+      "landmark": "museum"
+    },
+    {
+      "id": "koberg",
+      "name": "Koberg",
+      "x": 345,
+      "y": 385,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "mitte"
+    },
+    {
+      "id": "polizeirevier",
+      "name": "Polizeirevier Altstadt",
+      "x": 310,
+      "y": 355,
+      "categories": [
+        "sabotage"
+      ],
+      "zone": "mitte"
+    },
+    {
+      "id": "grasshaus",
+      "name": "Günter-Grass-Haus",
+      "x": 330,
+      "y": 440,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "sued",
+      "landmark": "museum"
+    },
+    {
+      "id": "landgericht",
+      "name": "Landgericht Lübeck",
+      "x": 395,
+      "y": 380,
+      "categories": [
+        "sabotage"
+      ],
+      "zone": "sued"
+    },
+    {
+      "id": "st_annen_museum",
+      "name": "St.-Annen-Museum",
+      "x": 330,
+      "y": 495,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "sued",
+      "landmark": "museum"
+    },
+    {
+      "id": "dom",
+      "name": "Lübecker Dom",
+      "x": 275,
+      "y": 545,
+      "categories": [
+        "diebstahl"
+      ],
+      "zone": "sued",
+      "landmark": "dom"
+    },
+    {
+      "id": "muk",
+      "name": "Musik- und Kongresshalle",
+      "x": 360,
+      "y": 555,
+      "categories": [
+        "kontakt"
+      ],
+      "zone": "sued",
+      "landmark": "museum"
+    },
+    {
+      "id": "muehlentor",
+      "name": "Mühlentor",
+      "x": 225,
+      "y": 580,
+      "categories": [
+        "flucht"
+      ],
+      "zone": "sued",
+      "landmark": "tor"
+    }
+  ],
+  "edges": [
+    {
+      "a": "hbf",
+      "b": "puppenbruecke",
+      "type": "weg"
+    },
+    {
+      "a": "puppenbruecke",
+      "b": "holstentor",
+      "type": "weg"
+    },
+    {
+      "a": "holstentor",
+      "b": "salzspeicher",
+      "type": "weg"
+    },
+    {
+      "a": "holstentor",
+      "b": "petrikirche",
+      "type": "weg"
+    },
+    {
+      "a": "salzspeicher",
+      "b": "petrikirche",
+      "type": "weg"
+    },
+    {
+      "a": "petrikirche",
+      "b": "jakobikirche",
+      "type": "weg"
+    },
+    {
+      "a": "petrikirche",
+      "b": "rathaus",
+      "type": "weg"
+    },
+    {
+      "a": "petrikirche",
+      "b": "breite_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "jakobikirche",
+      "b": "burgkloster",
+      "type": "weg"
+    },
+    {
+      "a": "jakobikirche",
+      "b": "marienkirche",
+      "type": "weg"
+    },
+    {
+      "a": "burgkloster",
+      "b": "burgtor",
+      "type": "weg"
+    },
+    {
+      "a": "burgkloster",
+      "b": "wallhalbinsel",
+      "type": "weg"
+    },
+    {
+      "a": "burgtor",
+      "b": "wallhalbinsel",
+      "type": "weg"
+    },
+    {
+      "a": "wallhalbinsel",
+      "b": "obertrave",
+      "type": "weg"
+    },
+    {
+      "a": "marienkirche",
+      "b": "rathaus",
+      "type": "weg"
+    },
+    {
+      "a": "marienkirche",
+      "b": "obertrave",
+      "type": "weg"
+    },
+    {
+      "a": "marienkirche",
+      "b": "koberg",
+      "type": "weg"
+    },
+    {
+      "a": "rathaus",
+      "b": "breite_strasse",
+      "type": "weg"
+    },
+    {
+      "a": "rathaus",
+      "b": "buddenbrookhaus",
+      "type": "weg"
+    },
+    {
+      "a": "rathaus",
+      "b": "polizeirevier",
+      "type": "weg"
+    },
+    {
+      "a": "breite_strasse",
+      "b": "buddenbrookhaus",
+      "type": "weg"
+    },
+    {
+      "a": "breite_strasse",
+      "b": "polizeirevier",
+      "type": "weg"
+    },
+    {
+      "a": "buddenbrookhaus",
+      "b": "koberg",
+      "type": "weg"
+    },
+    {
+      "a": "buddenbrookhaus",
+      "b": "polizeirevier",
+      "type": "weg"
+    },
+    {
+      "a": "polizeirevier",
+      "b": "koberg",
+      "type": "weg"
+    },
+    {
+      "a": "koberg",
+      "b": "obertrave",
+      "type": "weg"
+    },
+    {
+      "a": "koberg",
+      "b": "grasshaus",
+      "type": "weg"
+    },
+    {
+      "a": "koberg",
+      "b": "landgericht",
+      "type": "weg"
+    },
+    {
+      "a": "obertrave",
+      "b": "landgericht",
+      "type": "weg"
+    },
+    {
+      "a": "grasshaus",
+      "b": "landgericht",
+      "type": "weg"
+    },
+    {
+      "a": "grasshaus",
+      "b": "st_annen_museum",
+      "type": "weg"
+    },
+    {
+      "a": "grasshaus",
+      "b": "dom",
+      "type": "weg"
+    },
+    {
+      "a": "st_annen_museum",
+      "b": "dom",
+      "type": "weg"
+    },
+    {
+      "a": "st_annen_museum",
+      "b": "muk",
+      "type": "weg"
+    },
+    {
+      "a": "dom",
+      "b": "muk",
+      "type": "weg"
+    },
+    {
+      "a": "dom",
+      "b": "muehlentor",
+      "type": "weg"
+    },
+    {
+      "a": "muk",
+      "b": "muehlentor",
+      "type": "weg"
+    },
+    {
+      "a": "hbf",
+      "b": "rathaus",
+      "type": "fahrt"
+    },
+    {
+      "a": "burgtor",
+      "b": "muehlentor",
+      "type": "fahrt"
+    }
+  ],
+  "spawnRules": {
+    "detectives": {
+      "mode": "choice",
+      "zones": [
+        "mitte",
+        "sued"
+      ]
+    },
+    "ganove": {
+      "mode": "free",
+      "minDistanceToDetective": 2
+    },
+    "order": "detektive_first"
+  },
+  "settings": {
+    "detectiveCount": {
+      "suggested": 5,
+      "min": 3,
+      "max": 6
+    },
+    "cameraCount": {
+      "suggested": 6,
+      "min": 0,
+      "max": 10
+    },
+    "roundLimit": {
+      "suggested": 20,
+      "min": 10,
+      "max": 30
+    },
+    "radioHintCount": {
+      "suggested": 4,
+      "min": 2,
+      "max": 8
+    },
+    "edgeBlockRounds": {
+      "suggested": 2,
+      "min": 1,
+      "max": 4
+    },
+    "cameraMinGap": 1,
+    "hintZoneRadius": 1,
+    "eventMode": "cycle",
+    "eventDefaults": {
+      "cycle": 3,
+      "chance": 0.3,
+      "threshold": 30,
+      "perRound": 8
+    },
+    "eventMix": {
+      "sichtbarkeit": 0.15,
+      "hinweis": 0.45,
+      "umwelt": 0.4
+    },
+    "missionRules": {
+      "minGap": 2,
+      "maxGap": 6,
+      "routeBudget": 10,
+      "routeBudgetSabotage": 13,
+      "sabotageDetour": 3
+    },
+    "sabotageEffects": [
+      "funkstille",
+      "falsche_spur"
+    ]
+  },
+  "board": {
+    "features": [
+      {
+        "kind": "shape",
+        "style": "water",
+        "d": "M 268 8 C 385 8 490 135 490 318 C 490 505 385 592 268 592 C 155 592 30 505 30 318 C 30 135 155 8 268 8 Z M 268 55 C 370 55 442 162 442 318 C 442 478 370 545 268 545 C 168 545 78 478 78 318 C 78 162 168 55 268 55 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "water",
+        "d": "M 470 55 C 510 25 555 5 605 -8 L 640 -8 C 580 32 522 70 485 105 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "park",
+        "d": "M 400 120 C 428 150 440 200 438 250 C 428 240 415 205 400 175 C 390 152 388 130 400 120 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "park",
+        "d": "M 95 250 C 110 280 115 340 105 390 C 88 360 82 300 95 250 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "rail",
+        "d": "M 0 200 L 150 200"
+      },
+      {
+        "kind": "shape",
+        "style": "rail",
+        "d": "M 0 218 L 140 218"
+      },
+      {
+        "kind": "shape",
+        "style": "rail",
+        "d": "M 0 236 L 130 236"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 255 290 L 270 288 L 271 302 L 256 304 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 295 325 L 310 323 L 311 337 L 296 339 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 315 265 L 330 263 L 331 277 L 316 279 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 345 350 L 360 348 L 361 362 L 346 364 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 300 400 L 315 398 L 316 412 L 301 414 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 340 440 L 355 438 L 356 452 L 341 454 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 200 320 L 215 318 L 216 332 L 201 334 Z"
+      },
+      {
+        "kind": "shape",
+        "style": "block",
+        "d": "M 270 460 L 285 458 L 286 472 L 271 474 Z"
+      }
+    ]
+  }
+}

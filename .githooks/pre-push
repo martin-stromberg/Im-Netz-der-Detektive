@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+set -eu
+
+repo_root="$(git rev-parse --show-toplevel)"
+
+# --- Push-Blocker fuer geschuetzte Branches ---
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/staging)
+      branch_name="${remote_ref#refs/heads/}"
+      echo "Direct pushes to '$branch_name' are blocked. Update this branch via pull request." >&2
+      exit 1
+      ;;
+  esac
+done
+
+# --- Stub Implementation Check (ganzes Repo, blockierend) ---
+echo "Running stub implementation check..."
+python "$repo_root/.githooks/no-stub-check.py" --all --strict
+
+# --- Component Usage Check (ganzes Repo, blockierend) ---
+echo "Running component usage check..."
+python "$repo_root/.githooks/component-usage-check.py" --all --strict
+
+# --- i18n Key Check (ganzes Repo, blockierend) ---
+echo "Running i18n check..."
+python "$repo_root/.githooks/i18n-check.py" --all --strict
+
+# --- Hardcoded Visible Strings Check (ganzes Repo, blockierend) ---
+echo "Running hardcoded visible strings check..."
+python "$repo_root/.githooks/no-hardcoded-strings-check.py" --all --strict
+
+# --- Map Package Schema Check (ganzes Repo, blockierend) ---
+echo "Running map package schema check..."
+python "$repo_root/.githooks/map-schema-check.py" --all --strict
+
+# --- Math.random() Prohibition (ganzes Repo, blockierend) ---
+echo "Running Math.random() prohibition check..."
+python "$repo_root/.githooks/no-math-random-check.py" --all --strict

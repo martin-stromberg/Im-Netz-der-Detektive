@@ -1,0 +1,188 @@
+/* Detective-perspective additions to the shared noir theme — the base
+   classes (screen, panel, buttons, legend) come from
+   GanoveScreen.module.css and are imported as `shared`. */
+
+.steps {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.stepMarker {
+  width: 1.2em;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.status_erledigt {
+  color: var(--color-green);
+}
+
+.status_aktuell {
+  color: var(--color-amber-bright);
+  font-weight: 700;
+}
+
+.status_offen {
+  color: var(--color-text-muted);
+}
+
+.pool {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.toolToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.toolToggle input {
+  accent-color: var(--color-amber);
+  width: 16px;
+  height: 16px;
+}
+
+.markerList {
+  margin-top: 10px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 8px;
+}
+
+.markerHeading {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--color-detective-light);
+}
+
+.markers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.markerItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.markerName {
+  flex: 0 0 auto;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Recessed card slot — same inset treatment as the menu inputs. */
+.commentInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--color-inset-bg);
+  border: 1px solid var(--color-cardboard-edge);
+  border-radius: 4px;
+  color: var(--color-text);
+  padding: 4px 6px;
+  font-size: 0.8rem;
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 45%),
+    inset 0 0 0 1px var(--color-card-line);
+}
+
+.commentInput:focus-visible {
+  outline: 2px solid var(--color-amber-bright);
+  outline-offset: 1px;
+}
+
+/* Small embossed marker-removal chip — surface gradient + shadow like
+   the shared buttons, danger text keeps the destructive coding. */
+.removeButton {
+  flex: 0 0 auto;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-hover) 0%,
+    var(--color-surface-raised) 60%,
+    var(--color-surface-deep) 100%
+  );
+  border: 1px solid var(--color-edge-blocked);
+  border-radius: 4px;
+  color: var(--color-danger);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 7px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 9%),
+    0 1px 3px rgb(0 0 0 / 40%);
+}
+
+.removeButton:hover,
+.removeButton:focus-visible {
+  border-color: var(--color-danger);
+}
+
+/* Keyboard focus gets the same amber ring as the sibling .commentInput —
+   the danger border recolour alone is only a colour cue. */
+.removeButton:focus-visible {
+  outline: 2px solid var(--color-amber-bright);
+  outline-offset: 1px;
+}
+
+.roundBadge {
+  color: var(--color-amber);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Legend swatches — the same glyph shapes MapGraph renders. */
+.legendCameraBody {
+  fill: var(--color-detective);
+  stroke: var(--color-map-detective-stroke);
+  stroke-width: 1.2;
+}
+
+.legendCameraLens {
+  fill: var(--color-map-detective-stroke);
+}
+
+.legendPin {
+  fill: var(--color-map-pin);
+  stroke: var(--color-ink);
+  stroke-width: 1;
+}
+
+.legendDiamond {
+  fill: none;
+  stroke: var(--color-map-possible);
+  stroke-width: 1.8;
+}
+
+.legendCategory {
+  fill: none;
+  stroke: var(--color-map-ganove);
+  stroke-width: 1.6;
+}

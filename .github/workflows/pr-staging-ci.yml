@@ -1,0 +1,191 @@
+name: PR CI for Staging
+
+on:
+  pull_request:
+    branches:
+      - staging
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: pr-staging-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: read
+
+jobs:
+  detect-backmerge:
+    runs-on: ubuntu-latest
+    outputs:
+      is_backmerge: ${{ steps.check.outputs.is_backmerge }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check whether this PR is a pure back-merge from main
+        id: check
+        run: |
+          git fetch origin main:refs/remotes/origin/main --no-tags
+
+          main_sha="$(git rev-parse origin/main)"
+          # A back-merge PR always has head branch "main". For the checked-out
+          # merge commit this is the SECOND parent (first parent is the staging
+          # tip). Restricting to the second parent avoids a false positive
+          # whenever staging and main point at the same commit.
+          parents=($(git show -s --format=%P HEAD))
+          second_parent="${parents[1]:-}"
+
+          if [[ "${{ github.head_ref }}" == "main" || ( -n "$second_parent" && "$second_parent" == "$main_sha" ) ]]; then
+            echo "is_backmerge=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Back-merge from main detected - CI checks will be skipped."
+          elif git diff --quiet origin/main HEAD; then
+            echo "is_backmerge=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Pure back-merge from main detected (tree identical) - CI checks will be skipped."
+          else
+            echo "is_backmerge=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  static-checks:
+    name: static checks
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Security scan
+        uses: ./.github/actions/security-scan
+        with:
+          artifact-name: vulnerable-packages-pr
+
+      - name: Static analysis
+        # Lint plus strict type check - the TypeScript equivalent of the
+        # template's `dotnet build -p:TreatWarningsAsErrors=true` step.
+        run: |
+          npm run lint
+          npm run typecheck
+
+  build-and-test:
+    name: build & test
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test with coverage
+        # vitest enforces the 70% line-coverage threshold configured in
+        # vite.config.ts (coverage.thresholds.lines) and fails the step when
+        # the coverage drops below it.
+        run: npm run coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report-pr
+          path: coverage/
+          retention-days: 14
+
+  e2e:
+    name: e2e (playwright, best-effort)
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Best-effort per the CI template (section 4): browser-driven tests
+    # may flake on hosted runners, so a failure here never blocks the
+    # PR — the traces uploaded below carry the diagnostic evidence.
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E suite
+        run: npm run test:e2e
+
+      - name: Upload Playwright traces
+        # Traces land under test-results/ (playwright.config.ts keeps
+        # them on failure). `always()` matters: evidence must exist even
+        # when the step above already failed.
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-traces-pr
+          path: test-results/
+          retention-days: 14
+
+  no-pending-backmerge:
+    name: no pending backmerge
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check for an open back-merge PR from main to staging
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # No checkout needed - gh gets an explicit -R so it does not depend on
+        # a local git repository to resolve the target repo.
+        run: |
+          open_backmerges="$(gh pr list -R ${{ github.repository }} --base staging --head main --state open --json number --jq 'length')"
+          if [ "$open_backmerges" != "0" ]; then
+            echo "::error::An open back-merge PR from main to staging exists. Merge it first (with 'Create a merge commit') before merging this PR."
+            exit 1
+          fi
+          echo "No open back-merge PR from main - OK."
+
+  back-merge-skip:
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Back-merge detected
+        run: echo "This PR is a pure back-merge from main - all checks skipped."

@@ -1,0 +1,223 @@
+← [Zurück zur Übersicht](index.md)
+
+# Spieloberfläche — Beschreibung
+
+Zwei spielbare Perspektiven teilen sich diese Dokumentation:
+**Ganove-Modus** (Mensch als Ganove) und **Detektiv-Modus** (Mensch
+als Detektivtrupp). Die Auswahl erfolgt über das Hauptmenü — Karte,
+Modus, Einstellungen und Mission werden vor der Partie gewählt
+(Schritt 11); `?mode=` bleibt als Entwickler-Einstieg erhalten.
+
+**Sprache & Audio (Anwendungs-Einstellungen, Schritt 13):** Über
+„Einstellungen" im Hauptmenü wechselst du die Sprache des gesamten
+Spiels zwischen Deutsch und English — sofort, ohne Neustart, und
+gespeichert. Dort stellst du auch Lautstärke und Stummschaltung der
+prozeduralen Geräuschkulisse ein: ein gestuftes Signal je
+Hitze-Stufen-Anstieg und eine dezente Polizeiaktivitäts-Kulisse in
+der Ganoven-Perspektive (erst nach der ersten Eingabe aktiv).
+
+**Erscheinungsbild:** Titel und Überschriften aller Bildschirme
+erscheinen in einer historisch angehauchten Schmuckschrift
+(IM Fell English, lokal im Spiel eingebettet — es werden keine
+Schriften aus dem Internet nachgeladen); der übrige Text bleibt in
+der gut lesbaren Systemschrift.
+
+**Spielbrett-Optik:** Die Stadtkarte liegt wie ein gedrucktes
+Brett auf dem dunklen Tisch — helle Pergamentfläche mit feiner
+Papierkörnung und dezent abgedunkelten, gealterten Rändern, eingerahmt
+von einer kräftigen Pappenkante mit Schlagschatten. Die städtische
+Geographie (Wasser, Parks, Schienen, Straßen, Häuserblöcke) bleibt in
+gedeckten Vintage-Farben lesbar; Ortsnamen, Wege, Sperrzeichen,
+Figuren und alle Markierungen sind in dunklen Tintenfarben gesetzt
+und bleiben damit auf dem hellen Papier kontraststark. Jeder Ort ist
+eine kleine geprägte Plakette mit eingefasstem Rand, Volumenprägung
+und dezentem Schatten — wie eine gedruckte Kartenplakette auf dem
+Brett. Die Spielfiguren stehen als greifbare Meeple mit
+Körpervolumen, Schlagschatten und Sockel auf den Plaketten: Detektive
+als blaue Stehendfiguren mit Trupp-Ziffer, der Ganove als
+Mantel-und-Fedora-Silhouette — Form, Farbe und Beschriftung wirken
+immer zusammen. Der jeweils ziehende Detektiv pflanzt eine
+bernsteinfarbene Fahne auf seinen Sockel. Die Verbindungen zwischen
+den Orten sind wie von Hand gezeichnete Kartenwege: ein **Weg** erscheint
+als helle Straße mit dunkler Sepia-Fassung, eine **Fahrt** als kräftigere
+Trasse mit hellen Quer-Schwellen — Breite, Muster und Farbton unterscheiden
+sich gemeinsam, nie nur die Farbe. Gesperrte Verbindungen bleichen aus,
+ihr Verlauf unterbricht sich und ein rotes Kreuz markiert die Sperre.
+Wählbare Orte erkennst du am perforierten grünen Rand plus
+gestricheltem Ring, den Tastaturfokus am soliden bernsteinfarbenen
+Fassungsring. Die Legende unter der Karte zeigt jedes Zeichen auf
+einem kleinen Papierchip, der exakt die Brettfarben wiedergibt.
+
+**Edelkarten-Optik:** Alle Begleitflächen des Spiels — die
+Seitenleisten-Panels, die Auswahl-Karten im Menü, die
+Statistik-Kacheln, Hinweis- und Bestätigungsboxen, die
+Ergebnis-Ansage und selbst die kleinen Status-Pillen für Hitze und
+Verfolgungsdruck — sehen aus wie dunkle, edle Spielkarten, die auf dem
+Tisch um das helle Brett herum liegen: ein Kartonband-Rand mit
+gravierter Innenlinie und dunkler Schnittkante, dezente Ecken-Prägung
+und ein weicher Schatten, als läge die Karte wirklich auf dem Tisch.
+Schaltflächen wirken wie geprägte Messing-Plättchen (leichter Glanz
+von oben, Schatten nach unten), Eingabefelder wie in die Karte
+eingelassene Vertiefungen. Überschriften stehen überall in der
+Schmuckschrift. Farb-Codierungen (Gefahrenrot, Stufenampel der
+Status-Pillen) und die Form-Sprache bleiben unverändert — Zustände
+sind weiterhin über Form *und* Farbe erkennbar, nie nur über Farbe.
+
+**Spieltisch-Optik:** Jeder Bildschirm ruht auf derselben dunklen
+Tischfläche — die vorhandene Nachtstadt-Textur unter einem warmen
+Filz-Schleier, der zum Rand hin in eine dunkle Tischkante
+vignettiert. In der Partie liegt das Spielgeschehen in einer
+gerahmten Spieleinlage: Das Pergament-Brett steht mit seinem
+Schlagschatten auf der vertieften Fläche, die Seitenleiste ist ein
+flaches Kartenfach, in dem die Edelkarten-Panels wie ein Stapel
+liegen, und die Runden-/Phasen-Anzeige sitzt als eingelassene
+Zählleiste auf dem Tischrand. Die kleinen Umschalter (z. B. Sprache,
+Replay-Perspektive) sind vertiefte Schalterplatten mit einem
+geprägten Messing-Segment, und alle Bildflächen (Titelbild,
+Karten- und Fallbilder) tragen den Kartenrand. Unter 900 px Breite
+stapelt die Einlage Brett und Kartenfach weiterhin übereinander.
+
+**Barrierefreiheit:** Farbe ist nirgends die einzige Information —
+Kantentypen tragen Strichmuster, Sperrungen ein Sperr-Glyph,
+Missionsarten verschiedene Formen, Kameras eine Durchstreichung,
+die Hitze-Stufe Symbolbalken plus Klartext, und alle Status-Texte
+erfüllen WCAG-AA-Kontraste. Alles ist per Tastatur steuerbar: Tab +
+Eingabe überall, Pfeiltasten zum geometrischen Wandern zwischen den
+wählbaren Orten auf der Karte; Hinweise und Phasen werden über
+`role="alert"`/`aria-live` auch für Screenreader angesagt. Das
+fokussierte Element trägt auf **jedem** Bedienelement — Schaltflächen,
+Karten, Zahlen- und Auswahlfeldern, den kleinen Entfernen-Chips der
+Markerliste und den Orten auf der Karte — einen sichtbaren
+bernsteinfarbenen Ring bzw. Fassungsrahmen (Endabnahme Schritt 8:
+überall ein echter Fokus-Ring, nie nur ein Farbwechsel). Bei
+aktivierter Reduced-Motion-Einstellung des Systems bleiben sämtliche
+Animationen *und* Übergänge aus — Banner, Figuren-Gleiten,
+Kanten-Aufblitzen, Ergebnis-Ansage und die Verfolgungs-Vignette
+erscheinen sofort im Endzustand.
+
+# Ganove-Modus — Beschreibung
+
+## Zweck
+
+Der Ganove-Modus lässt dich als **Ganove** gegen die KI-Detektive
+spielen: Du erfüllst eine Mission (Diebstahl → Kontakt → ggf. Sabotage
+→ Flucht) über das Wegenetz einer Stadt, während die Detektive dich
+anhand ihrer Hinweise einkreisen.
+
+## Funktionsweise
+
+- **Startaufstellung:** Nach „Neue Partie" beziehen die Detektive ihre
+  Positionen — danach wählst du deinen Startpunkt aus den markierten,
+  legalen Orten (mit Mindestabstand zu den Detektiven).
+- **Karte:** Die Stadtkarte zeigt alle Orte mit Klarnamen, Wege als
+  geränderte helle Straßen und schnelle „Fahrten" als breitere
+  Schwellen-Trassen, gesperrte
+  Straßen ausgeblichen mit unterbrochenem Verlauf und Sperrzeichen,
+  die Detektive als nummerierte
+  Meeple-Figuren, deine eigene Mantel-und-Fedora-Figur und deine
+  Missionsziele als Form-Symbole. Eine Legende unter der Karte erklärt
+  alle Zeichen.
+- **Ziehen:** In deinem Zug wählst du einen grün markierten
+  Nachbarort — pro Zug genau eine Kante, Stehenbleiben ist nicht
+  erlaubt. Danach ziehen die Detektive automatisch.
+- **Mission:** Die Seitenleiste zeigt die feste Schrittfolge mit
+  Status und das aktuelle Ziel. Am Zielort kannst du die Aktion
+  ausführen — oder weiterziehen. Nach dem Kontakt bietet der
+  Informant eine Sabotage an: Die Wahl zwischen Sabotageziel und
+  direkter Flucht ist endgültig.
+- **Hitze-Indikator:** Das Badge „Polizeiaufmerksamkeit" zeigt mit
+  Symbol und Text in vier Stufen, wie aktiv die Fahndung gerade ist.
+- **Verfolgungsdruck:** Das zweite Badge in der Statuszeile zeigt die
+  Entfernung des nächsten Detektivs (ruhig/spürbar/nah/unmittelbar,
+  jeweils mit Symbol und Text) — die Detektivpositionen siehst du ohne
+  hin, das Badge macht die Annäherung greifbar.
+- **Polizeifunk:** Einmalig pro Partie hörst du den Funk der Detektive
+  ab und erfährst die letzten Hinweise.
+- **Ende:** Die Partie endet durch Festnahme, Umzingelung, deine
+  Flucht, das Rundenlimit oder ein Remis (aktiv beendbar über „Als
+  Remis beenden" mit Bestätigung).
+
+## Spielbrett
+
+Die Karte ist als Comic-Stadt gezeichnet: Auf Münster erkennst du den
+Aasee im Südwesten, den grünen Promenadenring um die Altstadt, den
+Schlosspark, das Hafenbecken und die Aa; auf Lübeck die Wasserlinie
+der Altstadtinsel. Wichtige Orte tragen kleine Wahrzeichen-Bilder —
+Dom, Lamberti, Rathaus, Schloss, Hauptbahnhof, Mühlenhof-Mühle oder
+das Holstentor — gezeichnet als flache Comic-Symbole mit dicken
+Konturen. Die Darstellung ist rein dekorativ: Sie verdeckt keine
+Spielinformationen und nimmt keine Eingaben entgegen.
+
+## Beispiele
+
+- Du stehst auf dem Diebstahl-Zielort: Neben dem Weiterziehen erscheint
+  die Schaltfläche „Diebstahl ausführen".
+- Nach dem Informanten-Treffen entscheidest du: Sabotage „Funkstille"
+  am Stadtwerk — oder direkt zum Fluchtpunkt.
+
+## Einschränkungen
+
+- Der Ganove sieht **keine** Kameras und **keine** Hinweise der
+  Detektive — das ist gewollte Informationsasymmetrie; der Polizeifunk
+  ist der einzige Einblick (einmalig).
+- Stadt, Perspektive, Werte und Mission wählst du im Menüfluss — die
+  Vorschläge der Karte sind vorausgewählt, und „Unbegrenzt" beim
+  Rundenlimit ist nur auf Karten wählbar, die es erlauben.
+
+---
+
+# Detektiv-Modus — Beschreibung
+
+## Zweck
+
+Der zweite Spielmodus kehrt die Perspektive um: Du führst den ganzen
+**Detektivtrupp** gegen den KI-Ganoven — einkreisen, Hinweise lesen
+und den unsichtbaren Gegner deduktiv eingrenzen.
+
+## Funktionsweise
+
+- **Moduswahl:** Im Hauptmenü wählst du Karte, Modus, Einstellungen
+  und Mission — `?mode=detektiv` öffnet diesen Modus alternativ direkt
+  (Entwickler-Einstieg).
+- **Startaufstellung:** Nach „Neue Partie" verteilst du deine
+  Detektive Posten für Posten (D1 → Dn) auf die markierten legalen
+  Kandidaten — der Startort des Ganoven wird verdeckt gezogen und nie
+  angezeigt. Karten mit `random`-Aufstellung weisen die Posten
+  automatisch zu.
+- **Karte:** Du siehst die komplette Stadtkarte: alle Orte mit
+  Klarnamen und Ortskategorien (Diebstahl-/Kontakt-/Flucht-/Sabotage-
+  Pool als Flaggensymbol), Zonen als farbige Grundflächen (Legende
+  nennt die Zonennamen), Wege und Fahrten, gesperrte Straßen mit
+  Sperrzeichen, deine Detektive als nummerierte Meeple-Figuren (der
+  ziehende trägt eine Fahne) und alle
+  Kameras — aktive als gefülltes Symbol, sabotierte gestrichen. Den
+  Ganoven siehst du **nie**.
+- **Ziehen:** Die Detektive ziehen in fester Reihenfolge D1 → Dn;
+  der aktive Detektiv ist hervorgehoben, seine legalen Zielorte grün
+  markiert und klick-/tastaturbedienbar. Nach dem letzten Detektiv
+  zieht der KI-Ganove automatisch (die Anzeige zeigt „Der Ganove
+  zieht …") — der Fang wird nach jedem einzelnen Detektivzug geprüft.
+- **Hinweis-Chronik:** Jeder detektivsichtbare Hinweis landet
+  chronologisch in der Chronik — mit Rundenbadge, Art (Kamera,
+  Sichtung, Bereichshinweis, Aktions-Spur, Straßensperrung) und Ort
+  bzw. Zone.
+- **Eigene Marker:** Im „Marker setzen"-Modus legst du per Klick
+  Stecknadel-Marker auf beliebige Orte und kommentierst sie in der
+  Liste — deine Notizen bleiben über die ganze Partie bestehen und
+  gehen nicht in den Spielverlauf ein.
+- **„Mögliche Positionen"-Overlay:** Die blauen Rauten zeigen exakt
+  die Menge an Orten, auf denen der Ganove laut Deduktionsmodell
+  noch sein kann — dieselbe Berechnung, mit der die KI-Detektive
+  arbeiten. Ein-/ausschaltbar, mit Zähler.
+- **Missionsstruktur:** Die Seitenleiste zeigt die Schrittfolge mit
+  Status und jeweils der Größe des Zielpools — welchen Ort der
+  Ganove gezogen hat, bleibt verborgen.
+- **Ende:** Festnahme, Umzingelung, Flucht des Ganoven, Rundenlimit
+  oder Remis — jeder Endzustand wird verständlich angezeigt.
+
+## Einschränkungen
+
+- Die Asymmetrie gilt umgekehrt: Zielorte der Mission, Position des
+  Ganoven und seine Sichtdaten existieren auf dieser Oberfläche nicht.
+- Einzelne Detektive können nicht „stehenbleiben" (Zugzwang) und
+  bewegen sich nur über eine Kante pro Zug.

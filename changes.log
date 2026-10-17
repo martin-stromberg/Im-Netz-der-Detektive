@@ -1,0 +1,601 @@
+# Änderungsprotokoll
+
+## 2026-10-15 — Endabnahme & Polishing des Brettspiel-Designs (Schritt 8)
+
+- Vollständiger Audit-Durchgang über alle Screens und Verträge:
+  Design-Konsistenz, A11y (`:focus-visible`, Tab-Reihenfolge, Form+Farbe),
+  Reduced Motion, `data-*`-Selektor-Vertrag, Perspektiven-Filter
+  (`MapGraph`), i18n-Parität, Build/`dist`-Hygiene und `ASSETS.md` —
+  ohne weitere Befunde.
+- Nachbesserungen: `:focus-visible` auf `.primaryButton`
+  (`GanoveScreen.module.css`), `.numberInput`/`.selectInput`
+  (`Menu.module.css`) und `.removeButton` (`DetektivScreen.module.css`)
+  zeigt jetzt einen sichtbaren 2-px-Ring in `--color-amber-bright`
+  statt nur eines Farbwechsels; die `box-shadow`-Transition der
+  Verfolgungs-Vignette (`.mapArea::after`) ist jetzt ebenfalls unter
+  `prefers-reduced-motion` abgeschaltet.
+- Kontrast-Dokumentation ergänzt: `--color-text` auf `--color-inset-bg`
+  (16,1:1, Inset-Eingabefelder) in den Header-Tabellen von `theme.css`
+  und `GanoveScreen.module.css`.
+- Neuer E2E-Test `focus rings stay visible on interactive controls` in
+  `e2e/design.spec.ts` — Tastaturfokus verifiziert die Ringe auf Button,
+  Select, Number-Input und Entfernen-Chip.
+- Alle Gates grün: 617/617 Vitest (Lines-Coverage 91,44 %, Threshold
+  70 %), 40/40 Playwright-E2E, Lint/Format/Typecheck sauber, alle sechs
+  Git-Hook-Checks im `--all --strict`-Modus ohne Befund, `npm run build`
+  grün und `dist` ohne externe Laufzeit-Referenzen (Font lokal als
+  WOFF2 ausgeliefert).
+
+## 2026-10-15 — Spieltisch: alle Screens als gemeinsame Tisch-Komposition (Brettspiel-Redesign Schritt 7)
+
+- `.screen` (von allen zwölf Screens geteilt) ist jetzt die dunkle
+  Tischfläche: `bg-noir`-Textur unter einem ~90 %-deckenden Schleier
+  aus den neuen Tokens `--color-table-veil`/`--color-table-veil-edge`,
+  dazu warmer Filz-Schimmer und Tischkanten-Vignette;
+  `background-color: var(--color-table)`, `.shell` (Overscroll) in
+  `--color-table-edge`.
+- `.layout` (`.mapArea` + `.sidebar`) ist eine gerahmte Spieleinlage:
+  Pappenrand, dunkle Schnittkante, vertiefte Fläche — das
+  Pergament-Brett wirft seinen Brettschatten auf die Einlage;
+  `.sidebar` liest als vertieftes Kartenfach für die
+  Edelkarten-Panels, `.statusBar` als eingelassene Zählleiste.
+- Flache Reste entfernt: `.perspectiveToggle` ist eine eingelassene
+  Schalterplatte mit geprägtem Messing-Segment (neue Composite-Token
+  `--brass-face`, mit `.primaryButton` geteilt); `.cardImage` trägt
+  den Kartenrand (Titelbild, Karten- und Fallbilder).
+- Rein CSS (`theme.css`, `App.module.css`, `GanoveScreen.module.css`,
+  `Menu.module.css`): DOM-Hierarchie, `data-view`/`data-testid` und
+  die 900-px-Stapelung unverändert; Overlay-Stack
+  (EventBanner > Verfolgungs-Vignette > Splash > Brett) intakt.
+- Tests: zwei neue E2E-Tests in `e2e/design.spec.ts` (Tischfläche und
+  Controls sowie Einlage/Kartenfach/Overlay-Stack/Responsivität) —
+  617/617 Vitest, 39/39 Playwright grün.
+
+## 2026-10-15 — Edelkarten: Panels & UI-Flächen mit Kartenhaptik (Brettspiel-Redesign Schritt 6)
+
+- Alle UI-Flächen teilen die neue Edelkarten-Anatomie aus `theme.css`:
+  `--card-face` (fünfschichtiger Kartengrund mit dezenter
+  Ecken-Prägung und Karton-Schimmer) + `--card-rim` (gravierte
+  Innenlinie `--color-card-line` + dunkle Schnittkante
+  `--color-cardboard-edge`) + `--shadow-card` + `--radius-card` (10 px).
+- Umgestellt (nur CSS, keine `.tsx`-Änderung): `.panel`,
+  `.card`, `.statBox`, `.confirm` (Danger-Karte), `.notice`
+  (behält Danger-Leiste), `.splash`, `EventBanner .banner`,
+  `HeatBadge`/`PursuitBadge`-Pills (Level-Codierung unverändert),
+  `MissionPanel`-Modul und `DetektivScreen`-Inputs.
+- Buttons wirken metallisch/embossed (Gradient + Innenlicht +
+  Schatten); Farbcodierung, Texte, Hover- und `:focus-visible`-Regeln
+  unverändert. Inputs lesen sich als eingelassene Karten-Slots,
+  `.summaryTable` und `.perspectiveToggle` erhalten den Kartenrahmen.
+- Kontraste aller neuen Paarungen (≥ WCAG AA, schwächster Wert 5.6:1)
+  im `theme.css`-Header dokumentiert; Legenden-Swatches,
+  `data-*`-Attribute und Reduced-Motion-Regeln unverändert.
+- Tests: neuer E2E-Test in `e2e/design.spec.ts` prüft die
+  Computed-Style-Anatomie (Rand, Radius, Schatten-Stapel), den
+  Embossed-Button, die Badge-Pill und den Amber-Fokusring via
+  echtem Tastatur-Fokus — 37/37 Playwright-Tests grün.
+
+## 2026-10-15 — Routen: gezeichnete Kartenwege statt Drahtlinien (Brettspiel-Redesign Schritt 5)
+
+- Jede Kante in `MapGraph` (`<g data-edge>`) rendert jetzt zwei
+  übereinanderliegende `<line>` — die klassische
+  „cased line"-Kartentechnik: eine dekorative `edgeCasing`-Fassung
+  (`aria-hidden`, `stroke-linecap: round`) unter der semantischen
+  Kern-Linie, die weiterhin `data-edge-type`/`data-blocked` trägt.
+- `weg` liest als befestigte Straße (dunkle Sepia-Fassung
+  `--color-map-weg`, 4.6 px + heller Papierkern), `fahrt` als
+  kräftigere Trasse (breitere Fassung `--color-map-fahrt`, 6 px +
+  Papierkern als rechteckige Schwellen per `stroke-dasharray` mit
+  `linecap: butt`) — eigenes Muster statt bloß anderem Dasharray;
+  Typen unterscheiden sich über Muster + Form + Farbe.
+- Blockierte Kanten bleichen die Fassung (`edgeCasingBlocked`,
+  `--color-map-blocked`) und sprengen den Kern zu Unterbrechungen
+  (`edgeBlocked` nach `.edgeFahrt` deklariert); das rote
+  `data-block-glyph`-Kreuz bleibt die Form-Kodierung, `edgeFlash`
+  (Amber-Puls, `prefers-reduced-motion`-fest) unverändert.
+- Deterministisch und performant: kein `Math.random()`, kein
+  `feTurbulence`-Displacement; `pointer-events: none` unverändert.
+- `MapLegend`/`DetectiveMapLegend` spiegeln die Zweistrich-Anatomie
+  (`legendWegCasing`/`legendFahrtCasing` + Kern-Linien) — keine neuen
+  sichtbaren Strings.
+- Tests: drei neue Vitest-Fälle (Casing-Struktur, blockierte Fassung,
+  Legenden-Mirror beider Legenden) und ein E2E-Test in
+  `e2e/design.spec.ts` (Computed Styles, Schwellen-Muster,
+  Reduced-Motion-Regel für `edgeFlash`).
+
+## 2026-10-15 — Spielfiguren: Meeple-Spielsteine statt flacher Marker (Brettspiel-Redesign Schritt 4)
+
+- Neues Modul `src/components/boardPieces.tsx` (+ `boardPieces.module.css`)
+  liefert stehende Meeple-Glyphen nach `landmarks.tsx`-Konvention:
+  Fußpunkt am Ursprung, `aria-hidden`, `useId`-`radialGradient` für das
+  Körpervolumen, `pieceShadow`-Schlagschatten und `pieceBase`-Sockel.
+- Detektiv und Ganove unterscheiden sich über Silhouette + Farbe +
+  Beschriftung: aufrechte Figur mit `pieceIndex`-Ziffer (D1..Dn) in
+  Blau versus Mantel-A-Linie mit Fedora (`pieceHat`, `pieceHatBand`)
+  und `pieceFace`-Schatten in Amber/Dunkel — Farbe nie alleinig.
+- `MapGraph` ersetzt `detectiveMarker`-`rect` und `ganoveMarker`-Raute
+  durch die Figuren; `data-detective`/`data-active-detective`/
+  `data-ganove`, die `translate(x, y-16)`-Ankerung und die
+  `markerMove`-Gleit-Transition (480 ms, `prefers-reduced-motion`-fest)
+  bleiben unverändert; kein Info-Leak (`ganovePosition` weiterhin nur
+  Ganove-Perspektive).
+- Der aktive Detektiv pflanzt eine `pieceActiveMark`-Fahne
+  (`pieceFlag`/`pieceFlagPole` in `--color-map-accent`) samt
+  `pieceActiveBase`-Sockelring — Hervorhebung per Form + Farbe.
+- `MapLegend` und `DetectiveMapLegend` zeigen Miniaturen derselben
+  Figuren (`scale(0.5)`, ohne Ziffer); die Klassen `legendDetective`/
+  `legendGanove` und alle alten Marker-Regeln entfallen.
+- Tests: sechs neue „board pieces"-Tests + zwei Legenden-Tests in
+  `MapGraph.test.tsx`; ein E2E-Test in `e2e/design.spec.ts` (Computed
+  Styles, Transition, Reduced-Motion, Amber-Fahne, Legenden-Mirror).
+
+## 2026-10-15 — Orts-Tokens: Orte als geprägte Plaketten statt Punkte (Brettspiel-Redesign Schritt 3)
+
+- `MapGraph` rendert jeden Ort als `nodeToken`-Plakette:
+  `tokenShadow`-Schatten, eingefasster `tokenRim` (r=8), geprägte
+  `tokenFace` via neuem `radialGradient` `{defsId}-tokenFace` in `<defs>`
+  (`useId`-Muster) und gravierte `tokenInner`-Linie — der flache
+  `nodeDot`-Kreis entfällt.
+- Zustände als Form + Farbe: `nodeLegal`/`nodeSelectable` (inkl.
+  markierbarer Orte) perforieren die Fassung in Legal-Grün; der
+  gestrichelte `legalRing` gilt jetzt für jede wählbare Stelle;
+  `:focus-visible` und `nodeCurrentTarget` setzen den soliden
+  Amber-Fassungsring, `nodeGanoveHere` färbt die Token-Fläche.
+- Testvertrag unverändert: alle `data-*`-Attribute, Hit-Area r=14
+  (allein pointer-sensitiv), Overlay-Positionen und das
+  Pfeiltasten-Roaming bleiben erhalten.
+- Legenden spiegeln die Token-Form: `MapLegend`-Swatch zur
+  Mini-Plakette umgebaut, `DetectiveMapLegend` um das identische
+  Orts-Swatch (`legend.target`) erweitert.
+- Tests: sechs neue Vitest-Assertions (Token-Anatomie, Hit-Area,
+  Ring-Konsistenz, Gradient-Auflösung, Legenden-Spiegel beider
+  Perspektiven) und ein E2E-Test in `e2e/design.spec.ts` (geprägte
+  Plaketten im Browser inkl. `:focus-visible`-Ring).
+
+## 2026-10-15 — Brett-Materialität: Pergament-Fläche, Pappenrand, Tischschatten (Brettspiel-Redesign Schritt 2)
+
+- `MapGraph` erhält eine dekorative Brettfläche als erstes SVG-Kind:
+  `<defs>` mit `feTurbulence`-Papierkörnung und `radialGradient`-
+  Vignette plus `boardFace`-Gruppe (Papier, Körnung, Vignette,
+  Papierschnitt); `useId`-basierte IDs für die zwei Replay-Instanzen.
+- `.map` (`MapGraph.module.css`) wirkt als physisches Brett:
+  `--color-paper`-Grund, 7-px-`--color-cardboard`-Rand,
+  `--color-cardboard-edge`-Außenring und `--shadow-board`-Schlagschatten
+  via `box-shadow`; `box-sizing: border-box` gegen Überlauf.
+- Neue dunkle Karten-Tinten `--color-map-*` in `theme.css` (mit
+  dokumentierten Kontrasten gegen `--color-paper`); alle Kartenfarben —
+  Ortslabels, Kanten, Blockade-Kreuz, Kategorien, Zonen-Halos,
+  Kameras, Marker, Legenden — auf papier-taugliche Werte umgestellt;
+  `--color-feature-*`-Palette auf Vintage-Pergament-Geographie
+  umgetönt.
+- Legenden-Swatches beider Perspektiven auf Papier-Chips
+  (`.legendItem svg`) mit denselben Map-Tokens wie das Brett.
+- Tests: drei neue `MapGraph`-Assertions (Brettfläche/Layer-Position,
+  ID-Eindeutigkeit, `data-layer`-Reihenfolge) und ein E2E-Test in
+  `e2e/design.spec.ts` (Computed Styles + Label-Kontrast).
+
+## 2026-10-15 — Design-Fundament: Theme-Tokens und Schmuckschrift (Brettspiel-Redesign Schritt 1)
+
+- Neues globales Stylesheet `src/theme.css` (Import in `src/main.tsx`):
+  alle Farben als `:root`-Custom-Properties (`--color-*`), dazu neue
+  Brettspiel-Tokens für Papier, Pappe, Tisch und Schatten sowie
+  `--font-display`; dokumentierte WCAG-AA-Kontrastpaarungen.
+- Schmuckschrift „IM Fell English" (SIL OFL) lokal als WOFF2 unter
+  `src/assets/fonts/` eingebettet und auf alle Titel/Überschriften
+  angewendet — kein externer Font-Request; Lizenz in
+  `src/assets/ASSETS.md` dokumentiert.
+- Alle CSS-Module (Shared-Theme `GanoveScreen.module.css` plus neun
+  weitere) auf `var()` umgestellt — Klassennamen, Struktur und
+  `data-*`-Attribute unverändert.
+- Neue E2E-Suite `e2e/design.spec.ts`: Schmuckschrift auf Titeln,
+  keine externen Font-Requests, aktive `:root`-Tokens.
+
+## 2026-10-14 — i18n final, Barrierefreiheit und Audio-Dramaturgie (Schritt 13)
+
+- Laufzeit-Sprachumschaltung: `src/state/uiPrefs.ts` hält die
+  persistierten Anwendungseinstellungen (`indd.ui-prefs` in
+  localStorage, `StorageLike`-Boundary); `src/i18n/index.ts` wählt
+  den Katalog jetzt anhand `useUiPrefs` (`t(key, params, lang?)`,
+  `getLanguage`, `hasTranslation`, `resolveText` für
+  Daten-Referenzschlüssel mit Literal-Fallback); `App` abonniert die
+  Sprache und setzt `<html lang>`. Neuer `AppSettingsScreen` im
+  Hauptmenü (Sprach-Toggle DE/EN, Lautstärke-Regler, Stummschalter).
+- i18n-Referenzschlüssel in Datenpaketen: `MissionCase` erhält
+  `nameKey`/`storyKey`, `MapPack` `taglineKey` — vom Validator als
+  optionale nicht-leere Strings geprüft, vom UI via `resolveText`
+  aufgelöst; Münster-Set und beide Karten nutzen sie.
+- Neuer Hook-Check `no-hardcoded-strings-check.py`
+  (`npm run check:strings`, in `pre-commit`/`pre-push`): blockiert
+  sichtbare String-Literale in `.tsx` (JSX-Textkinder,
+  `{"…"}`-Kinder, `aria-label`/`aria-description`/`placeholder`/`alt`/
+  `title`-Attribute); `i18n-allow` als auditiertes Escape.
+- Barrierefreiheit: Pfeiltasten-Roaming zwischen interaktiven Knoten
+  in `MapGraph` (geometrisch, `nextInteractiveNode`); `role="alert"`
+  auf Hinweis-/Fehlerausgaben, `aria-live="polite"` auf dem
+  Phasenindikator, `role="status"` auf Endbildschirmen;
+  Tastatur-Hinweis in beiden Kartenlegenden; Kontrastfix
+  `status_erledigt` (3,2:1 → 5,6:1) + Fokus-Outline auf `.card`;
+  Palette und gemessene WCAG-AA-Kontraste im CSS-Header dokumentiert.
+- Prozedurales Audio (`src/audio/`): `AudioEngine.ts` synthetisiert
+  gestufte Heat-Signale (1/2/3 Töne je erreichtem Stufen-Anstieg)
+  und eine dezente Polizeiaktivitäts-Kulisse (gefiltertes Rauschen +
+  Funk-Blips via `createRng`); `gameAudio.ts` koppelt Engine an
+  Store (Heat-Anstieg → Signal, laufende Partie → Ambient,
+  Volume/Mute live aus `useUiPrefs`) und an den Autoplay-Unlock beim
+  ersten Nutzer-Gesture; `supported`-Gate hält jsdom still.
+- 37 neue Unit-/Komponententests (579 gesamt) und 3 neue E2E-Tests
+  (29 gesamt): Sprachwechsel-Pfad, Audio-Persistenz,
+  Tastatur-Kernflow.
+
+## 2026-10-14 — Persistenz, Replay-Player und Statistiken (Schritt 12)
+
+- Speicherbare Partien („Partie speichern" in beiden Spielmodi):
+  `SaveGame.ts` friert den laufenden Zustand als versionierten
+  `ResumeEntry` ein (`SAVE_SCHEMA_VERSION`, `GameStateSnapshot` =
+  alle `GameData`-Felder außer `map`/`log`, Log als JSONL);
+  `GameIndex.ts` verwaltet die Stände unter `RESUME_STORAGE_KEY`
+  (Upsert pro `gameId`, FIFO `MAX_RESUME_ENTRIES` = 10,
+  Schema-Filter mit klarer Ablehnung fremder Versionen,
+  Fremd-Einträge bleiben beim Schreiben erhalten);
+  `gameStore.resumeGame` stellt den Zustand bitidentisch wieder her —
+  inklusive `radioUsed`, `hintSilenceUntilRound`/`falseTrailUntilRound`,
+  Kameras, Sperrungen und `activeDetectiveIndex`. `ResumeScreen`
+  listet die Stände mit Klartext und löscht einzeln; `MainMenu`
+  aktiviert „Partie fortsetzen".
+- Deterministischer Replay-Player (`ReplayPlayer.ts` +
+  `ReplayScreen.tsx`): `openReplay` rekonstruiert den Start aus dem
+  Log-Header, `replayTo(n)` spielt die ersten n Aktoreinträge neu
+  (`resetGame` + `startGame` + Aktionen) — Schritt vor/zurück landet
+  bitgleich, „Abspielen" läuft bis zum aufgezeichneten Ende. Der
+  Perspektiv-Umschalter rendert Ganove- und Detektiv-Sicht nach
+  `visibleTo` wie im Live-Spiel (Detektiv-Sicht ohne
+  `ganovePosition`, nur Deduktions-Overlay); der Store wird beim
+  Verlassen zurückgesetzt. `startOptionsFromHeader` reicht
+  `config.playerMode` durch (Header-Rekonstruktion bleibt bitgleich).
+- Aggregierte Statistiken (`Statistics.ts` + erweiterter
+  `StatsScreen`): Siegquote je Seite und je gespieltem Modus
+  (`header.config.playerMode`, neu via `StartGameOptions.playerMode`),
+  Ø Runden, Ø Hinweise, Ø Kameratreffer — unfertige/beschädigte
+  Logs fallen heraus. Log-Verwaltung: Replay/Export/Löschen je
+  Eintrag (`Recorder.getGameLog`/`deleteGameLog` positionsbasiert)
+  und „Alle löschen" mit Rückfrage.
+- `chronicle.ts` als gemeinsames Modul für die Detektiv-Chronik
+  (Live-Screen und Replay) aus `DetektivScreen` extrahiert.
+- 45 neue Unit-/Komponententests (539 gesamt; darin die
+  Review-Nachzügler Schema-Erhalt beim Schreiben und
+  `playerMode`-Header-Roundtrip) und
+  5 neue Playwright-Szenarien in `e2e/persistenz.spec.ts`
+  (Speichern→Reload→Fortsetzen, Statistik+Löschaktionen, Export-
+  Download, Replay-Timeline/Perspektiven, Auto-Play) — alle grün.
+
+## 2026-10-14 — Anwendungsrahmen: Menü, Einstellungen, Szenario-Auswahl (Schritt 11)
+
+- Vollständiges Hauptmenü mit zustandsbasiertem Fluss
+  (`menu → map → mode → settings → mission → game`): Kartenwahl
+  Münster/Lübeck (Hamburg/Köln „in Vorbereitung"), Moduswahl
+  Ganove/Detektiv/Dev, korridorgebundene Einstellungen je Karte
+  (`{suggested, min, max}`, „Unbegrenzt" nur wo erlaubt,
+  Ereignismodus + vereinheitlichte Kadenz) und Missionsauswahl
+  (Fall mit Mini-Story, Zufall, spielerdefiniert mit
+  Kriterienprüfung, ohne Mission). Die vorläufige Moduswahl ist
+  ersetzt; `?mode=` bleibt Deep-Link.
+- Missionsbewusste Startaufstellung: `ganoveSpawnChoicesForMission`/
+  `pickGanoveSpawnForMission` filtern die Ganove-Kandidaten zusätzlich
+  nach den Missionskriterien (Fall/Custom/`resolvedMission`) — ein
+  gezogener Start, der die Mission sofort unspielbar machte, wird
+  nicht mehr angeboten. `MissionLoader.resolveFixedTargets` liefert
+  die festen Ziele vor dem Draw.
+- `StartGameOptions`/`GameState` um `eventMode` + `eventDefaults`
+  erweitert (validierte Overrides, im Event-Header protokolliert,
+  `startOptionsFromHeader` rekonstruiert sie); `GameIndex.ts`
+  liefert die persistenzfähigen Einträge `GameSummary`/
+  `ResumeEntry` für Schritt 12 — die Statistikansicht listet die
+  aufgezeichneten Partien bereits.
+- Dev-Modus: `AiSimulation`-Batch (Karte/Größe/Seed wählbar) mit
+  `summarizeBatch`-Auswertung; drei lokal eingebettete
+  KI-generierte Rasterassets (`src/assets/`, Pollinations.ai,
+  dokumentiert in `ASSETS.md`) für Titel- und Kartenkarten.
+- 48 neue Unit-/Komponententests (494 gesamt) und 8 neue
+  Playwright-Szenarien in `e2e/menu.spec.ts` (20 gesamt) — alle
+  grün; Coverage 92,4 % Statements.
+
+## 2026-10-14 — Detektiv-Perspektive / zweiter Spielmodus (Schritt 10)
+
+- Zweiter spielbarer Modus: `DetektivScreen` (`src/components/`) führt
+  durch Startansicht, Detektiv-Aufstellung (D1 → Dn aus legalen
+  Kandidaten; Ganove-Start verdeckt gezogen, nie angezeigt) und die
+  laufende Partie mit allen Endzuständen samt „Als Remis beenden".
+- Neuer store-gebundener `ganoveDriver` (`src/state/`): spielt die
+  komplette KI-Ganove-Phase synchron nach dem letzten Detektivzug —
+  Sabotage-Binärwahl, Polizeifunk und missionsgesteuerte Züge über
+  `buildGanoveView`/`chooseGanoveTurn` mit denselben Seed-
+  RNG-Konventionen wie `AiSimulation`.
+- `MapGraph` um detektivseitige Props erweitert: Kameras (aktiv/
+  sabotiert mit Streichung), Zonen-Flächen, Ortskategorien, aktiver
+  Detektiv, Spielermarker-Pins, „Mögliche Positionen"-Rauten —
+  formkodiert, nicht nur farblich. Pointer-Events der Karte laufen
+  ausschließlich über die vorgesehenen Trefferflächen der Knoten.
+- Detektiv-Werkzeuge: chronologische Hinweis-Chronik (Art, Ort/Zone,
+  Runde — nur `visibleEvents(…, "detectives")`), kommentierbare
+  Spielermarker (UI-Notizen, kein Eventlog), Overlay exakt aus
+  `deducePossiblePositions` mit Log-Header-Prior, Missionsstruktur mit
+  Poolgrößen ohne Ziel-IDs.
+- Vorläufige Moduswahl in `App.tsx`: Startauswahl bzw.
+  `?mode=ganove`/`?mode=detektiv` (endgültiges Menü in Schritt 11).
+- Strukturelle Asymmetrie: keine `ganovePosition`-/`mission.targets`-
+  Weitergabe an die Detektiv-Ansicht — E2E-verifiziert in jeder Runde
+  einer kompletten Partie; Kameras nur im Detektiv-Modus.
+- 26 neue Unit-/Komponententests (445 gesamt, Zeilenabdeckung 92,7 %)
+  und 7 neue Playwright-Szenarien (`e2e/detektiv.spec.ts`, 12 gesamt)
+  inklusive kompletter deterministischer Partie über echte
+  DOM-Interaktion, Overlay-vs.-Engine-Gleichheit und
+  Marker-Persistenz. Vollständige DE/EN-i18n-Parität.
+
+## 2026-10-14 — Ganove-Perspektive / spielbarer Primärmodus (Schritt 9)
+
+- Der Primärmodus ist vollständig spielbar: `GanoveScreen`
+  (`src/components/`) führt durch Startansicht, Ganove-Startpunktwahl
+  (Detektive zuerst per Seed gelegt, Ganove wählt zuletzt aus legalen
+  Optionen) und die laufende Partie mit allen Endzuständen samt
+  „Als Remis beenden".
+- Neue geteilte SVG-Kartenkomponente `MapGraph`: Knoten mit Klarnamen,
+  `weg`/`fahrt` unterschiedlich gezeichnet, gesperrte Kanten ausgegraut
+  mit Sperr-Glyphe, Detektiv-/Ganove-/Missions-/Flucht-Marker
+  formkodiert (nicht nur farblich), interaktive Knoten per Klick und
+  Tastatur (Tab + Eingabe), Legende unter der Karte. Die Komponente
+  besitzt strukturell keine Kamera-/Hinweis-Schnittstelle — die
+  Ganove-Sicht kann Asymmetrie-Informationen nicht anzeigen.
+- `src/state/detectiveDriver.ts`: `installDetectiveDriver` abonniert
+  den Store und treibt jede Detektivphase synchron mit
+  `chooseDetectiveMove`/`moveDetective` und `aiRng(seed, round,
+  index+1)` — bitgleiche KI-Konvention wie die Simulation;
+  `detectiveStartsFromLog` rekonstruiert den Spawn-Prior aus dem
+  Log-Header.
+- `MissionPanel` (Schrittfolge, aktuelles Ziel, endgültige
+  Sabotage-Binärwahl), `HeatBadge` (4 Stufen mit Icon + Text) und der
+  Intel-Feed (nur ganovensichtbare Events: `umwelt`, `polizeifunk`) in
+  der Seitenleiste; alle Texte über neue i18n-Schlüssel in
+  `de.json`/`en.json` (paritätisch, Hook-geprüft).
+- Testinfrastruktur: Vitest + jsdom + Testing Library
+  (`src/test/setup.ts`), Playwright-E2E (`playwright.config.ts`,
+  `e2e/ganove.spec.ts`, `npm run test:e2e`) inklusive einer kompletten
+  deterministischen Münster-Partie bis zur Flucht; DEV-only
+  `window.__gameStore`-Exposition für E2E-Introspektion.
+
+## 2026-10-13 — Deduktion, Detektiv-/Ganove-KI, KI-Simulation (Schritt 8)
+
+- Neues Modul `src/logic/Deduction.ts`: `deducePossiblePositions`
+  errechnet alle Ganoven-Positionen mit konsistenter Positionshistorie
+  aus den detektivsichtbaren Events — Pfadinduktion über Kantenzüge
+  (Verharren nur mit `aktion`), Constraints für `camera`,
+  `sichtbarkeit`, `aktion`, `hinweis` (Zonenball) und `umwelt`
+  (ab Folgerunde), Besetzungsfilter durch Detektive, Negativ-Schluss
+  für stille aktive Kameras in Bewegungsrunden, Spawn-Prior aus
+  `ganoveSpawnChoices`; `lastHintAnchor` liefert den jüngsten
+  positionsgebenden Hinweis.
+- `Movement.ts`: `bfsOpenDistances` — blockungsbewusste BFS ohne
+  Besetzungsfilter (Deduktion filtert selbst).
+- Neues Modul `src/logic/DetectiveAI.ts`: `DetectiveView` (strukturell
+  gefilterte Detektivsicht — keine Ganovenposition, nur
+  Missions*struktur*), `chooseDetectiveMove` steuert alle Detektive
+  koordiniert: Summe der Mindestdistanzen über die Glaubensmenge
+  minimieren (Aufteilung/Einkreisung), Hinweisanker, Fallback auf den
+  letzten Hinweisbereich bei widersprüchlicher Menge.
+- Neues Modul `src/logic/GanoveAI.ts`: `GanoveView` (ganovenseitige
+  Wahrheit), `chooseGanoveTurn` (Zug/Aktion mit `SAFE_ACTION_GAP`-,
+  `MOVE_SAFE_GAP`-, `EVADE_DISTANCE`- und Hitze-Timing plus
+  Deadline-Override; Funk-bekannte Kameras und ausweglose Knoten
+  werden gemieden; auf `sabotage`/`flucht` wird committed),
+  `chooseSabotagePath` (BFS-Umweg gegen `sabotageDetour`, `kritisch` →
+  Flucht), `shouldUseRadio` (einmalig ab Hitze ≥ `erhoeht`).
+- Neues Modul `src/logic/AiSimulation.ts` + `scripts/sim.ts` +
+  `vite.sim.config.ts` + `npm run sim`: headless KI-vs.-KI auf dem
+  gemeinsamen Store bis zu regulären Endbedingungen, deterministisch
+  je Seed (`mixSeed(seed ^ 0xa11ce5, round, index)`), `runAiBatch` +
+  `summarizeBatch` mit Outcome-Verteilung, Runden, Hinweisen,
+  Kameratreffern, Sabotage- und Radio-Quoten; `--out` schreibt pro
+  Partie ein JSONL-Log.
+- `eslint.config.js`: `dist-sim/` in `ignores`; `.gitignore`: `dist-sim/`.
+- 54 neue Tests (Deduction/DetectiveAI/GanoveAI/AiSimulation/sim):
+  exakte Skript-Szenarien, Belief-Invarianz (echte Position nie
+  ausgeschlossen), strukturelle Info-Trennung, Reproduzierbarkeit,
+  Batch-Aggregation, CLI-Parsing.
+
+## 2026-10-13 — Eventlog-Korrektur: Zustandsrekonstruktion (Schritt 7)
+
+- `startOptionsFromHeader` übergibt die im `header` aufgezeichneten
+  `mission`/`cameras` jetzt als neue `StartGameOptions`
+  `resolvedMission` (`RecordedMission | null`) bzw. `resolvedCameras`
+  (`string[]`): `startGame` übernimmt sie wörtlich statt Mission und
+  Kameras erneut aus dem RNG-Strom zu ziehen. Damit stimmt die
+  Rekonstruktion für jede Spawn-/Missionskombination exakt — zuvor
+  verschoben übersprungene Spawn-Züge (explizite `starts`) Mission
+  und Kameras im Strom (Abweichung in 29/30 Fällen im Seed-Sweep).
+- Der Header zeichnet `mission.story` neu mit auf (Fall-Storys), damit
+  auch vordefinierte „Fälle" verlustfrei rekonstruieren.
+- `resolveRecordedMission`/`resolveRecordedCameras` validieren die
+  aufgezeichneten Knoten-IDs gegen die Karte (`GameConfigError`);
+  Missionskriterien werden nicht erneut geprüft (galten bei
+  Aufzeichnung). `resolvedMission: null` steht für Partien ohne
+  Mission (`"none"` oder nicht generierbares `"auto"`).
+- 17 neue Tests: Seed-Sweeps (1–10) über teststadt/luebeck/muenster für
+  vollständig gezogene, teils-explizite (nur Detektive / nur Ganove)
+  und missionsvariante Starts (`auto`/`random`/`none`/Fall/`custom`,
+  inkl. `sabotageEffect`-Fall `kurier-am-hafen`); Rekonstruktion ==
+  Originalzustand und bitgleiche `header`-Zeile.
+
+## 2026-10-13 — Eventlog / Aufzeichnung (Schritt 7)
+
+- Neues Modul `src/logic/Recorder.ts`: JSONL-Serialisierung des
+  Partie-Logs (`serializeLog`/`serializeLogEntry`/`parseLog`,
+  `headerFromLog`, `startOptionsFromHeader` zur Zustandsrekonstruktion
+  aus Header + Seed), `localStorage`-FIFO der letzten
+  `MAX_STORED_LOGS` (10) Partien über den injizierbaren
+  `StorageLike`-Adapter und `exportGameLog` als Blob-Download hinter
+  der DOM-Grenze — beides no-op in headless Läufen.
+- `useGameStore.log` auf das Spec-§8-Format gehoben: flache Einträge
+  ohne `details`-Kapselung, `visibleTo` auf jedem Eintrag, Header mit
+  `gameId` (deterministisch `g-{seed}` oder `StartGameOptions.gameId`),
+  `config` (alle effektiven Startwerte inkl. Missionsoption),
+  `mission`, `cameras` und `starts`; Events mit `seq`/`round`/`type`.
+- Neue/protokollierte Vorgänge: `sabotage_offer` zweiteilig (Angebot
+  mit `offered`, Wahl mit `chosen` — ersetzt `mission_choice`),
+  `edge_unblock` beim Ablauf von Kantensperrungen; `result` trägt jetzt
+  `outcome` (inkl. `draw`) plus Balancing-Metriken `rounds`,
+  `hintsTotal`, `camerasTriggered`.
+- `finish()` persistiert das vollständige Log automatisch; die
+  Store-Action `exportGameLog()` liefert die „Partie exportieren"-
+  Datei (`Blob`, `application/x-ndjson`).
+- 32 neue Tests (`Recorder.test.ts`, `gameStore.log.test.ts`):
+  Spec-Format bitgenau, alle Event-Typen in einer vollständigen Partie,
+  `visibleTo`-Belegung je Typ, bitgleiches Log bei gleichem Seed,
+  Zustandsrekonstruktion aus dem Header, FIFO-Grenze und
+  korrupte Storage-Inhalte, Export-Blob und Auto-Persist.
+
+## 2026-10-13 — Missionssystem (Schritt 6)
+
+- Zwei neue reine Logikmodule: `src/logic/MissionSystem.ts` (Typen
+  `MissionKind`/`MissionStage`/`MissionTargets`/`MissionCase`/
+  `MissionSet`, `missionCriteriaViolations` mit allen
+  BFS-Kriteriencodes, `generateMission` via Rejection-Sampling,
+  `validateCustomTargets`/`validateMissionSet`, Laufzeithelfer
+  `executableMissionAction`, `missionStructure`, `drawSabotageEffect`,
+  `sabotageDuration`) und `src/logic/MissionLoader.ts`
+  (`loadMissionSet`/`listMissionSetIds`/`hasMissionSet`/
+  `getMissionCase`, synchron via `import.meta.glob` aus
+  `src/data/missions/`).
+- Neues Missionsset `src/data/missions/muenster.json` mit zwei
+  benannten Fällen (`diebstahlserie-altstadt`, `kurier-am-hafen`) inkl.
+  Story; die Datenintegritätssuite `missionData.test.ts` verifiziert
+  jeden Fall gegen alle Kriterien für jeden möglichen Ganoven-Start.
+- `useGameStore` verdrahtet die Mission in den Rundenmotor:
+  `startGame` löst `options.mission` (`auto`/`random`/`none`/`case`/
+  `custom`) zwischen Spawn und Kameraplatzierung auf, bindet
+  `escapeNodeIds` an `targets.flucht` und schützt alle
+  Missionszielknoten vor Kameras; `ganoveAction` führt Missionsaktionen
+  am freigegebenen Zielknoten aus (stehen bleiben, fangbar, exaktes
+  `aktion`-Spur-Event vor der Detektivphase); `chooseMissionPath`
+  beantwortet das Sabotage-Angebot des Informanten endgültig;
+  `hintSilenceUntilRound`/`falseTrailUntilRound` tragen die Fenster
+  für `funkstille`/`falsche_spur` — die Ereignisengine unterdrückt
+  Hinweise bzw. liefert falsch-konsistente Zonen; `kamera_aus`
+  deaktiviert alle Kameras. Umzingelung zählt eine ausführbare
+  Missionsaktion als legalen Zug.
+- `MoveRejection` um `mission_choice_pending` und `no_mission_choice`
+  erweitert; `MoveError` deckt die neuen Ableitungen ab.
+- 63 neue Tests (`MissionSystem`, `MissionLoader`, `missionData`,
+  `gameStore.mission`) plus drei angepasste Bestandsdateien — insgesamt
+  272 Tests grün, Coverage 93,7 % Lines.
+
+## 2026-10-13 — Informationssystem (Schritt 5)
+
+- Drei neue reine Logikmodule: `src/logic/CameraSystem.ts`
+  (Kameraplatzierung mit `cameraMinGap`-BFS-Mindestabstand und
+  Ausschlussliste, `triggeredCamera`, `deactivateAll` für die spätere
+  Kamera-Sabotage), `src/logic/EreignisEngine.ts` (Auslösemodi
+  `cycle`/`chance`/`tension` mit Spannungsreset, gewichteter
+  `eventMix`-Typzug, `zoneHint` mit BFS-Ball `hintZoneRadius`,
+  `pickBlockableEdge` mit Konnektivitäts-/Isolations-Check — nie letzte
+  freie Kante, nie Graph-Zerteilung) und `src/logic/InformationSystem.ts`
+  (`visibleTo`-Asymmetrie-Sichten, `radioHintSummary`,
+  `revealedGanovePosition`, `heatLevel` mit Gewichtungstabelle und
+  3-Runden-Fenster).
+- `useGameStore` verdrahtet die Informationsschicht in den Rundenmotor:
+  `startGame` platziert die Kameras im selben Seed-Strom wie die
+  Spawns (Header-Log führt `cameras`), `moveGanove`/`ganoveAction`
+  führen Kamera- und Ereignisprüfung intern sofort nach dem
+  Ganovenzug aus — neue Hinweise liegen den Detektiven vor ihren Zügen
+  vor. Neue Actions `useRadio` (Polizeifunk, 1×/Partie, letzte
+  `radioHintCount` Hinweise inkl. Kameratreffer),
+  `deactivateCameras` und `getHeatLevel`; neue State-Felder
+  `radioUsed`/`radioHintCount`/`edgeBlockRounds`; `StartGameOptions`
+  um `cameraCount`, `cameraProtectedNodes`, `radioHintCount`,
+  `edgeBlockRounds` (korridorvalidiert via `GameConfigError`).
+- Datenseitige Asymmetrie: `GameEvent.visibleTo` um `"ganove"`
+  erweitert; Hinweise (`camera`/`sichtbarkeit`/`hinweis`/`aktion`)
+  ausschließlich detektivsichtig, `umwelt`-Sperrungen beidseitig.
+  `mixSeed(seed, round)` liefert den Ereignissen einen eigenen
+  deterministischen RNG-Strom pro Runde (serialisierbarer State).
+- 45 neue Tests (`CameraSystem.test.ts`, `EreignisEngine.test.ts`,
+  `InformationSystem.test.ts`, `gameStore.info.test.ts`) inklusive
+  Invarianz-Nachweisen über viele Seeds und des automatisierten
+  Asymmetrie-Checks.
+
+## 2026-10-13 — Rundenmotor (Schritt 4)
+
+- Neues Logikmodul `src/logic/Movement.ts`: reine Bewegungsregeln
+  (1 Zug = 1 Kante `weg`/`fahrt`, Zugzwang, besetzte Knoten für den
+  Ganoven tabu, Detektive teilen Knoten, `blockedEdges` für beide
+  Seiten), `legalMoves`-/`validateMove`-Funktionen und `MoveError` mit
+  maschinenlesbaren `reason`-Codes.
+- `useGameStore` ist jetzt der vollständige Rundenmotor:
+  `moveGanove`/`moveDetective` (feste Reihenfolge D1→Dn) treiben die
+  Zwei-Phasen-Runden; die Fangprüfung läuft nach jedem Einzelzug und
+  beendet die Partie sofort mitten in der Detektivphase.
+- Alle fünf Endbedingungen als `outcome` (`caught`/`surrounded`/
+  `escaped`/`timeout`/`draw`, konsistent zum Eventlog-`result.outcome`):
+  Umzingelung zu Beginn jeder Ganovenphase, Flucht über `flucht`-Knoten
+  (`escapeNodeIds`, per `setEscapeNodeIds` für die missionsgebundene
+  Flucht vorbereitet), Zeitlimit aus `roundLimit` inklusive
+  `null` = „unbegrenzt", Remis via `abortAsDraw()`.
+- Aktionsrunde des Ganoven als Prüfpunkt vorgesehen (`ganoveCanAct`-Flag
+  + `ganoveAction()`, einzige Zugzwang-Ausnahme) — das Missionssystem
+  befüllt den Hook in einem Folgeschritt.
+- 52 neue Engine-Tests (`Movement.test.ts`, `gameStore.rounds.test.ts`,
+  `gameStore.endings.test.ts`) mit skriptgesteuerten Partien auf
+  `teststadt` und eigenen Mini-Fixture-Karten.
+
+## 2026-10-13 — Kartenpakete Münster und Lübeck (Schritt 3)
+
+- Hauptkarte `src/data/maps/muenster.json`: 59 echte, wiedererkennbare
+  Orte auf angenäherter Münster-Topografie (Innenstadt zentral,
+  Schlosspark westlich, Aasee südwestlich, Hafen südlich, Hauptbahnhof
+  südöstlich), 101 Kanten (95 `weg`, 6 `fahrt` auf Bus-/Bahn-Achsen),
+  Ø-Knotengrad 3,42, alle vier Missionskategorien mehrfach vertreten,
+  Münster-Balancing-Startwerte und Spawn-Regeln (`minDistanceToDetective`
+  3).
+- Validierungskarte `src/data/maps/luebeck.json`: 22 Knoten der
+  Lübecker Altstadtinsel (Holstentor, Marienkirche, Dom u. a.),
+  39 Kanten mit Brücken-Engpässen, bewusst unbalanciert (4 Fluchtpunkte,
+  `cameraMinGap` 1, `eventMode` `cycle`, `zones`-basierte
+  Detektiv-Spawns).
+- Beide Pakete laden ohne Hartcodierung über `loadMap(id)`; Graphen
+  zusammenhängend. Neue Testsuite `src/logic/mapData.test.ts` (17 Tests)
+  sichert Strukturmetriken, Settings-Format und die
+  Missionskriterien-Erfüllbarkeit (Tripel-Distanzen, Routenbudgets
+  18/22, Sabotage-Umweg) automatisiert ab.
+
+## 2026-10-13 — Engine-Grundgerüst (Schritt 2)
+
+- Headless-fähiger Spielkern in `src/logic/`: Kartenpaket-Typen plus
+  Laufzeit-Validierung (`validateMapPack`, `MapValidationError`) als
+  Spiegel des Schema-Hooks, `MapLoader.loadMap(id)` über gebündelte
+  JSON-Pakete, Graph-Grundfunktionen (Nachbarschaften,
+  BFS-Kantendistanzen) und `SpawnSystem` (choice/free/random,
+  Detektive-vor-Ganove, `minDistanceToDetective`).
+- Zentraler deterministischer Seeded-RNG (`createRng`, mulberry32) als
+  einzige Zufallsquelle der Engine-Module.
+- `useGameStore` um die spezifizierten State-Felder (round, phase,
+  Positionen, mission, events, cameras, blockedEdges, eventMode,
+  tensionValue, seed, log) und imperative Actions erweitert —
+  vollständig headless treibbar.
+- Gültige Test-Karte `teststadt` als Fixture-Paket angelegt;
+  Scaffold-Platzhalter (`placeholder.ts`) durch die echte
+  Engine-Struktur ersetzt.
+
+## 2026-10-13 — Projekt-Scaffold und Qualitätsinfrastruktur (Schritt 1)
+
+- Vite + React 18 + TypeScript-Grundgerüst mit Feature-Slice-Struktur
+  (`src/components`, `src/logic`, `src/state`, `src/data`), minimaler
+  App-Shell, Zustand-Store, CSS-Modulen und i18n-Basis (`de`/`en`) aufgesetzt.
+- Qualitätswerkzeuge eingerichtet: ESLint (Flat Config), Prettier,
+  `tsc --noEmit`, Vitest mit erzwungener 70-%-Zeilenabdeckung und erstem
+  Testbestand.
+- Lokale Git-Hooks unter `.githooks/` adaptiert: Branch-Schutz für
+  `main`/`staging`, Stub-, i18n-, Komponenten-, Kartenpaket-Schema- und
+  `Math.random()`-Prüfungen; Install-Skripte setzen `core.hooksPath`.
+- Vollständige CI-Pipeline eingerichtet: sieben Workflows
+  (PR-Gates mit Coverage-Schwelle, RC-Prereleases auf `staging`,
+  Promotion-/Backmerge-PRs, Release mit Asset-Repair, wöchentlicher
+  Security-Scan) plus Composite Actions `build-and-package` und
+  `security-scan`; Release-Asset ist ein ZIP des statischen Builds.
