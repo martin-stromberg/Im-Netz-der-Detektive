@@ -20,7 +20,7 @@
  * so it is unit-testable without network access.
  */
 import { spawnSync } from "node:child_process";
-import { appendFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -94,6 +94,21 @@ export async function resolveReleaseVersion(deps) {
       releaseKind: "manual",
       deps,
     });
+  }
+
+  // Release-series pin: while `.release-series` exists at the repo root,
+  // the automatic main path releases nothing — the pinned series (e.g.
+  // "0.1.0") belongs to staging prereleases (vX.Y.Z-rc.N) until the
+  // promotion ships a manual tag. Final release then goes through the
+  // manual tag path, not semantic-release's computed default.
+  const pinned = deps.readReleaseSeries ? deps.readReleaseSeries() : readReleaseSeries();
+  if (pinned) {
+    return {
+      released: false,
+      reason: `release-series-pinned:${pinned}`,
+      release_kind: "automatic",
+      release_action: "none",
+    };
   }
 
   const dryRun = await deps.runSemanticReleaseDryRun();
@@ -195,6 +210,15 @@ function listGitHubReleases({ repo }) {
     throw new Error(`gh api failed listing releases: ${result.stderr.trim()}`);
   }
   return JSON.parse(result.stdout).flat();
+}
+
+function readReleaseSeries() {
+  const file = resolve(".release-series");
+  if (!existsSync(file)) {
+    return null;
+  }
+  const pin = readFileSync(file, "utf8").trim();
+  return /^\d+\.\d+\.\d+$/.test(pin) ? pin : null;
 }
 
 async function runSemanticReleaseDryRun() {

@@ -206,6 +206,15 @@ jobs:
             changed="true"
           fi
 
+          # Release-series pin: while `.release-series` exists, all staging
+          # prereleases accumulate under the pinned version (vX.Y.Z-rc.N)
+          # instead of following semantic-release's computed version. The
+          # semantic-release output above still decides whether any
+          # release-worthy commits exist ("changed").
+          if [[ "$changed" == "true" && -f .release-series ]]; then
+            version="$(tr -d '[:space:]' < .release-series)"
+          fi
+
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
 
